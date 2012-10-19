@@ -1,9 +1,10 @@
 function [noise mask noiseSpec] = ...
-    genBubbleNoise(dur_s, sr, profile, hopFrac, sizeF_mel, sizeT_s, ...
-    bubblesPerSec, randomness)
+    genBubbleNoise(dur_s, sr, bubblesPerSec, profile, hopFrac, ...
+    sizeF_mel, sizeT_s, randomness)
 
 % Generate noise that is localized in time and frequency
 
+if ~exist('profile', 'var') || isempty(profile), profile = 0.064; end
 if ~exist('hopFrac', 'var') || isempty(hopFrac), hopFrac = 0.25; end
 if ~exist('sizeF_mel', 'var') || isempty(sizeF_mel), sizeF_mel = 0.4; end
 if ~exist('sizeT_s', 'var') || isempty(sizeT_s), sizeT_s  = 0.04; end
@@ -13,7 +14,8 @@ if ~exist('randomness', 'var') || isempty(randomness), randomness = 2; end
 phaseIter = 10;
 
 if numel(profile) == 1
-  nF = profile;
+  % Convert from seconds to samples, make sure it's odd
+  nF = 1 + 2*round(profile * sr / 2);
 else
   nF = length(profile);
 end
@@ -22,11 +24,11 @@ dur  = round(dur_s * sr);
 nFft = (nF-1)*2;
 hop  = round(hopFrac * nFft);
 
-whiteNoise = randn(1, dur);
+whiteNoise = randn(1, dur + nFft);
 whiteNoise = whiteNoise * 0.99 / max(abs(whiteNoise));
 noiseSpec = stft(whiteNoise, nFft, nFft, hop);
 nT = size(noiseSpec,2);
-nBubbles = dur_s * bubblesPerSec;
+nBubbles = round(dur_s * bubblesPerSec);
 
 mask = zeros(nF, nT);
 
@@ -71,19 +73,23 @@ highPassWin = freqVec_mel' > 0;
 
 mask = bsxfun(@times, profile .* highPassWin, mask);
 [noise noiseSpec] = phaseRecon(mask, noiseSpec, phaseIter, nFft, hop);
+noise = noise(1:dur)';
 
 ca = [-120 20];
-if 1
-    subplots(listMap(@(x) max(-120, 20*log10(abs(x))), ...
-        {noiseSpec}), [1 -1])
-else
-    subplot(2,1,1)
-    semilogx(20*log10(abs(noiseReSpec(:, 1:min(end,200)))))
-    ylim(ca)
-    
-    subplot(2,1,2)
-    semilogx(20*log10(mask(:, 1:min(end,200))))
-    ylim(ca)
-    
-    subplot 111
+doPlot = 0;
+if doPlot
+    if 1
+        subplots(listMap(@(x) max(-120, 20*log10(abs(x))), ...
+            {noiseSpec}), [1 -1])
+    else
+        subplot(2,1,1)
+        semilogx(20*log10(abs(noiseReSpec(:, 1:min(end,200)))))
+        ylim(ca)
+        
+        subplot(2,1,2)
+        semilogx(20*log10(mask(:, 1:min(end,200))))
+        ylim(ca)
+        
+        subplot 111
+    end
 end
