@@ -7,20 +7,26 @@ function [vals correct paths picked] = findMrtBubbleNoiseParams(...
 if ~exist('inDir', 'var') || isempty(inDir), inDir = 'Z:\data\mrt\helenWords01'; end
 if ~exist('wordSetListFile', 'var') || isempty(wordSetListFile), wordSetListFile = 'Z:\data\mrt\rhymes.txt'; end
 if ~exist('tuneBps', 'var') || isempty(tuneBps), tuneBps = false; end
-if ~exist('bubblesPerSec', 'var') || isempty(bubblesPerSec), bubblesPerSec = 10; end
-if ~exist('snr_dB', 'var') || isempty(snr_dB), snr_dB = -25; end
+if ~exist('bubblesPerSec', 'var') || isempty(bubblesPerSec), bubblesPerSec = 15; end
+if ~exist('snr_dB', 'var') || isempty(snr_dB), snr_dB = -30; end
 if ~exist('dur_s', 'var') || isempty(dur_s), dur_s = 2; end
 
 maxIter = 50;
 inARow = 3;
 stopHist = 7;
+useHoles = true;
+targetSr = 8000;
 
 % Figure out arguments to makeMix based on which variable is being tuned
 if tuneBps
     beforeArgs = {};
     curVal = bubblesPerSec;
     afterArgs = {10^(snr_dB/20), dur_s};
-    harderFrac = 1.1;
+    if useHoles
+        harderFrac = 0.9;
+    else
+        harderFrac = 1.1;
+    end
 else
     beforeArgs = {bubblesPerSec};
     curVal = 10^(snr_dB/20);
@@ -56,7 +62,7 @@ for i = 1:maxIter
     paths{i} = wavFile;
     
     % Make mixture
-    [mix sr] = makeMix(wavFile, beforeArgs{:}, curVal, afterArgs{:});
+    [mix sr] = makeMix(wavFile, targetSr, useHoles, beforeArgs{:}, curVal, afterArgs{:});
     
     % Print prompt
     fprintf('\n')
@@ -92,7 +98,7 @@ for i = 1:maxIter
             && all(correct(i-inARow+1:i) == correct(i))
         curVal = curVal * harderFrac.^(2*correct(i)-1);
         fprintf('\b   newVal: %g\n', curVal);
-        waitToAdapt = inARow + 1;
+        waitToAdapt = inARow;
     end
     waitToAdapt = waitToAdapt - 1;
     
@@ -107,20 +113,30 @@ for i = 1:maxIter
 end
 
 
-function [mix sr] = makeMix(cleanFile, bubblesPerSec, snr, dur_s)
+function [mix targetSr] = makeMix(cleanFile, targetSr, useHoles, bubblesPerSec, snr, dur_s)
 
 % SNR is in linear units
 
-noiseScale_dB = 45;
+noiseScale_dB = 0;
 speechRms = 0.1;
 
+if useHoles
+    sizeF_erb = 0.4;
+    sizeT_s = 0.02;
+else
+    sizeF_erb = 0.4;
+    sizeT_s = 0.04;
+end
+
 [speech sr] = wavread(cleanFile);
+speech = resample(speech, targetSr, sr);
 speech = speech * speechRms / rmsNonZero(speech, -60);
 
 dur = round(dur_s * sr);
 pad = dur - length(speech);
 speech = [zeros(ceil(pad/2),1); speech; zeros(floor(pad/2),1)];
 
-noise = 10^(noiseScale_dB/20)*genBubbleNoise(dur_s, sr, bubblesPerSec);
+noise = 10^(noiseScale_dB/20)*genBubbleNoise(dur_s, sr, bubblesPerSec, useHoles, sizeF_erb, sizeT_s);
 mix = snr*speech + noise;
 
+spectrogram(mix, 1024, 1024-256, 1024, sr)

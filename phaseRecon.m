@@ -13,9 +13,10 @@ for i = 1:nIter
     phase = spec ./ abs(spec);
     
     if 0
-        subplots([listMap(@(x) max(-120, 20*log10(abs(x))), ...
-            {spec, targetMag}), {angle(phase), angle(initialPhase)}]);
+        subplots({angle(phase), angle(initialPhase), angle(phase./initialPhase)});
+%         subplots([listMap(@(x) max(-120, 20*log10(abs(x))), ...
+%             {spec, targetMag}), {angle(phase), angle(initialPhase)}]);
         title(num2str(i))
-        pause
+        pause(.5)
     end
 end
