@@ -5,7 +5,7 @@ function [vals correct paths picked] = findMrtBubbleNoiseParams(...
 % until the user gets 50% correct.
 
 if ~exist('inDir', 'var') || isempty(inDir), inDir = 'Z:\data\mrt\helenWords01'; end
-if ~exist('wordSetListFile', 'var') || isempty(wordSetListFile), wordSetListFile = 'Z:\data\mrt\rhymes.txt'; end
+if ~exist('wordSetListFile', 'var') || isempty(wordSetListFile), wordSetListFile = 'Z:\data\mrt\rhymesEdited.txt'; end
 if ~exist('tuneBps', 'var') || isempty(tuneBps), tuneBps = false; end
 if ~exist('bubblesPerSec', 'var') || isempty(bubblesPerSec), bubblesPerSec = 15; end
 if ~exist('snr_dB', 'var') || isempty(snr_dB), snr_dB = -30; end
@@ -47,7 +47,8 @@ for i = 1:maxIter
     vals(i) = curVal;
     
     while true
-        s = ceil(rand(1) * size(words,1));
+        %s = ceil(rand(1) * size(words,1));
+        s = 8;
         w = ceil(rand(1) * size(words,2));
         word = words{s, w};
         ind = strmatch(word, wavFileNames);
@@ -62,7 +63,7 @@ for i = 1:maxIter
     paths{i} = wavFile;
     
     % Make mixture
-    [mix sr] = makeMix(wavFile, targetSr, useHoles, beforeArgs{:}, curVal, afterArgs{:});
+    [mix sr] = mixBubbleNoise(wavFile, targetSr, useHoles, beforeArgs{:}, curVal, afterArgs{:});
     
     % Print prompt
     fprintf('\n')
@@ -111,32 +112,3 @@ for i = 1:maxIter
         end
     end
 end
-
-
-function [mix targetSr] = makeMix(cleanFile, targetSr, useHoles, bubblesPerSec, snr, dur_s)
-
-% SNR is in linear units
-
-noiseScale_dB = 0;
-speechRms = 0.1;
-
-if useHoles
-    sizeF_erb = 0.4;
-    sizeT_s = 0.02;
-else
-    sizeF_erb = 0.4;
-    sizeT_s = 0.04;
-end
-
-[speech sr] = wavread(cleanFile);
-speech = resample(speech, targetSr, sr);
-speech = speech * speechRms / rmsNonZero(speech, -60);
-
-dur = round(dur_s * sr);
-pad = dur - length(speech);
-speech = [zeros(ceil(pad/2),1); speech; zeros(floor(pad/2),1)];
-
-noise = 10^(noiseScale_dB/20)*genBubbleNoise(dur_s, sr, bubblesPerSec, useHoles, sizeF_erb, sizeT_s);
-mix = snr*speech + noise;
-
-spectrogram(mix, 1024, 1024-256, 1024, sr)

@@ -4,6 +4,9 @@ function [picked paths correct] = runMrtTrial(wavDir, wordSetListFile, nTrials)
 % response, return vector indicating which trials were correct and what the
 % confusions were.
 
+if ~exist('wordSetListFile', 'var') || isempty(wordSetListFile), wordSetListFile = 'Z:\data\mrt\rhymesEdited.txt'; end
+if ~exist('nTrials', 'var') || isempty(nTrials), nTrials = 20; end
+
 [wavFileNames wavFilePaths] = findFiles(wavDir, '\.wav');
 words = textread(wordSetListFile, '%s');
 words = reshape(words, 6, [])';
@@ -11,7 +14,8 @@ words = reshape(words, 6, [])';
 picked = {};
 paths = {};
 for i = 1:nTrials
-    s = ceil(rand(1) * size(words,1));
+    %s = ceil(rand(1) * size(words,1));
+    s = 8;
     w = ceil(rand(1) * size(words,2));    
     word = words{s, w};
     
