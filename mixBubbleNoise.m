@@ -24,4 +24,4 @@ speech = [zeros(ceil(pad/2),1); speech; zeros(floor(pad/2),1)];
 noise = 10^(noiseScale_dB/20)*genBubbleNoise(dur_s, sr, bubblesPerSec, useHoles, sizeF_erb, sizeT_s);
 mix = snr*speech + noise;
 
-spectrogram(mix, 1024, 1024-256, 1024, sr)
+%spectrogram(mix, 1024, 1024-256, 1024, sr), drawnow
