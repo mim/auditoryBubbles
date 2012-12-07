@@ -1,16 +1,50 @@
-function nsfFigure(word, svmThreshold)
+function nsfFigure(svmThreshold)
 
 % Draw a figure for my NSF proposal showing example results for one word
 
-if ~exist('word', 'var') || isempty(word), word = 'fin'; end
 if ~exist('svmThreshold', 'var') || isempty(svmThreshold), svmThreshold = 0.7; end
 
-cleanName = sprintf('Clean "%s"', word);
-[cleanSpec svmVis specs specNames] = loadAllSpecs(word, svmThreshold);
+words = {'din', 'fin', 'pin', 'sin', 'tin', 'win'};
 
-specs = [{cleanSpec, svmVis} specs];
-names = [{cleanName, 'SVM importance'} specNames];
-subplots(specs, [], names)%, @(c,r,i) caxis([-70 10]));
+for w = 1:length(words)
+    figure(w)
+    word = words{w};
+    cleanName{w} = sprintf('Clean "%s"', word);
+    [cleanSpec{w} svmVis{w} specs specNames] = loadAllSpecs(word, svmThreshold);
+    svmName{w} = sprintf('SVM "%s"', word);
+
+    if length(specs) == 20
+        % Replace first spec with clean
+        specs{1} = cleanSpec{w};
+        names = [cleanName(w) specNames(2:end)];
+    else
+        % Prepend first clean spec
+        specs = [cleanSpec(w) specs];
+        names = [cleanName(w) specNames];
+    end
+    %specs = [{cleanSpec{w}, svmVis{w}} specs];
+    %names = [{cleanName{w}, 'SVM importance'} specNames];
+    subplots(specs, [], names, @singleSubplotSettings);
+end
+figure(length(words)+1)
+subplots([cleanSpec svmVis], [-1 length(words)], [cleanName svmName], @summarySubplotSettings)
+
+
+function summarySubplotSettings(r, c, i)
+if r == 1
+    caxis([-70 10])
+end
+colorbar off
+if mod(i, c) ~= 1
+    set(gca, 'YTickLabel', {})
+end
+
+function singleSubplotSettings(r, c, i)
+caxis([-70 10])
+colorbar off
+if mod(i, c) ~= 1
+    set(gca, 'YTickLabel', {})
+end
 
 
 function [cleanSpec svmVis specs specNames] = loadAllSpecs(word, svmThreshold)
@@ -49,3 +83,4 @@ end
 nFft = round(win_s * fs);
 hop = round(nFft / 4);
 X = max(-70, db(stft(x', nFft, nFft, hop)));
+
