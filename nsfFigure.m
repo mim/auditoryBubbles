@@ -1,16 +1,19 @@
-function nsfFigure(svmThreshold)
+function nsfFigure(toFile)
 
 % Draw a figure for my NSF proposal showing example results for one word
 
 if ~exist('svmThreshold', 'var') || isempty(svmThreshold), svmThreshold = 0.7; end
-
 words = {'din', 'fin', 'pin', 'sin', 'tin', 'win'};
 
+prt('ToFile', toFile, 'Width', 6, 'Height', 9/2, ...
+    'TargetDir', 'Z:\data\mrt\figsNsf', ...
+    'SaveTicks', 1)
+
 for w = 1:length(words)
-    figure(w)
+    %figure(w)
     word = words{w};
     cleanName{w} = sprintf('Clean "%s"', word);
-    [cleanSpec{w} svmVis{w} specs specNames] = loadAllSpecs(word, svmThreshold);
+    [cleanSpec{w} svmVis{w} specs specNames freqFac timeFac] = loadAllSpecs(word, svmThreshold);
     svmName{w} = sprintf('SVM "%s"', word);
 
     if length(specs) == 20
@@ -22,32 +25,51 @@ for w = 1:length(words)
         specs = [cleanSpec(w) specs];
         names = [cleanName(w) specNames];
     end
-    %specs = [{cleanSpec{w}, svmVis{w}} specs];
-    %names = [{cleanName{w}, 'SVM importance'} specNames];
-    subplots(specs, [], names, @singleSubplotSettings);
+    keep = [1:4 6:9 11:20];
+    subplots(specs(keep), [3 6], names(keep), @(r,c,i) singleSubplotSettings(r,c,i,freqFac,timeFac));
+    prt(word)
 end
-figure(length(words)+1)
-subplots([cleanSpec svmVis], [-1 length(words)], [cleanName svmName], @summarySubplotSettings)
+%figure(length(words)+1)
+subplots([cleanSpec svmVis], [-1 length(words)], [cleanName svmName], @(r,c,i) summarySubplotSettings(r,c,i,freqFac,timeFac))
+prt('svm')
 
 
-function summarySubplotSettings(r, c, i)
+function summarySubplotSettings(r, c, i, freqFac, timeFac)
 if r == 1
     caxis([-70 10])
 end
-colorbar off
-if mod(i, c) ~= 1
-    set(gca, 'YTickLabel', {})
-end
+sharedSubplotSettings(r, c, i, freqFac, timeFac)
 
-function singleSubplotSettings(r, c, i)
+function singleSubplotSettings(r, c, i, freqFac, timeFac)
 caxis([-70 10])
+sharedSubplotSettings(r, c, i, freqFac, timeFac)
+
+function sharedSubplotSettings(r, c, i, freqFac, timeFac)
 colorbar off
 if mod(i, c) ~= 1
     set(gca, 'YTickLabel', {})
+else
+    scaleLabels('YTickLabel', freqFac, 1);
+    ylabel('Freq (Hz)')
+end
+if floor((i-1) / c) ~= (r-1)
+    set(gca, 'XTickLabel', {})
+else
+    scaleLabels('XTickLabel', timeFac, 0);
+    xlabel('Time (s/100)')
 end
 
+function scaleLabels(labelName, scale, doRound)
+curTicks = get(gca, labelName);
+newTickVals = str2num(curTicks) * scale;
+if doRound
+    newTickVals = round(newTickVals);
+end
+newTicks = num2str(newTickVals);
+set(gca, labelName, newTicks);
 
-function [cleanSpec svmVis specs specNames] = loadAllSpecs(word, svmThreshold)
+
+function [cleanSpec svmVis specs specNames freqFac timeFac] = loadAllSpecs(word, svmThreshold)
 
 win_s = 0.032;
 cleanFile = fullfile('Z:\data\mrt\helenWords01', [word '.wav']);
@@ -57,9 +79,9 @@ drawnow
 
 cleanSpec = loadSpectrogram(cleanFile, win_s, 1);
 for i = 1:length(uPaths)
-    specs{i} = loadSpectrogram(uPaths{i}, win_s, 0);
+    [specs{i} freqFac timeFac] = loadSpectrogram(uPaths{i}, win_s, 0);
     features{i} = reshape(specs{i} - cleanSpec, 1, []);
-    specNames{i} = sprintf('Correct: %g%%', round(100*cr(i)));
+    specNames{i} = sprintf('%g%% correct', round(100*cr(i)));
 end
 
 features = cat(1, features{:});
@@ -67,7 +89,7 @@ svm = svmtrain(features, cr > svmThreshold);
 svmVis = reshape(svm.Alpha' * svm.SupportVectors, size(specs{1}));
 
 
-function X = loadSpectrogram(path, win_s, doScale)
+function [X freqFac timeFac] = loadSpectrogram(path, win_s, doScale)
 
 speechRms = 0.1;
 len_s = 0.65;
@@ -84,3 +106,5 @@ nFft = round(win_s * fs);
 hop = round(nFft / 4);
 X = max(-70, db(stft(x', nFft, nFft, hop)));
 
+freqFac = fs / nFft; % Convert FFT bin to Hz
+timeFac = hop / fs * 100;  % Convert frame num to s/100 (cs)
