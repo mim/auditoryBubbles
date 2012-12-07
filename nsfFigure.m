@@ -5,7 +5,15 @@ function nsfFigure(word, svmThreshold)
 if ~exist('word', 'var') || isempty(word), word = 'fin'; end
 if ~exist('svmThreshold', 'var') || isempty(svmThreshold), svmThreshold = 0.7; end
 
-%function [cleanSpec svmVis specs specNames] = loadSpecs(word, svmThreshold)
+cleanName = sprintf('Clean "%s"', word);
+[cleanSpec svmVis specs specNames] = loadAllSpecs(word, svmThreshold);
+
+specs = [{cleanSpec, svmVis} specs];
+names = [{cleanName, 'SVM importance'} specNames];
+subplots(specs, [], names)%, @(c,r,i) caxis([-70 10]));
+
+
+function [cleanSpec svmVis specs specNames] = loadAllSpecs(word, svmThreshold)
 
 win_s = 0.032;
 cleanFile = fullfile('Z:\data\mrt\helenWords01', [word '.wav']);
@@ -14,23 +22,15 @@ cleanFile = fullfile('Z:\data\mrt\helenWords01', [word '.wav']);
 drawnow
 
 cleanSpec = loadSpectrogram(cleanFile, win_s, 1);
-X{1} = cleanSpec;
-names{1} = sprintf('Clean "%s"', word);
 for i = 1:length(uPaths)
-    X{i+1} = loadSpectrogram(uPaths{i}, win_s, 0);
-    features{i} = reshape(X{i+1} - cleanSpec, 1, []);
-    names{i+1} = sprintf('Correct: %g%%', round(100*cr(i)));
+    specs{i} = loadSpectrogram(uPaths{i}, win_s, 0);
+    features{i} = reshape(specs{i} - cleanSpec, 1, []);
+    specNames{i} = sprintf('Correct: %g%%', round(100*cr(i)));
 end
 
 features = cat(1, features{:});
 svm = svmtrain(features, cr > svmThreshold);
-svmVis = reshape(svm.Alpha' * svm.SupportVectors, size(X{1}));
-
-X = [X(1) {svmVis} X(2:end)];
-names = [names(1) {'SVM importance'} names(2:end)];
-
-subplots(X, [], names)%, @(c,r,i) caxis([-70 10]));
-
+svmVis = reshape(svm.Alpha' * svm.SupportVectors, size(specs{1}));
 
 
 function X = loadSpectrogram(path, win_s, doScale)
