@@ -1,13 +1,15 @@
-function nsfFigure(toFile)
+function nsfFigure(toFile, startAt)
 
 % Draw a figure for my NSF proposal showing example results for one word
 
+if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 if ~exist('svmThreshold', 'var') || isempty(svmThreshold), svmThreshold = 0.7; end
 words = {'din', 'fin', 'pin', 'sin', 'tin', 'win'};
 
-prt('ToFile', toFile, 'Width', 6, 'Height', 9/2, ...
+prt('ToFile', toFile, 'StartAt', startAt, ...
+    'Width', 8, 'Height', 9/2, ...
     'TargetDir', 'Z:\data\mrt\figsNsf', ...
-    'SaveTicks', 1)
+    'SaveTicks', 1, 'Resolution', 200)
 
 for w = 1:length(words)
     %figure(w)
@@ -38,6 +40,15 @@ function summarySubplotSettings(r, c, i, freqFac, timeFac)
 if r == 1
     caxis([-70 10])
 end
+if isLastRow(r, c, i)
+    biggest = max(abs(caxis));
+    caxis([-biggest biggest])
+    %colormap(easymap('bwr', 256))
+    %freezeColors
+else
+    %colormap(jet(256))
+    %freezeColors
+end
 sharedSubplotSettings(r, c, i, freqFac, timeFac)
 
 function singleSubplotSettings(r, c, i, freqFac, timeFac)
@@ -52,12 +63,15 @@ else
     scaleLabels('YTickLabel', freqFac, 1);
     ylabel('Freq (Hz)')
 end
-if floor((i-1) / c) ~= (r-1)
+if ~isLastRow(r, c, i)
     set(gca, 'XTickLabel', {})
 else
     scaleLabels('XTickLabel', timeFac, 0);
     xlabel('Time (s/100)')
 end
+
+function p = isLastRow(r, c, i)
+p = floor((i-1) / c) == (r-1);
 
 function scaleLabels(labelName, scale, doRound)
 curTicks = get(gca, labelName);
