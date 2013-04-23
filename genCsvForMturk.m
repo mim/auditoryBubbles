@@ -48,14 +48,4 @@ for i = 1:(length(urlLines)-1)/urlsPerHit
     lines{i} = cat(2, urlLines{ind});
 end
 
-writeCellToCsv(outFile, [{header} lines]);
-
-
-function writeCellToCsv(fileName, lines)
-ensureDirExists(fileName)
-f = fopen(fileName, 'w');
-for i = 1:length(lines)
-    fprintf(f, '"%s"\n', join(lines{i}, '","'));
-end
-fclose(f);
-fprintf('Wrote CSV to "%s"\n', fileName)
+csvWriteCells(outFile, [{header} lines]);
