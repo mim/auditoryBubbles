@@ -10,6 +10,9 @@ function C = csvReadCells(fileName)
 
 text = fileread(fileName);
 lines = split(text, '\n');
+nonEmpty = cellfun(@(x) ~isempty(x), lines);
+lines = lines(nonEmpty);
+
 for i = 1:length(lines)
     line = regexprep(regexprep(lines{i}, '"\s*$', ''), '^"', '');
     fields = strrep(split(line, '","'), '\"', '"');
