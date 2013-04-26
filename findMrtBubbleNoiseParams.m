@@ -15,7 +15,8 @@ maxIter = 50;
 inARow = 3;
 stopHist = 7;
 useHoles = true;
-targetSr = 8000;
+%targetSr = 0;    % Use native sample rate of wave files
+targetSr = 16000;
 
 % Figure out arguments to makeMix based on which variable is being tuned
 if tuneBps
@@ -47,8 +48,8 @@ for i = 1:maxIter
     vals(i) = curVal;
     
     while true
-        %s = ceil(rand(1) * size(words,1));
-        s = 8;
+        s = ceil(rand(1) * size(words,1));
+        %s = 8;
         w = ceil(rand(1) * size(words,2));
         word = words{s, w};
         ind = strmatch(word, wavFileNames);

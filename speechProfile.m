@@ -11,6 +11,7 @@ persistent profiles;
 if ~exist('profiles', 'var'), profiles = []; end
 
 refFile = 'Z:\data\mrt\Helen_side_chunk_1.wav';
+%refFile = '/home/mim/download/mrt/Helen_side_chunk_1.wav';
 refQuantile = 0.99;
 
 fieldName = sprintf('sr%d_nFft%d_nHop%d', sr, nFft, nHop);

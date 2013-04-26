@@ -2,7 +2,7 @@ function [mix targetSr] = mixBubbleNoise(cleanFile, targetSr, useHoles, bubblesP
 
 % SNR is in linear units
 
-noiseScale_dB = 0;
+scale_dB = 14;
 speechRms = 0.1;
 
 if useHoles
@@ -14,14 +14,19 @@ else
 end
 
 [speech sr] = wavread(cleanFile);
+if targetSr <= 0
+    targetSr = sr;
+end
 speech = resample(speech, targetSr, sr);
 speech = speech * speechRms / rmsNonZero(speech, -60);
 
-dur = round(dur_s * sr);
+dur = round(dur_s * targetSr);
 pad = dur - length(speech);
 speech = [zeros(ceil(pad/2),1); speech; zeros(floor(pad/2),1)];
 
-noise = 10^(noiseScale_dB/20)*genBubbleNoise(dur_s, sr, bubblesPerSec, useHoles, sizeF_erb, sizeT_s);
-mix = snr*speech + noise;
+scale = 10^(scale_dB/20);
+noise = genBubbleNoise(dur_s, targetSr, bubblesPerSec, useHoles, sizeF_erb, sizeT_s);
+mix = scale * (snr*speech + noise);
 
-%spectrogram(mix, 1024, 1024-256, 1024, sr), drawnow
+specgram(mix, 1024, targetSr, 1024, 1024-256), colorbar, drawnow
+%plot(mix), drawnow

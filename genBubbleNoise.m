@@ -58,7 +58,11 @@ else
     if randomness == 1
         rng('default');
     else
-        rng('shuffle');
+        try
+            rng('shuffle');
+        catch
+            warning('Could not shuffle RNG')
+        end
     end
     randomNumbers = rand(2, nBubbles);
     bubbleF_erb = randomNumbers(1,:)*(maxMelPad-minMelPad) + minMelPad;
@@ -82,7 +86,7 @@ mask = bsxfun(@times, profile .* highPassWin, mask);
 noise = noise(1:dur)';
 
 ca = [-120 20];
-doPlot = 1;
+doPlot = 0;
 if doPlot
     if 1
         subplots(listMap(@(x) max(-120, 20*log10(abs(x))), ...
