@@ -1,9 +1,11 @@
-function unpackMTurkCsv(inFile, outFile)
+function outRows = unpackMTurkCsv(inFile, outFile)
 
 % Parse an MTurk csv file with multiple sounds per HIT into a CSV file with
 % one sound per row.  Hard coded to work with 5 URLs per HIT.
 
-fields = {'WorkerId', 'WorkTimeInSeconds', ...  these will go in every row
+if ~exist('outFile', 'var'), outFile = ''; end
+
+fields = {'WorkerId', 'RejectionTime', ...  these will go in every row
     'Input.url1', 'Answer.wordchoice1', ...  these will each have their own row
     'Input.url2', 'Answer.wordchoice2', ...
     'Input.url3', 'Answer.wordchoice3', ...
@@ -34,9 +36,11 @@ for r = 1:size(outArray,1)
     outRows{r} = outArray(r,:);
 end
 
-% Get rid of rows with blank fields
-keepRows = cellfun(@(x) all(cellfun(@(y) ~isempty(y), x)), outRows);
-outRows = outRows(keepRows);
+% % Get rid of rows with blank fields
+% keepRows = cellfun(@(x) all(cellfun(@(y) ~isempty(y), x)), outRows);
+% outRows = outRows(keepRows);
 
 % Write
-csvWriteCells(outFile, outRows, 'a');
+if ~isempty(outFile)
+    csvWriteCells(outFile, outRows, 'a');
+end

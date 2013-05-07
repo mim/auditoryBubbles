@@ -10,7 +10,7 @@ function p = speechProfile(sr, nFft, nHop)
 persistent profiles;
 if ~exist('profiles', 'var'), profiles = []; end
 
-refFile = 'Z:\data\mrt\Helen_side_chunk_1.wav';
+refFile = 'Z:\data\mrt\helen\Helen_side_chunk_1.wav';
 %refFile = '/home/mim/download/mrt/Helen_side_chunk_1.wav';
 refQuantile = 0.99;
 
