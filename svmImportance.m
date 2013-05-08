@@ -1,4 +1,4 @@
-function [map features] = svmImportance(word, path, mturkOutFiles, nFold, nTrain, nAvg, thresh)
+function [map features] = svmImportance(word, path, groupedFile, nFold, nTrain, nAvg, thresh)
 
 % Train an SVM to predict intelligibility of mixtures from time-frequency SNR
 %
@@ -15,7 +15,6 @@ function [map features] = svmImportance(word, path, mturkOutFiles, nFold, nTrain
 % training data.  thresh is the minimum fraction correct to count as
 % "intelligible".
 
-if ~iscell(mturkOutFiles), mturkOutFiles = {mturkOutFiles}; end
 if ~exist('thresh', 'var') || isempty(thresh), thresh = 0.5; end
 if ~exist('nFold', 'var') || isempty(nFold), nFold = 5; end
 if ~exist('nTrain', 'var') || isempty(nTrain), nTrain = inf; end
@@ -29,57 +28,60 @@ mixPaths = mixPaths(1:min(nTrain, end));
 
 clean = loadSpecgram(cleanFile);
 
-features = zeros(length(mixPaths), numel(clean));
+%features = zeros(length(mixPaths), 2*numel(clean));
 for i = 1:length(mixPaths)
     mix = loadSpecgram(mixPaths{i});
-    features(i,:) = computeFeatures(clean, mix);
+    [features(i,:) origShape] = computeFeatures(clean, mix);
 end
 
-digested = {};
-for i = 1:length(mturkOutFiles)
-    digested = [digested; unpackMTurkCsv(mturkOutFiles{i})];
-end
-digested = cat(1, digested{:});
+% Should contain a variable "grouped"
+load(groupedFile);
+ansFile = grouped(:,3);
+fracRight = [grouped{:,5}];
 
-for i = 1:size(digested,1)
-    if ~isempty(digested{i,2}), continue; end  % Skip rejected HITs
-    ansFile{i} = basename(digested{i,3});
-    isRight(i) = strncmp(ansFile{i}, digested{i,4}, length(digested{i,4}));
-end
+fracRight = matchAnswers(mixFiles, ansFile, fracRight);
+isRight = fracRight >= thresh;
+fprintf('Average label value: %g %g\n', mean(fracRight), mean(isRight))
 
-isRight = matchAnswers(mixFiles, ansFile, isRight) >= thresh;
-fprintf('Average label value: %g\n', mean(isRight))
-
-mcr = linear_train(double(isRight), sparse(features), '-s 2 -q -v 10');
-mcr = crossval('mcr', features, isRight, 'Predfun', @(Xtr, ytr, Xte) libLinearPredFun(Xtr, ytr, Xte, size(clean)))
-mcr = crossval('mcr', features, isRight, 'Predfun', @(Xtr, ytr, Xte) svmPredFun(Xtr, ytr, Xte, size(clean)))
+mcr = lassoXVal(features, fracRight)
+%mcr = linear_train(double(isRight), sparse(features), '-s 2 -v 50 -q');
+%mcr = crossval('mcr', features, isRight, 'Predfun', @(Xtr, ytr, Xte) libLinearPredFun(Xtr, ytr, Xte, origShape), 'leaveout', 1)
+%mcr = crossval('mcr', features, isRight, 'Predfun', @(Xtr, ytr, Xte) svmPredFun(Xtr, ytr, Xte, origShape))
 
 svm = svmtrain(features, isRight);
-map = reshape(svm.Alpha' * svm.SupportVectors, size(clean));
+map = reshape(svm.Alpha' * svm.SupportVectors, origShape);
 
 
 function preds = svmPredFun(Xtr, ytr, Xte, shape)
 svm   = svmtrain(Xtr, ytr);
 preds = svmclassify(svm, Xte);
-subplots(reshape(svm.Alpha' * svm.SupportVectors, shape)), drawnow
+%subplots(reshape(svm.Alpha' * svm.SupportVectors, shape)), drawnow
 
 function preds = libLinearPredFun(Xtr, ytr, Xte, shape)
-svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q');
+svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q -c 1');
 cls = linear_predict(zeros(size(Xte,1),1), sparse(Xte), svm, '-q');
 preds = cls > 1;
 %sign = (2-svm.Label(1))*2-1;
 sign = 3 - 2*svm.Label(1);
-subplots(sign * reshape(svm.w, shape)), drawnow
+%subplots(sign * reshape(svm.w, shape)), drawnow
+
+function mcr = lassoXVal(X, y)
+[b fitinfo] = lasso(X, y, 'CV', 5, 'NumLambda', 5, 'Alpha', 0);
+lam = fitinfo.Index1SE; % find index of suggested lambda
+b(:,lam)
 
 
-function feat = computeFeatures(clean, mix)
+function [feat origShape] = computeFeatures(clean, mix)
 % Compute features for the classifier from a clean spectrogram and a mix
 % spectrogram.
 noise = mix - clean;
 snr = db(clean) - db(noise);
-%feat = reshape(snr, 1, []);
-%feat = lim(reshape(snr, 1, []), -30, 30);
-feat = reshape(db(noise), 1, []);
+%origFeat = snr;
+%origFeat = lim(snr, -30, 30);
+origFeat = db(noise);
+%origFeat = [db(noise), -snr]; 
+origShape = size(origFeat);
+feat = reshape(origFeat, 1, []);
 
 function spec = loadSpecgram(fileName)
 % Load a spectrogram of a wav file
