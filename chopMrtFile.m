@@ -4,6 +4,7 @@ function chopMrtFile(wavFile, labelFile, outDir)
 %
 % chopMrtFile(wavFile, labelFile, outDir)
 
+padding_s = 0.2;
 [nSampChan fs] = wavread(wavFile, 'size');
 nSamp = nSampChan(1); nChan = nSampChan(2);
 [start_fr stop_fr word] = textread(labelFile, '%d %d %s');
@@ -13,8 +14,8 @@ sampsPerFrame = lastSamp / stop_fr(end);
 fs / sampsPerFrame
 
 word  = lower(word);
-start = round(start_fr * sampsPerFrame);
-stop  = round(stop_fr  * sampsPerFrame);
+start = max(1,     round(start_fr * sampsPerFrame - padding_s * fs));
+stop  = min(nSamp, round(stop_fr  * sampsPerFrame + padding_s * fs));
 %stop  = min(nSamp, stop);
 
 for i = 1:length(word)
