@@ -20,12 +20,23 @@ if ~exist('nFold', 'var') || isempty(nFold), nFold = 5; end
 if ~exist('nTrain', 'var') || isempty(nTrain), nTrain = inf; end
 if ~exist('nAvg', 'var') || isempty(nAvg), nAvg = inf; end
 
+% Should contain a variable "grouped"
+load(groupedFile);
+ansFile = grouped(:,3);
+
+mixPaths = {}; fracRight = [];
+for i = 1:length(ansFile)
+    if ~reMatch(ansFile{i}, [word '\d\d\.wav']), continue, end
+    mixPath = fullfile(path, ansFile{i});
+    if exist(mixPath, 'file')
+        mixPaths{end+1} = mixPath;
+        fracRight(end+1) = grouped{i,5};
+    end
+end
+mixPaths = mixPaths(:); fracRight = fracRight(:);
+fprintf('Found %d mixes\n', length(mixPaths));
+
 cleanFile = fullfile(path, [word '.wav']);
-[mixFiles,mixPaths] = findFiles(path, [word '\d\d\.wav']);
-
-mixFiles = mixFiles(1:min(nTrain, end));
-mixPaths = mixPaths(1:min(nTrain, end));
-
 clean = loadSpecgram(cleanFile);
 
 %features = zeros(length(mixPaths), 2*numel(clean));
@@ -34,19 +45,13 @@ for i = 1:length(mixPaths)
     [features(i,:) origShape] = computeFeatures(clean, mix);
 end
 
-% Should contain a variable "grouped"
-load(groupedFile);
-ansFile = grouped(:,3);
-fracRight = [grouped{:,5}];
-
-fracRight = matchAnswers(mixFiles, ansFile, fracRight);
 isRight = fracRight >= thresh;
 fprintf('Average label value: %g %g\n', mean(fracRight), mean(isRight))
 
-mcr = lassoXVal(features, fracRight)
+mcr = lassoXVal(features, fracRight, origShape)
 %mcr = linear_train(double(isRight), sparse(features), '-s 2 -v 50 -q');
 %mcr = crossval('mcr', features, isRight, 'Predfun', @(Xtr, ytr, Xte) libLinearPredFun(Xtr, ytr, Xte, origShape), 'leaveout', 1)
-%mcr = crossval('mcr', features, isRight, 'Predfun', @(Xtr, ytr, Xte) svmPredFun(Xtr, ytr, Xte, origShape))
+%mcr = crossval('mcr', features, isRight, 'Predfun', @(Xtr, ytr, Xte) svmPredFun(Xtr, ytr, Xte, origShape), 'leaveout', 1)
 
 svm = svmtrain(features, isRight);
 map = reshape(svm.Alpha' * svm.SupportVectors, origShape);
@@ -55,7 +60,7 @@ map = reshape(svm.Alpha' * svm.SupportVectors, origShape);
 function preds = svmPredFun(Xtr, ytr, Xte, shape)
 svm   = svmtrain(Xtr, ytr);
 preds = svmclassify(svm, Xte);
-%subplots(reshape(svm.Alpha' * svm.SupportVectors, shape)), drawnow
+subplots(reshape(svm.Alpha' * svm.SupportVectors, shape)), drawnow
 
 function preds = libLinearPredFun(Xtr, ytr, Xte, shape)
 svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q -c 1');
@@ -65,10 +70,11 @@ preds = cls > 1;
 sign = 3 - 2*svm.Label(1);
 %subplots(sign * reshape(svm.w, shape)), drawnow
 
-function mcr = lassoXVal(X, y)
-[b fitinfo] = lasso(X, y, 'CV', 5, 'NumLambda', 5, 'Alpha', 0);
+function mcr = lassoXVal(X, y, shape)
+[b fitinfo] = lasso(X, y, 'CV', 3, 'NumLambda', 9, 'Alpha', 0.1);
 lam = fitinfo.Index1SE; % find index of suggested lambda
-b(:,lam)
+subplots(reshape(b(:,lam), shape));
+mcr = fitinfo.MSE(lam);  % TODO: this is not right
 
 
 function [feat origShape] = computeFeatures(clean, mix)
@@ -91,16 +97,3 @@ win_s = 0.064;
 win = round(win_s * fs);
 hop = round(win/4);
 spec = stft(x', win, win, hop);
-
-function dstAns = matchAnswers(dstFiles, srcFiles, srcAns)
-% For each entry in dstFile, find a match in srcFile, and return the
-% corresponding element from srcAns in dstAns.
-dstAns = zeros(size(dstFiles));
-for i = 1:length(dstFiles)
-    ind = find(strcmp(dstFiles{i}, srcFiles));
-    if isempty(ind)
-        error('No match found for %s', dstFiles{i});
-    else
-        dstAns(i) = mean(srcAns(ind));
-    end
-end
