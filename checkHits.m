@@ -23,15 +23,20 @@ empties = groupBy(digested(keep,:), 1, @scoreAgg, 5);
 % Check noisy questions per user
 keep = reMatch(digested(:,3), '[0-9]\.wav') & cellfun(@isempty, digested(:,2));
 grouped = groupBy(digested(keep,:), 1, @scoreAgg, 5);
-res = cat(1, grouped{:,5});
-subplot 211
-plot(res(:,1), res(:,2), '.', [0 max(res(:,2))/2], [0 max(res(:,2))])
+if ~isempty(grouped)
+    res = cat(1, grouped{:,5});
+    subplot 121
+    loglog(1+res(:,1), 2+res(:,2), '.', [1 max(res(:,2))/2], [2 max(res(:,2))])
+    xlabel('Correct'), ylabel('Out of')
+end
 
 % Check noise questions per mix
 grouped = groupBy(digested(keep,:), 3, @scoreAgg, 5);
-subplot 212
-res = cat(1, grouped{:,5});
-hist(res(:,3))
+if ~isempty(grouped)
+    subplot 122
+    res = cat(1, grouped{:,5});
+    hist(res(:,3))
+end
 
 subplot 111
 
