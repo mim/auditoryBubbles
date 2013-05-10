@@ -53,5 +53,6 @@ for h = 1:size(hits,1)
     end
     
     outLine = [hits(h,:) {datestr(clock, 30)} picked {'', 'mim'}];
+    fprintf('Completed HIT %d of %d\n' , h, size(hits,1));
     csvWriteCells(outCsvFile, {outLine}, 'a');
 end

@@ -8,6 +8,10 @@ if ~exist('snr_db', 'var') || isempty(snr_db), snr_db = -30; end
 if ~exist('nReps', 'var') || isempty(nReps), nReps = 1; end
 if ~exist('dur_s', 'var') || isempty(dur_s), dur_s = 2; end
 
+if ischar(speechFiles)  % Can supply a pattern
+    speechFiles = findFiles(inDir, speechFiles, 1);
+end
+
 useHoles = true;
 snr = db2mag(snr_db);
 
