@@ -31,7 +31,7 @@ ansFile = grouped(:,3);
 
 mixPaths = {}; fracRight = []; isRight = [];
 for i = 1:length(ansFile)
-    if ~reMatch(ansFile{i}, [word '\d\d\.wav']), continue, end
+    if ~reMatch(ansFile{i}, [word '\d+\.wav']), continue, end
     mixPath = fullfile(path, ansFile{i});
     cls = (grouped{i,5} >= thresh(2)) - (grouped{i,5} <= thresh(1));
     if exist(mixPath, 'file') && cls
@@ -42,11 +42,11 @@ for i = 1:length(ansFile)
 end
 mixPaths = mixPaths(:); fracRight = fracRight(:); isRight = isRight(:);
 
-fprintf('Keeping %d of %d mixes\n', min(length(mixPaths), nTrain), length(mixPaths));
-ord = randperm(length(mixPaths));
-mixPaths  = mixPaths(ord(1:min(end,nTrain)));
-fracRight = fracRight(ord(1:min(end,nTrain)));
-isRight   = isRight(ord(1:min(end,nTrain)));
+% Balance positives and negatives
+keep = balanceSets(isRight, nTrain);
+mixPaths  = mixPaths(keep);
+fracRight = fracRight(keep);
+isRight   = isRight(keep);
 
 cleanFile = fullfile(path, [word '.wav']);
 [clean fs nFft] = loadSpecgram(cleanFile);
@@ -62,24 +62,21 @@ fprintf('Average label value: %g %g\n', mean(fracRight), mean(isRight > 0))
 plotMeanStuff(cleanFeat, features, isRight > 0, origShape);
 
 [pcs,pcaFeat] = princomp(bsxfun(@times, weights, zscore(features)), 'econ');
-%[pcs,pcaFeat] = princomp(zscore(features), 'econ');
-%pcaFeat = pcaFeat(:,1:pcaDim);
-%pcs = pcs(:,1:pcaDim);
+pause(0.5)
 
 %xvalArgs = {'leaveout', 1};
 xvalArgs = {'kfold', nFold};
 
 mcr = NaN * ones(length(pcaDim), nRep);
-return
 for p = 1:length(pcaDim)
     fprintf('.')
 
-    pcaFeatTrunc = pcaFeat(:,1:pcaDim(p));
-    pcsTrunc = pcs(:,1:pcaDim(p));
+    pcaFeatTrunc = pcaFeat(:,1:min(end,pcaDim(p)));
+    pcsTrunc = pcs(:,1:min(end,pcaDim(p)));
     
     try
-        %[~,pcaVec] = svmPredFun(pcaFeatTrunc, isRight, pcaFeatTrunc);
-        [~,pcaVec] = libLinearPredFun(pcaFeatTrunc, nominal(isRight), pcaFeatTrunc);
+        [~,pcaVec] = svmPredFun(pcaFeatTrunc, isRight, pcaFeatTrunc);
+        %[~,pcaVec] = libLinearPredFun(pcaFeatTrunc, nominal(isRight), pcaFeatTrunc);
         subplots(reshape(-pcaVec * pcsTrunc', origShape)); drawnow
     catch e
         fprintf('Oops')
@@ -105,7 +102,7 @@ function [preds rep] = svmPredFun(Xtr, ytr, Xte)
 options = statset('MaxIter', 1e5);
 svm   = svmtrain(Xtr, ytr, 'options', options);
 preds = svmclassify(svm, Xte);
-rep = svm.Alpha' * svm.SupportVectors;
+rep = (svm.Alpha' * svm.SupportVectors) ./ svm.ScaleData.scaleFactor - svm.ScaleData.shift;
 
 function [preds rep] = libLinearPredFun(Xtr, ytr, Xte)
 svm = linear_train(double(ytr), sparse(Xtr), '-s 0 -q -c 1');
@@ -129,15 +126,21 @@ mcr = fitinfo.MSE(lam);  % TODO: this is not right
 function [feat origShape weights cleanVec] = computeFeatures(clean, mix, fs, nFft)
 % Compute features for the classifier from a clean spectrogram and a mix
 % spectrogram.
+scale_db = 14;
+
 noise = mix - clean;
 snr = db(clean) - db(noise);
+
+noiseLevel = 10^(scale_db / 20) .* speechProfile(fs, nFft, nFft / 4);
+noiseRel = bsxfun(@rdivide, noise, noiseLevel);
 
 %origFeat = snr;
 %origFeat = lim(snr, -30, 30);
 %origFeat = -db(noise);
 %origFeat = [db(noise), -snr]; 
 %origFeat = max(-100, db(clean .* (db(noise) < -35))) + 0.1*randn(size(clean));
-origFeat = (db(noise) < -35); % + 0.01*randn(size(clean));
+%origFeat = (db(noise) < -35) + 0.01*randn(size(clean));
+origFeat = (db(noiseRel) < -35) + 0.01*randn(size(clean));
 
 origFeat = origFeat(:,30:end-29);
 origShape = size(origFeat);
@@ -146,7 +149,11 @@ cleanVec = reshape(db(clean(:,30:end-29)), 1, []);
 
 freqVec_hz = (0:nFft/2) * fs / nFft;
 freqVec_erb = hz2erb(freqVec_hz);
-dF = sqrt([diff(freqVec_erb) 0]);
+%dF = [diff(freqVec_erb) 0];
+%dF = sqrt([diff(freqVec_erb) 0]);
+dF = [diff(freqVec_erb) 0].^(1/3);
+%dF = [diff(freqVec_erb.^2) 0];
+%dF = ones(1, length(freqVec_erb));
 weights = repmat(dF', 1, size(origFeat,2));
 weights = reshape(weights, size(feat));
 
@@ -209,3 +216,16 @@ h = p < alpha;
 
 function p = chi2pval(x,v)
 p = gammainc(x/2,v/2,'upper');
+
+
+function keep = balanceSets(isRight, nTrain)
+nStart = length(isRight);
+pos = find(isRight == 1);
+neg = find(isRight == -1);
+numPerClass = min([length(pos) length(neg) floor(nTrain/2)]);
+keep = [randomSample(pos,numPerClass); randomSample(neg,numPerClass)];
+fprintf('Keeping %d of %d mixes\n', length(keep), nStart);
+
+function y = randomSample(x, n)
+ord = randperm(length(x));
+y = x(ord(1:min(end,n)));
