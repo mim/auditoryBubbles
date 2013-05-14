@@ -26,7 +26,9 @@ grouped = groupBy(digested(keep,:), 1, @scoreAgg, 5);
 if ~isempty(grouped)
     res = cat(1, grouped{:,5});
     subplot 121
-    loglog(1+res(:,1), 2+res(:,2), '.', [1 max(res(:,2))/2], [2 max(res(:,2))])
+    %loglog(1+res(:,1), 2+res(:,2), '.', [1 max(res(:,2))/2], [2 max(res(:,2))])
+    plot(res(:,1), res(:,2), '.', [1 max(res(:,2))/2], [2 max(res(:,2))])
+    text(res(:,1), res(:,2), grouped(:,1))
     xlabel('Correct'), ylabel('Out of')
 end
 

@@ -140,7 +140,7 @@ noiseRel = bsxfun(@rdivide, noise, noiseLevel);
 %origFeat = [db(noise), -snr]; 
 %origFeat = max(-100, db(clean .* (db(noise) < -35))) + 0.1*randn(size(clean));
 %origFeat = (db(noise) < -35) + 0.01*randn(size(clean));
-origFeat = (db(noiseRel) < -35) + 0.01*randn(size(clean));
+origFeat = (db(noiseRel) < -35) + 0.001*randn(size(clean));
 
 origFeat = origFeat(:,30:end-29);
 origShape = size(origFeat);
@@ -182,7 +182,8 @@ dPrime = (mn1 - mn0) ./ sd01;
 %subplots(listMap(@(x) reshape(x, shape), {mn1, dPrime, mn0, cleanFeat}), [], [], @meanStuffCaxis)
 %subplots(listMap(@(x) reshape(x, shape), {mn1./mn, dPrime, mn0./mn, mn}), [], [], @meanStuffCaxis)
 %subplots(listMap(@(x) reshape(x, shape), {sum(feat1)./sum(features), h, exp(-p/.05), cleanFeat}), [], [], @meanStuffCaxis)
-subplots(listMap(@(x) reshape(x, shape), {mn, h, exp(-p/.05), cleanFeat}), [], [], @meanStuffCaxis)
+%subplots(listMap(@(x) reshape(x, shape), {mn, h, exp(-p/.05), cleanFeat}), [], [], @meanStuffCaxis)
+subplots(listMap(@(x) reshape(x, shape), {mn1, mn0, exp(-p/.05), cleanFeat}), [], [], @meanStuffCaxis)
 drawnow
 
 function meanStuffCaxis(r,c,i)
