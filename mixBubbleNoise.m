@@ -2,7 +2,7 @@ function [mix targetSr] = mixBubbleNoise(cleanFile, targetSr, useHoles, bubblesP
 
 % SNR is in linear units
 
-scale_dB = 14;
+scale_dB = 8;
 speechRms = 0.1;
 
 if useHoles

@@ -1,8 +1,9 @@
-function playMTurk(inCsvFile)
+function playMTurk(inCsvFile, outTag)
 
 % "Play" mechanical turk HITs locally with matlab
+if ~exist('outTag', 'var') || isempty(outTag), outTag = 'mim'; end
 
-outCsvFile = fullfile('Z:\data\mrt\mturk_csv_out', ['mim_' datestr(clock, 30) '.csv']);
+outCsvFile = fullfile('Z:\data\mrt\mturk_csv_out', [outTag '_' datestr(clock, 30) '.csv']);
 numChoices = 6;
 fieldsPerUrl = numChoices + 1;
 

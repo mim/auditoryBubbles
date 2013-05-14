@@ -12,7 +12,7 @@ if ~exist('snr_dB', 'var') || isempty(snr_dB), snr_dB = -30; end
 if ~exist('dur_s', 'var') || isempty(dur_s), dur_s = 2; end
 
 maxIter = 50;
-inARow = 3;
+inARow = 4;
 stopHist = 7;
 useHoles = true;
 %targetSr = 0;    % Use native sample rate of wave files
