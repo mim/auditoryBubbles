@@ -1,4 +1,4 @@
-function mcr = svmImportance(word, path, groupedFile, pcaDim, nRep, nTrain, thresh, nAvg, nFold)
+function mcr = svmImportance(word, path, groupedFile, pcaDim, nRep, nTrain, oldProfile, balance, thresh, nAvg, nFold)
 
 % Train an SVM to predict intelligibility of mixtures from time-frequency SNR
 %
@@ -18,6 +18,8 @@ function mcr = svmImportance(word, path, groupedFile, pcaDim, nRep, nTrain, thre
 if ~exist('thresh', 'var') || isempty(thresh), thresh = [0.3 0.7]; end
 if ~exist('nFold', 'var') || isempty(nFold), nFold = 5; end
 if ~exist('nTrain', 'var') || isempty(nTrain), nTrain = inf; end
+if ~exist('oldProfile', 'var') || isempty(oldProfile), oldProfile = true; end
+if ~exist('balance', 'var') || isempty(balance), balance = true; end
 if ~exist('nAvg', 'var') || isempty(nAvg), nAvg = inf; end
 if ~exist('pcaDim', 'var') || isempty(pcaDim), pcaDim = 50; end
 if ~exist('nRep', 'var') || isempty(nRep), nRep = 1; end
@@ -42,11 +44,13 @@ for i = 1:length(ansFile)
 end
 mixPaths = mixPaths(:); fracRight = fracRight(:); isRight = isRight(:);
 
-% Balance positives and negatives
-keep = balanceSets(isRight, nTrain);
-mixPaths  = mixPaths(keep);
-fracRight = fracRight(keep);
-isRight   = isRight(keep);
+if balance
+    % Balance positives and negatives
+    keep = balanceSets(isRight, nTrain);
+    mixPaths  = mixPaths(keep);
+    fracRight = fracRight(keep);
+    isRight   = isRight(keep);
+end
 
 cleanFile = fullfile(path, [word '.wav']);
 [clean fs nFft] = loadSpecgram(cleanFile);
@@ -54,7 +58,7 @@ cleanFile = fullfile(path, [word '.wav']);
 %features = zeros(length(mixPaths), 2*numel(clean));
 for i = 1:length(mixPaths)
     mix = loadSpecgram(mixPaths{i});
-    [features(i,:) origShape weights cleanFeat] = computeFeatures(clean, mix, fs, nFft);
+    [features(i,:) origShape weights cleanFeat] = computeFeatures(clean, mix, fs, nFft, oldProfile);
 end
 
 fprintf('Average label value: %g %g\n', mean(fracRight), mean(isRight > 0))
@@ -62,7 +66,7 @@ fprintf('Average label value: %g %g\n', mean(fracRight), mean(isRight > 0))
 plotMeanStuff(cleanFeat, features, isRight > 0, origShape);
 
 [pcs,pcaFeat] = princomp(bsxfun(@times, weights, zscore(features)), 'econ');
-pause(0.5)
+pause(1)
 
 %xvalArgs = {'leaveout', 1};
 xvalArgs = {'kfold', nFold};
@@ -123,7 +127,7 @@ rep = b(:,lam);
 mcr = fitinfo.MSE(lam);  % TODO: this is not right
 
 
-function [feat origShape weights cleanVec] = computeFeatures(clean, mix, fs, nFft)
+function [feat origShape weights cleanVec] = computeFeatures(clean, mix, fs, nFft, oldProfile)
 % Compute features for the classifier from a clean spectrogram and a mix
 % spectrogram.
 scale_db = 14;
@@ -131,7 +135,7 @@ scale_db = 14;
 noise = mix - clean;
 snr = db(clean) - db(noise);
 
-noiseLevel = 10^(scale_db / 20) .* speechProfile(fs, nFft, nFft / 4);
+noiseLevel = 10^(scale_db / 20) .* speechProfile(fs, nFft, nFft / 4, oldProfile);
 noiseRel = bsxfun(@rdivide, noise, noiseLevel);
 
 %origFeat = snr;
@@ -140,7 +144,8 @@ noiseRel = bsxfun(@rdivide, noise, noiseLevel);
 %origFeat = [db(noise), -snr]; 
 %origFeat = max(-100, db(clean .* (db(noise) < -35))) + 0.1*randn(size(clean));
 %origFeat = (db(noise) < -35) + 0.01*randn(size(clean));
-origFeat = (db(noiseRel) < -35) + 0.001*randn(size(clean));
+%origFeat = (db(noiseRel) < -35) + 0.001*randn(size(clean));
+origFeat = lim(db(noiseRel) / -80, -0.1, 1.1);
 
 origFeat = origFeat(:,30:end-29);
 origShape = size(origFeat);

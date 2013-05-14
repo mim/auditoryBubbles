@@ -32,13 +32,18 @@ if ~isempty(grouped)
     xlabel('Correct'), ylabel('Out of')
 end
 
-% Check noise questions per mix
+% Check noisy questions per mix
 grouped = groupBy(digested(keep,:), 3, @scoreAgg, 5);
 if ~isempty(grouped)
     subplot 122
     res = cat(1, grouped{:,5});
     hist(res(:,3))
 end
+
+% Check noisy questions per original word
+digested(:,6) = listMap(@(x) regexprep(basename(x,1,1), '\d+\.wav', ''), digested(:,3));
+grouped = groupBy(digested(keep,:), 6, @(x) mean([x{:}]), 5);
+grouped(:,[6 5])
 
 subplot 111
 
