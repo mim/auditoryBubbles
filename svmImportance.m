@@ -63,10 +63,12 @@ end
 
 fprintf('Average label value: %g %g\n', mean(fracRight), mean(isRight > 0))
 
+figure(1);
 plotMeanStuff(cleanFeat, features, isRight > 0, origShape);
 
 [pcs,pcaFeat] = princomp(bsxfun(@times, weights, zscore(features)), 'econ');
 pause(1)
+figure(2);
 
 %xvalArgs = {'leaveout', 1};
 xvalArgs = {'kfold', nFold};
@@ -231,7 +233,8 @@ pos = find(isRight == 1);
 neg = find(isRight == -1);
 numPerClass = min([length(pos) length(neg) floor(nTrain/2)]);
 keep = [randomSample(pos,numPerClass); randomSample(neg,numPerClass)];
-fprintf('Keeping %d of %d mixes\n', length(keep), nStart);
+fprintf('Keeping %d of %d mixes (%d pos, %d neg)\n', ...
+    length(keep), nStart, length(pos), length(neg));
 
 function y = randomSample(x, n)
 ord = randperm(length(x));

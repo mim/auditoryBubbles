@@ -14,7 +14,7 @@ keep = reMatch(digested(:,3), '[a-z]\.wav') & cellfun(@isempty, digested(:,2));
 grouped = groupBy(digested(keep,:), 1, @scoreAgg, 5);
 res = cat(1, grouped{:,5});
 low = find((res(:,2) > 3) & (res(:,1) < 2/3*res(:,2)));
-lowRows = grouped(low);
+lowRows = grouped(low,:);
 
 % Check for unanswered questions
 keep = cellfun(@isempty, digested(:,2)) & cellfun(@isempty, digested(:,4));
