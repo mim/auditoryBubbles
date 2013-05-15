@@ -182,21 +182,21 @@ mn0 = mean(feat0);
 mn = mean(features);
 sd01 = std([bsxfun(@minus, feat1, mn1); bsxfun(@minus, feat0, mn0)]);
 dPrime = (mn1 - mn0) ./ sd01;
-[h p] = tfCrossTab(sum(1-feat0), sum(1-feat1), sum(feat0), sum(feat1));
+[h p isHigh] = tfCrossTab(sum(1-feat0), sum(1-feat1), sum(feat0), sum(feat1));
 
 %subplots(listMap(@(x) reshape(x, shape), {mn1, dPrime, mn0, cleanFeat}), [], [], @meanStuffCaxis)
 %subplots(listMap(@(x) reshape(x, shape), {mn1./mn, dPrime, mn0./mn, mn}), [], [], @meanStuffCaxis)
 %subplots(listMap(@(x) reshape(x, shape), {sum(feat1)./sum(features), h, exp(-p/.05), cleanFeat}), [], [], @meanStuffCaxis)
 %subplots(listMap(@(x) reshape(x, shape), {mn, h, exp(-p/.05), cleanFeat}), [], [], @meanStuffCaxis)
-subplots(listMap(@(x) reshape(x, shape), {mn1, mn0, exp(-p/.05), cleanFeat}), [], [], @meanStuffCaxis)
+subplots(listMap(@(x) reshape(x, shape), {mn1, mn0, (2*isHigh-1).*exp(-p/.01), cleanFeat}), [], [], @meanStuffCaxis)
 drawnow
 
 function meanStuffCaxis(r,c,i)
 % caxes = [-100 -30; -2 2; -100 -30; -100 10];
-caxes = [0 1; 0 1; 0 1; -100 10];
+caxes = [0 1; 0 1; -1 1; -100 10];
 caxis(caxes(i,:))
 
-function [h p] = tfCrossTab(cor0Pres0, cor0Pres1, cor1Pres0, cor1Pres1)
+function [h p isHigh] = tfCrossTab(cor0Pres0, cor0Pres1, cor1Pres0, cor1Pres1)
 counts = cat(3, cor0Pres0, cor0Pres1, cor1Pres0, cor1Pres1);
 
 expCor0 = cor0Pres0 + cor0Pres1;
@@ -209,6 +209,7 @@ expected = cat(3, expCor0.*expPres0, expCor0.*expPres1, ...
 expected = bsxfun(@rdivide, expected, sum(counts,3));
 
 [h p] = twoWayTableChi2(counts, expected);
+isHigh = counts(:,:,4) > expected(:,:,4);
 
 function [h p] = twoWayTableChi2(counts, expected)
 % Parallel version of chi2gof for all TF points at once
