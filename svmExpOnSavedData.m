@@ -1,8 +1,8 @@
-function mcr = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold)
+function [mcr data] = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold)
     
 % Train an SVM to predict intelligibility of mixtures from time-frequency SNR
 %
-% [bestPcaDim allMcr] = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold)
+% [mcr data] = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold)
 
 if ~exist('nFold', 'var') || isempty(nFold), nFold = 5; end
 if ~exist('oldProfile', 'var') || isempty(oldProfile), oldProfile = true; end
@@ -32,15 +32,15 @@ wrapper = @(Xtr, ytr, Xte) ...
                             ytr, Xte, nFold);
 
 for r = 1:nRep
-    mcr(r) = crossValidate(wrapper, m.pcaFeat, isRight, nFold);
+    [mcr(r) data{r}] = crossValidate(wrapper, m.pcaFeat, isRight, nFold);
 end
 
 
-function mcr = crossValidate(fn, X, y, nFold)
+function [mcr data] = crossValidate(fn, X, y, nFold)
 % Cross validation function on nFold folds of X and y.  y should be
 % a column, X should have one data point per row.  Returns mcr, the mean
 % classification error rate.  fn should have the following prototype:
-% preds = fn(Xtr, ytr, Xte);
+% [preds data] = fn(Xtr, ytr, Xte);
     
 nPts = size(X,1);
 ord = randperm(nPts);
@@ -52,15 +52,15 @@ errors = 0;
 for i = 1:nFold
     teInd = inds{i};
     trInd = [inds{setdiff(1:nFold, i)}];
-    preds = fn(X(trInd,:), y(trInd), X(teInd,:));
+    [preds data{i}] = fn(X(trInd,:), y(trInd), X(teInd,:));
     errors = errors + sum(y(teInd) ~= preds);
 end
 mcr = errors / nPts;
 
-function preds = nestedCrossValCls(fn, paramVec, Xtr, ytr, Xte, nFold)
+function [preds data] = nestedCrossValCls(fn, paramVec, Xtr, ytr, Xte, nFold)
 % Run a cross-validation inside of another cross-validation.  fn
 % should have the following prototype:
-% preds = fn(Xtr, ytr, Xte, param)
+% [preds data] = fn(Xtr, ytr, Xte, param)
 % The value of param will range over paramVec and the one with the
 % best performance will be used to make the final predictions.
     
@@ -71,22 +71,14 @@ for i = 1:length(paramVec)
                            Xtr, ytr, nFold);
 end
 [~,ind] = min(mcr);
+data = paramVec(ind);
 preds = fn(Xtr, ytr, Xte, paramVec(ind));
 
-function preds = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
+function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
 Xtr = Xtr(:, 1:min(nDim,end));
 Xte = Xte(:, 1:min(nDim,end));
 svm = linear_train(double(ytr), sparse(Xtr), '-s 1 -q');
 preds = linear_predict(zeros(size(Xte,1),1), sparse(Xte), svm, '-q');
-
-function preds = memorize(Xtr, ytr, Xte)
-% For debugging cross validation
-Xtr, ytr, Xte
-preds = zeros(size(Xte,1),1);
-for i = 1:size(Xte,1)
-    ind = find(all(Xte(i,:) == Xtr, 2));
-    preds(i) = ytr(ind(1));
-end
 
 
 function keep = balanceSets(isRight, nTrain)
