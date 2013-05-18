@@ -29,7 +29,7 @@ thresh = sort(thresh);
 
 % Should contain a variable "grouped"
 load(groupedFile);
-ansFile = grouped(:,3);
+ansFile = strrep(grouped(:,3), '\', filesep);
 
 mixPaths = {}; fracRight = []; isRight = [];
 for i = 1:length(ansFile)
@@ -58,21 +58,23 @@ cleanFile = fullfile(path, [word '.wav']);
 %features = zeros(length(mixPaths), 2*numel(clean));
 for i = 1:length(mixPaths)
     mix = loadSpecgram(mixPaths{i});
-    [features(i,:) origShape weights cleanFeat] = computeFeatures(clean, mix, fs, nFft, oldProfile);
+    [features(i,:) origShape weights cleanFeat] = bubbleFeatures(clean, mix, fs, nFft, oldProfile);
 end
 
 fprintf('Average label value: %g %g\n', mean(fracRight), mean(isRight > 0))
 
-figure(1);
+%figure(1);
 plotMeanStuff(cleanFeat, features, isRight > 0, origShape);
 
 [pcs,pcaFeat] = princomp(bsxfun(@times, weights, zscore(features)), 'econ');
 pause(1)
-figure(2);
+%figure(2);
 
 %xvalArgs = {'leaveout', 1};
 xvalArgs = {'kfold', nFold};
 
+length(pcaDim)
+nRep
 mcr = NaN * ones(length(pcaDim), nRep);
 for p = 1:length(pcaDim)
     fprintf('.')
@@ -129,42 +131,6 @@ rep = b(:,lam);
 mcr = fitinfo.MSE(lam);  % TODO: this is not right
 
 
-function [feat origShape weights cleanVec] = computeFeatures(clean, mix, fs, nFft, oldProfile)
-% Compute features for the classifier from a clean spectrogram and a mix
-% spectrogram.
-scale_db = 14;
-
-noise = mix - clean;
-snr = db(clean) - db(noise);
-
-noiseLevel = 10^(scale_db / 20) .* speechProfile(fs, nFft, nFft / 4, oldProfile);
-noiseRel = bsxfun(@rdivide, noise, noiseLevel);
-
-%origFeat = snr;
-%origFeat = lim(snr, -30, 30);
-%origFeat = -db(noise);
-%origFeat = [db(noise), -snr]; 
-%origFeat = max(-100, db(clean .* (db(noise) < -35))) + 0.1*randn(size(clean));
-%origFeat = (db(noise) < -35) + 0.01*randn(size(clean));
-%origFeat = (db(noiseRel) < -35) + 0.001*randn(size(clean));
-origFeat = lim(db(noiseRel) / -80, -0.1, 1.1);
-
-origFeat = origFeat(:,30:end-29);
-origShape = size(origFeat);
-feat = reshape(origFeat, 1, []);
-cleanVec = reshape(db(clean(:,30:end-29)), 1, []);
-
-freqVec_hz = (0:nFft/2) * fs / nFft;
-freqVec_erb = hz2erb(freqVec_hz);
-%dF = [diff(freqVec_erb) 0];
-%dF = sqrt([diff(freqVec_erb) 0]);
-dF = [diff(freqVec_erb) 0].^(1/3);
-%dF = [diff(freqVec_erb.^2) 0];
-%dF = ones(1, length(freqVec_erb));
-weights = repmat(dF', 1, size(origFeat,2));
-weights = reshape(weights, size(feat));
-
-
 function [spec fs nfft] = loadSpecgram(fileName)
 % Load a spectrogram of a wav file
 win_s = 0.064;
@@ -197,34 +163,6 @@ function meanStuffCaxis(r,c,i)
 % caxes = [-100 -30; -2 2; -100 -30; -100 10];
 caxes = [0 1; 0 1; -1 1; -100 10];
 caxis(caxes(i,:))
-
-function [h p isHigh] = tfCrossTab(cor0Pres0, cor0Pres1, cor1Pres0, cor1Pres1)
-counts = cat(3, cor0Pres0, cor0Pres1, cor1Pres0, cor1Pres1);
-
-expCor0 = cor0Pres0 + cor0Pres1;
-expCor1 = cor1Pres0 + cor1Pres1;
-expPres0 = cor0Pres0 + cor1Pres0;
-expPres1 = cor0Pres1 + cor1Pres1;
-
-expected = cat(3, expCor0.*expPres0, expCor0.*expPres1, ...
-    expCor1.*expPres0, expCor1.*expPres1);
-expected = bsxfun(@rdivide, expected, sum(counts,3));
-
-[h p] = twoWayTableChi2(counts, expected);
-isHigh = counts(:,:,4) > expected(:,:,4);
-
-function [h p] = twoWayTableChi2(counts, expected)
-% Parallel version of chi2gof for all TF points at once
-alpha = 0.05;
-minCount = 5;
-
-cstat = sum((counts - expected).^2 ./ expected, 3);
-p = chi2pval(cstat, 1);
-p(any(expected <= minCount, 3)) = NaN;
-h = p < alpha;
-
-function p = chi2pval(x,v)
-p = gammainc(x/2,v/2,'upper');
 
 
 function keep = balanceSets(isRight, nTrain)
