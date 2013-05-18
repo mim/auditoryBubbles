@@ -9,6 +9,7 @@ function C = csvReadCells(fileName)
 % array.
 
 text = fileread(fileName);
+text = text(:)';
 lines = split(text, '\n');
 nonEmpty = cellfun(@(x) ~isempty(x), lines);
 lines = lines(nonEmpty);

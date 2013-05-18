@@ -5,8 +5,8 @@ function outRows = unpackMTurkCsv(inFile, outFile)
 
 if ~exist('outFile', 'var'), outFile = ''; end
 
-fields = {'WorkerId', 'RejectionTime', ...  these will go in every row
-    'Input.url1', 'Answer.wordchoice1', ...  these will each have their own row
+fields = {'WorkerId', 'RejectionTime', ...  % these will go in every row
+    'Input.url1', 'Answer.wordchoice1', ... % these will each have their own row
     'Input.url2', 'Answer.wordchoice2', ...
     'Input.url3', 'Answer.wordchoice3', ...
     'Input.url4', 'Answer.wordchoice4', ...

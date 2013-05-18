@@ -13,12 +13,13 @@ persistent profiles;
 if ~exist('profiles', 'var'), profiles = []; end
 
 if oldNoise
-    refFile = 'Z:\data\mrt\helen\Helen_side_chunk_1.wav';
-    %refFile = '/home/mim/download/mrt/Helen_side_chunk_1.wav';
+    %refFile = 'Z:\data\mrt\helen\Helen_side_chunk_1.wav';
+    refFile = '/home/data/mrt/helen/Helen_side_chunk_1.wav';
     refQuantile = 0.99;
     smoothCoef = 0;
 else
-    refFile = 'Z:\data\mrt\drspeech\speechRef.wav';
+    %refFile = 'Z:\data\mrt\drspeech\speechRef.wav';
+    refFile = '/home/data/mrt/drspeech/speechRef.wav';
     refQuantile = 0.97;
     smoothCoef = 0.97;
 end
