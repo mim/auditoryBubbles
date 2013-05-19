@@ -46,7 +46,8 @@ end
 
 fprintf('%d files, avg label: %g\n', size(features,1), mean(fracRight > 0.5))
 
-[pcs,pcaFeat] = pca(bsxfun(@times, weights, zscore(features)));
+[pcs pcaFeat] = pca(bsxfun(@times, weights, zscore(features)));
+%[pcaFeat pcs] = pca(bsxfun(@times, weights, zscore(features))');
 
 ensureDirExists(outFile)
 save(outFile, '-mat-binary', 'features', 'mixPaths', 'fracRight', ...

@@ -13,17 +13,8 @@ nTrain = inf;
 
 m = load(savedFile);
 
-if balance
-    isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
-    
-    % Balance positives and negatives
-    keep = balanceSets(isRight, nTrain);
-    m.features = m.features(keep,:);
-    m.pcaFeat = m.pcaFeat(keep,:);
-    isRight   = isRight(keep);
-else
-    isRight = rand(size(m.fracRight)) <= m.fracRight;
-end
+isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
+%isRight = rand(size(m.fracRight)) <= m.fracRight;
 
 fprintf('Average label value: %g\n', mean(isRight > 0))
 
@@ -77,7 +68,12 @@ preds = fn(Xtr, ytr, Xte, paramVec(ind));
 function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
 Xtr = Xtr(:, 1:min(nDim,end));
 Xte = Xte(:, 1:min(nDim,end));
-svm = linear_train(double(ytr), sparse(Xtr), '-s 1 -q');
+
+keep = balanceSets(ytr, inf);
+Xtr = Xtr(keep,:);
+ytr = ytr(keep,:);
+
+svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q');
 preds = linear_predict(zeros(size(Xte,1),1), sparse(Xte), svm, '-q');
 
 
@@ -85,10 +81,11 @@ function keep = balanceSets(isRight, nTrain)
 nStart = length(isRight);
 pos = find(isRight == 1);
 neg = find(isRight == -1);
-numPerClass = min([length(pos) length(neg) floor(nTrain/2)]);
-keep = [randomSample(pos,numPerClass); randomSample(neg,numPerClass)];
-fprintf('Keeping %d of %d mixes (%d pos, %d neg)\n', ...
-    length(keep), nStart, length(pos), length(neg));
+keep = [pos; neg];
+% numPerClass = min([length(pos) length(neg) floor(nTrain/2)]);
+% keep = [randomSample(pos,numPerClass); randomSample(neg,numPerClass)];
+% %fprintf('Keeping %d of %d mixes (%d pos, %d neg)\n', ...
+% %    length(keep), nStart, length(pos), length(neg));
 
 function y = randomSample(x, n)
 ord = randperm(length(x));
