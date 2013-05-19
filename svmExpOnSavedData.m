@@ -23,18 +23,23 @@ wrapper = @(Xtr, ytr, Xte) ...
                             ytr, Xte, nFold);
 
 for r = 1:nRep
-    [mcr(r) data{r}] = crossValidate(wrapper, m.pcaFeat, isRight, nFold);
+    [mcr(r) data{r}] = crossValidate(wrapper, m.pcaFeat, isRight, ...
+                                     nFold, r);
 end
 
 
-function [mcr data] = crossValidate(fn, X, y, nFold)
+function [mcr data] = crossValidate(fn, X, y, nFold, seed)
 % Cross validation function on nFold folds of X and y.  y should be
 % a column, X should have one data point per row.  Returns mcr, the mean
 % classification error rate.  fn should have the following prototype:
 % [preds data] = fn(Xtr, ytr, Xte);
     
 nPts = size(X,1);
-ord = randperm(nPts);
+if nargin < 5
+    ord = randperm(nPts);
+else
+    ord = runWithRandomSeed(seed, @() randperm(nPts));
+end
 inds = cell(1, nFold);
 for i = 1:nFold
     inds{i} = ord(i:nFold:end);
@@ -59,7 +64,7 @@ mcr = inf*ones(size(paramVec));
 for i = 1:length(paramVec)
     mcr(i) = crossValidate(@(Xtr2, ytr2, Xte2) ...
                            fn(Xtr2, ytr2, Xte2, paramVec(i)), ...
-                           Xtr, ytr, nFold);
+                           Xtr, ytr, nFold, i);
 end
 [~,ind] = min(mcr);
 data = paramVec(ind);
