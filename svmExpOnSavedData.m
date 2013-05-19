@@ -18,6 +18,16 @@ isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
 
 fprintf('Average label value: %g\n', mean(isRight > 0))
 
+% for p = 1:length(pcaDims)
+%     for r = 1:nRep
+%         mcr(p,r) = crossValidate(@(Xtr, ytr, Xte) ...
+%                                  libLinearPredFunDimRed(Xtr, ytr, Xte, pcaDims(p)), ...
+%                                  m.pcaFeat, isRight, nFold, r);
+%     end
+% end
+% data = [];
+% return
+
 wrapper = @(Xtr, ytr, Xte) ...
           nestedCrossValCls(@libLinearPredFunDimRed, pcaDims, Xtr, ...
                             ytr, Xte, nFold);
@@ -44,10 +54,17 @@ inds = cell(1, nFold);
 for i = 1:nFold
     inds{i} = ord(i:nFold:end);
 end
+
 errors = 0;
 for i = 1:nFold
     teInd = inds{i};
     trInd = [inds{setdiff(1:nFold, i)}];
+    
+    teKeep = balanceSets(y(teInd), inf);
+    teInd = teInd(teKeep);
+    trKeep = balanceSets(y(trInd), inf);
+    trInd = trInd(trKeep);
+    
     [preds data{i}] = fn(X(trInd,:), y(trInd), X(teInd,:));
     errors = errors + sum(y(teInd) ~= preds);
 end
@@ -86,11 +103,14 @@ function keep = balanceSets(isRight, nTrain)
 nStart = length(isRight);
 pos = find(isRight == 1);
 neg = find(isRight == -1);
-keep = [pos; neg];
-% numPerClass = min([length(pos) length(neg) floor(nTrain/2)]);
-% keep = [randomSample(pos,numPerClass); randomSample(neg,numPerClass)];
-% %fprintf('Keeping %d of %d mixes (%d pos, %d neg)\n', ...
-% %    length(keep), nStart, length(pos), length(neg));
+if 0
+    keep = [pos; neg];
+else
+    numPerClass = min([length(pos) length(neg) floor(nTrain/2)]);
+    keep = [randomSample(pos,numPerClass); randomSample(neg,numPerClass)];
+    % fprintf('Keeping %d of %d mixes (%d pos, %d neg)\n', ...
+    %     length(keep), nStart, length(pos), length(neg));
+end
 
 function y = randomSample(x, n)
 ord = randperm(length(x));
