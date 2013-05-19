@@ -16,7 +16,7 @@ m = load(savedFile);
 isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
 %isRight = rand(size(m.fracRight)) <= m.fracRight;
 
-fprintf('Average label value: %g\n', mean(isRight > 0))
+fprintf('Average label value: %g\n', sum(isRight > 0) ./ sum(isRight~= 0))
 
 % for p = 1:length(pcaDims)
 %     for r = 1:nRep
@@ -43,30 +43,26 @@ function [mcr data] = crossValidate(fn, X, y, nFold, seed)
 % a column, X should have one data point per row.  Returns mcr, the mean
 % classification error rate.  fn should have the following prototype:
 % [preds data] = fn(Xtr, ytr, Xte);
-    
-nPts = size(X,1);
-if nargin < 5
-    ord = randperm(nPts);
-else
-    ord = runWithRandomSeed(seed, @() randperm(nPts));
-end
+
+ord = balanceSets(y, true, seed);
 inds = cell(1, nFold);
 for i = 1:nFold
     inds{i} = ord(i:nFold:end);
 end
 
-errors = 0;
+nPts = 0; errors = 0;
 for i = 1:nFold
     teInd = inds{i};
-    trInd = [inds{setdiff(1:nFold, i)}];
+    trInd = cat(1, inds{setdiff(1:nFold, i)});
     
-    teKeep = balanceSets(y(teInd), inf);
+    teKeep = balanceSets(y(teInd), false, seed);
     teInd = teInd(teKeep);
-    trKeep = balanceSets(y(trInd), inf);
+    trKeep = balanceSets(y(trInd), false, seed+783926);
     trInd = trInd(trKeep);
     
     [preds data{i}] = fn(X(trInd,:), y(trInd), X(teInd,:));
     errors = errors + sum(y(teInd) ~= preds);
+    nPts = nPts + length(preds);
 end
 mcr = errors / nPts;
 
@@ -91,26 +87,31 @@ function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
 Xtr = Xtr(:, 1:min(nDim,end));
 Xte = Xte(:, 1:min(nDim,end));
 
-keep = balanceSets(ytr, inf);
-Xtr = Xtr(keep,:);
-ytr = ytr(keep,:);
-
 svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q');
 preds = linear_predict(zeros(size(Xte,1),1), sparse(Xte), svm, '-q');
 
 
-function keep = balanceSets(isRight, nTrain)
+function keep = balanceSets(isRight, keepAll, seed, nTrain)
+if nargin < 4, nTrain = inf; end
+if nargin < 3, seed = ''; end
 nStart = length(isRight);
 pos = find(isRight == 1);
 neg = find(isRight == -1);
-if 0
-    keep = [pos; neg];
+if keepAll
+    thunk = @() [randomSample(pos, inf); ...
+                 randomSample(neg, inf)];
 else
     numPerClass = min([length(pos) length(neg) floor(nTrain/2)]);
-    keep = [randomSample(pos,numPerClass); randomSample(neg,numPerClass)];
-    % fprintf('Keeping %d of %d mixes (%d pos, %d neg)\n', ...
-    %     length(keep), nStart, length(pos), length(neg));
+    thunk = @() [randomSample(pos, numPerClass); ...
+                 randomSample(neg, numPerClass)];
 end
+if isempty(seed)
+    keep = thunk();
+else
+    keep = runWithRandomSeed(seed, thunk);
+end
+%fprintf('Keeping %d of %d mixes (%d pos, %d neg)\n', ...
+%    length(keep), nStart, length(pos), length(neg));
 
 function y = randomSample(x, n)
 ord = randperm(length(x));
