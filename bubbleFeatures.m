@@ -1,7 +1,12 @@
 function [feat origShape weights cleanVec] = bubbleFeatures(clean, mix, fs, nFft, oldProfile)
 % Compute features for the classifier from a clean spectrogram and a mix
 % spectrogram.
-scale_db = 14;
+
+if oldProfile
+    scale_db = 14;
+else
+    scale_db = 6;
+end
 
 noise = mix - clean;
 snr = db(clean) - db(noise);

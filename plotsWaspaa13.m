@@ -45,7 +45,8 @@ for f = 1:length(files)
                  m.nFft/4, [name '_spec'], [-80 10], dbCMap, [1 1 1]);
     
     rep = libLinearRep(m.pcaFeat, isRight, pcaDim);
-    fullRep = reshape(-rep * m.pcs(:,1:pcaDim)', m.origShape);
+    expandedRep = -rep * m.pcs(:,1:pcaDim)';
+    fullRep = reshape(expandedRep ./ m.weights, m.origShape);
     plotSpecgram(fullRep ./ max(fullRep(:)), m.fs, m.nFft, m.nFft/4, ...
                  [name '_svm'], [-1 1], imCMap, [1 1 1]); 
 end
