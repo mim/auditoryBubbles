@@ -19,6 +19,8 @@ replacements = {'mim_', 'Expert ', ...
                 '.mat', '"', ...
                 };
 
+pcaDim = 31;
+
 imCMap = easymap('bwr', 255);
 dbCMap = easymap('wr', 255);
 
@@ -27,9 +29,10 @@ dbCMap = easymap('wr', 255);
 % Plot statistical intelligibility masks
 for f = 1:length(files)
     m = load(paths{f});
-    isRight = rand(size(m.fracRight)) <= m.fracRight;
-    feat1 = m.features( isRight,:);
-    feat0 = m.features(~isRight,:);
+    isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
+    %isRight = rand(size(m.fracRight)) <= m.fracRight;
+    feat1 = m.features(isRight > 0,:);
+    feat0 = m.features(isRight < 0,:);
     [h p isHigh] = tfCrossTab(sum(1-feat0), sum(1-feat1), ...
                               sum(feat0), sum(feat1));
     mat = reshape((2*isHigh-1).*exp(-p/.05), m.origShape);
@@ -40,6 +43,11 @@ for f = 1:length(files)
                  [1 1 1]);
     plotSpecgram(reshape(m.cleanFeat, m.origShape), m.fs, m.nFft, ...
                  m.nFft/4, [name '_spec'], [-80 10], dbCMap, [1 1 1]);
+    
+    rep = libLinearRep(m.pcaFeat, isRight, pcaDim);
+    fullRep = reshape(-rep * m.pcs(:,1:pcaDim)', m.origShape);
+    plotSpecgram(fullRep ./ max(fullRep(:)), m.fs, m.nFft, m.nFft/4, ...
+                 [name '_svm'], [-1 1], imCMap, [1 1 1]); 
 end
 
 
@@ -60,7 +68,7 @@ imagesc(t_ms, f_khz, X)
 caxis(cax)
 axis xy
 axis tight
-title(strrep(name, '_spec', ''), 'interpreter', 'none')
+title(replaceStrs(name, {'_spec', '', '_svm', ''}), 'interpreter', 'none')
 if labels(1)
     ylabel(ylab)
 else
@@ -92,3 +100,15 @@ function s = replaceStrs(s, replacements)
 for i = 1:2:length(replacements)
     s = strrep(s, replacements{i}, replacements{i+1});
 end
+
+
+function rep = libLinearRep(Xtr, ytr, nDim)
+Xtr = Xtr(:, 1:min(nDim,end));
+
+keep = balanceSets(ytr, false, 22);
+Xtr = Xtr(keep,:);
+ytr = ytr(keep);
+
+svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q');
+sign = 2 * (svm.Label(1) < 0) - 1;
+rep = sign * svm.w;
