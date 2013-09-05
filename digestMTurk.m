@@ -1,4 +1,4 @@
-function grouped = digestMTurk(outFile, csvRe, wavRe, overwrite)
+function [grouped digested] = digestMTurk(outFile, csvRe, wavRe, overwrite)
 
 if ~exist('outFile', 'var'), outFile = ''; end
 if ~exist('csvRe', 'var') || isempty(csvRe), csvRe = 'mim_.*'; end

@@ -13,7 +13,8 @@ nTrain = inf;
 
 m = load(savedFile);
 
-isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
+isRight = (m.fracRight >= 0.4) - (m.fracRight <= 0.3);
+%isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
 %isRight = rand(size(m.fracRight)) <= m.fracRight;
 
 fprintf('Average label value: %g\n', sum(isRight > 0) ./ sum(isRight~= 0))

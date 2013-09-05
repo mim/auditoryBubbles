@@ -55,6 +55,11 @@ end
 
 function plotSpecgram(X, fs, nFft, hop, name, cax, cmap, labels)
 
+prtName = replaceStrs(name, {' ', '_', '''', '', '"', ''});
+saveFile = fullfile('/home/mim/work/papers/waspaa13/picMats', [prtName '.mat']);
+ensureDirExists(saveFile);
+save(saveFile, '-v7')
+
 if size(X,1) == nFft/2+1
     f_khz = freqAxis_khz(nFft, fs);
     ylab = 'Frequency (kHz)';
@@ -87,8 +92,7 @@ if labels(3)
     colorbar;
 end
 
-name = replaceStrs(name, {' ', '_', '''', '', '"', ''});
-prt(name)
+%prt(prtName)
 
 
 function f = freqAxis_khz(nFft, fs)

@@ -1,4 +1,4 @@
-function [mix targetSr] = mixBubbleNoise(cleanFile, targetSr, useHoles, bubblesPerSec, snr, dur_s)
+function [mix targetSr clean] = mixBubbleNoise(cleanFile, targetSr, useHoles, bubblesPerSec, snr, dur_s)
 
 % SNR is in linear units
 
@@ -27,6 +27,7 @@ speech = [zeros(ceil(pad/2),1); speech; zeros(floor(pad/2),1)];
 scale = 10^(scale_dB/20);
 noise = genBubbleNoise(dur_s, targetSr, bubblesPerSec, useHoles, sizeF_erb, sizeT_s);
 mix = scale * (snr*speech + noise);
+clean = scale * snr * speech;
 
 specgram(mix, 1024, targetSr, 1024, 1024-256), colorbar, drawnow
 %plot(mix), drawnow
