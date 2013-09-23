@@ -50,30 +50,35 @@ minMel = min(nonzeros(freqVec_erb));
 maxMelPad = max(0.5*(maxMel+minMel), maxMel - sizeF_erb*2);
 minMelPad = min(0.5*(maxMel+minMel), minMel + sizeF_erb*2);
 
-if randomness == 0
-    bubbleF_erb = linspace(minMelPad, maxMelPad, nBubbles);
-    bubbleT_s   = linspace(0, dur_s, nBubbles+2);
-    bubbleT_s   = bubbleT_s(2:end-1);
-else
-    if randomness == 1
-        rng('default');
+if isfinite(nBubbles)
+    if randomness == 0
+        bubbleF_erb = linspace(minMelPad, maxMelPad, nBubbles);
+        bubbleT_s   = linspace(0, dur_s, nBubbles+2);
+        bubbleT_s   = bubbleT_s(2:end-1);
     else
-        try
-            rng('shuffle');
-        catch
-            warning('Could not shuffle RNG')
+        if randomness == 1
+            rng('default');
+        else
+            try
+                rng('shuffle');
+            catch
+                warning('Could not shuffle RNG')
+            end
         end
+        randomNumbers = rand(2, nBubbles);
+        bubbleF_erb = randomNumbers(1,:)*(maxMelPad-minMelPad) + minMelPad;
+        bubbleT_s   = randomNumbers(2,:)*dur_s;
     end
-    randomNumbers = rand(2, nBubbles);
-    bubbleF_erb = randomNumbers(1,:)*(maxMelPad-minMelPad) + minMelPad;
-    bubbleT_s   = randomNumbers(2,:)*dur_s;
-end
 
-for i = 1:nBubbles
-  bumpDb = -(times_s - bubbleT_s(i)).^2 / sizeT_s.^2 ...
-      - (freqs_erb - bubbleF_erb(i)).^2 / sizeF_erb.^2;
-  
-  mask = mask + 10.^(bumpDb / 20);
+    for i = 1:nBubbles
+        bumpDb = -(times_s - bubbleT_s(i)).^2 / sizeT_s.^2 ...
+                 - (freqs_erb - bubbleF_erb(i)).^2 / sizeF_erb.^2;
+        
+        mask = mask + 10.^(bumpDb / 20);
+    end
+else
+    % Infinite bubbles
+    mask = 10.^(60/20) * ones(size(mask));
 end
 
 if makeHoles
