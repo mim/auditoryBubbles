@@ -19,7 +19,7 @@ for i = 1:length(speechFiles)
     cleanFile = fullfile(inDir, speechFiles{i});
     [~,sr] = wavread(cleanFile);
     
-    num = 0;
+    num = -1;
     while true
         [d f e] = fileparts(speechFiles{i});
 
@@ -27,11 +27,13 @@ for i = 1:length(speechFiles)
         numTaken = true;
         while numTaken
             num = num + 1;
-            outFile = fullfile(outDir, sprintf('bps%g', bubblesPerSec), ...
-                sprintf('snr%+d', snr_db), d, sprintf('%s_%03d%s', f, num, e));
+            %outFile = fullfile(outDir, sprintf('bps%g', bubblesPerSec), ...
+            %    sprintf('snr%+d', snr_db), d, sprintf('%s_%03d%s', f, num, e));
+            outFile = fullfile(outDir, d, sprintf('%s_bps%g_snr%+d_%03d%s', ...
+                f, bubblesPerSec, snr_db, num, e));
             numTaken = exist(outFile, 'file');
         end
-        if num > nMixes
+        if num >= nMixes
             break
         end
         fprintf('%d %d: %s\n', i, num, outFile)
