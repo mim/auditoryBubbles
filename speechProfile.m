@@ -12,12 +12,16 @@ if nargin < 4, oldNoise = 0; end
 persistent profiles;
 if ~exist('profiles', 'var'), profiles = []; end
 
-if oldNoise
+if oldNoise == 1
     refFile = fullfile(bubbleDataRoot, 'mrt/helen/Helen_side_chunk_1.wav');
     refQuantile = 0.99;
     smoothCoef = 0;
-else
+elseif oldNoise == 2
     refFile = fullfile(bubbleDataRoot, 'mrt/drspeech/speechRef.wav');
+    refQuantile = 0.97;
+    smoothCoef = 0.97;
+else
+    refFile = fullfile(bubbleDataRoot, 'mrt/shannon/speechRef.wav');
     refQuantile = 0.97;
     smoothCoef = 0.97;
 end

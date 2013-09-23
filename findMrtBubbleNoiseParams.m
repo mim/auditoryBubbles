@@ -15,8 +15,8 @@ maxIter = 50;
 inARow = 4;
 stopHist = 7;
 useHoles = true;
-%targetSr = 0;    % Use native sample rate of wave files
-targetSr = 16000;
+targetSr = 0;    % Use native sample rate of wave files
+%targetSr = 16000;
 
 % Figure out arguments to makeMix based on which variable is being tuned
 if tuneBps
@@ -36,8 +36,13 @@ else
 end
 
 [wavFileNames wavFilePaths] = findFiles(inDir, '\.wav');
-words = textread(wordSetListFile, '%s');
-words = reshape(words, 6, [])';
+
+if iscell(wordSetListFile)
+    words = wordSetListFile;
+else
+    words = textread(wordSetListFile, '%s');
+    words = reshape(words, 6, [])';
+end
 
 vals = [];
 correct = [];
@@ -53,7 +58,12 @@ for i = 1:maxIter
         w = ceil(rand(1) * size(words,2));
         word = words{s, w};
         ind = strmatch(word, wavFileNames);
-
+        
+        if isempty(ind)
+            error('No match for %s', word);
+        end
+        ind = ind(ceil(rand(1) * length(ind)));
+        
         if length(words(s,:)) ~= length(unique(words(s,:)))
             warning('mrtbnp:duplicate', 'Duplicate word found: %s', word)
         else
@@ -74,17 +84,17 @@ for i = 1:maxIter
     end
     fprintf('\n')
 
-    % Play mixture
-    sound(mix, sr);
-
     % Get input robustly
     while true
         try
+            % Play mixture
+            sound(mix, sr);
+            
             choice = input('Which word did you hear? ');
             picked{i} = words{s, ord(choice)};
             correct(i) = ord(choice) == w;
             break
-        catch err
+        catch %err
             % Don't do anything, just keep looping
         end
     end
