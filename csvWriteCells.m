@@ -17,4 +17,4 @@ for i = 1:length(lines)
     fprintf(f, '"%s"\n', join(strrep(lines{i}, '"', '\"'), '","'));
 end
 fclose(f);
-fprintf('Wrote CSV to "%s"\n', fileName)
+%fprintf('Wrote CSV to "%s"\n', fileName)

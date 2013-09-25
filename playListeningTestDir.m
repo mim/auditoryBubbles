@@ -1,8 +1,17 @@
-function playListeningTestDir(inDir, subjectName)
+function playListeningTestDir(inDir, subjectName, allowRepeats)
 
+% playListeningTestDir(inDir, subjectName, [allowRepeats])
+%
 % Run a listening test using all of the files in a directory. Save
 % results to a comma-separated variable (CSV) file in the same
 % directory with a date-time-stamp.
+%
+% Inputs:
+%   inDir         directory to find wav files to play
+%   subjectName   string to save in output file signifying subject, e.g. initials
+%   allowRepeats  if 1, allow user to replay sounds, if 0, do not (defaults to 0)
+
+if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false; end
 
 outCsvFile = fullfile(inDir, [subjectName '_' datestr(clock, 30) '.csv']);
 choiceNums = [1 2 3 4 5 6];
@@ -38,22 +47,28 @@ for f = 1:length(files)
     for opt = 1:length(words)
         fprintf('%d: %-7s  ', choiceNums(opt), words{opt});
     end
-    fprintf('%d: [play again]', 0);
+    if allowRepeats
+        fprintf('%d: [replay]', 0);
+    end
     fprintf('\n')
     
     [mix sr] = wavReadBetter(file);
     
     % Get input robustly
+    firstTime = true;
     while true
         try
-            % Play mixture
-            sound(mix, sr);
+            if firstTime || allowRepeats
+                % Play mixture
+                sound(mix, sr);
+            end
             
             choice = input('Which word did you hear? ');
             picked = words{choiceNums == choice};
             break
         catch % err
             % Play again and keep looping
+            firstTime = false;
         end
     end
     
