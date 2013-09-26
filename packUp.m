@@ -3,7 +3,7 @@ function files = packUp
 % Copy necessary files into a dist directory and test that everything works
 % with the path cleared.
 
-dest = 'D:\mixes\shannon\sorted\code\';
+dest = 'D:\My Box Files\bubblesShannon\code\';
 
 files = {
     'playListeningTestDir.m'

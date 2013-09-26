@@ -1,6 +1,6 @@
-function playListeningTestDir(inDir, subjectName, allowRepeats)
+function playListeningTestDir(inDir, subjectName, giveFeedback, allowRepeats)
 
-% playListeningTestDir(inDir, subjectName, [allowRepeats])
+% playListeningTestDir(inDir, subjectName, [giveFeedback], [allowRepeats])
 %
 % Run a listening test using all of the files in a directory. Save
 % results to a comma-separated variable (CSV) file in the same
@@ -9,9 +9,11 @@ function playListeningTestDir(inDir, subjectName, allowRepeats)
 % Inputs:
 %   inDir         directory to find wav files to play
 %   subjectName   string to save in output file signifying subject, e.g. initials
+%   giveFeedback  if 1, tell the user whether their response was correct or not, if 0, do not (defaults to 0)
 %   allowRepeats  if 1, allow user to replay sounds, if 0, do not (defaults to 0)
 
 if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false; end
+if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false; end
 
 outCsvFile = fullfile(inDir, [subjectName '_' datestr(clock, 30) '.csv']);
 choiceNums = [1 2 3 4 5 6];
@@ -79,10 +81,15 @@ for f = 1:length(files)
     % Give feedback
     if strcmp(picked, rightAnswers{f})
         correct = correct + 1;
-        fprintf('Correct (finished %d of %d)\n', f, length(files))
+        fbStr = 'Correct';
     else
         incorrect = incorrect + 1;
-        fprintf('Incorrect (finished %d of %d)\n', f, length(files))
+        fbStr = 'Incorrect';
+    end
+    if giveFeedback
+        fprintf('%s (finished %d of %d)\n', fbStr, f, length(files))
+    else
+        fprintf('Finished %d of %d\n', f, length(files))
     end
 end
 fprintf('Avg %g%% correct\n', 100*correct / (correct + incorrect));
