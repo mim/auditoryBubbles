@@ -8,6 +8,7 @@ dest = 'D:\My Box Files\bubblesShannon\code\';
 files = {
     'playListeningTestDir.m'
     'csvWriteCells.m'
+    'playCalibrationFile.m'
     'Z:\code\matlab\listMap.m'
     'Z:\code\matlab\findFiles.m'
     'Z:\code\matlab\reMatch.m'
