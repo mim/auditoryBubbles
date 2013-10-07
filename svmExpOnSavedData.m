@@ -5,7 +5,6 @@ function [mcr data] = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold
 % [mcr data] = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold)
 
 if ~exist('nFold', 'var') || isempty(nFold), nFold = 5; end
-if ~exist('oldProfile', 'var') || isempty(oldProfile), oldProfile = true; end
 if ~exist('balance', 'var') || isempty(balance), balance = true; end
 if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = 50; end
 if ~exist('nRep', 'var') || isempty(nRep), nRep = 1; end

@@ -1,9 +1,8 @@
-function collectFeatures(word, path, groupedFile, outFile, oldProfile, ...
-                         overwrite)
+function collectFeatures(word, path, groupedFile, outFile, trimFrames, oldProfile, overwrite)
 
 % Collect features for various SVM/PCA experiments
 %
-% collectFeatures(word, path, groupedFile, outFile, overwrite)
+% collectFeatures(word, path, groupedFile, outFile, trimFrames, oldProfile, overwrite)
 %
 % word is a string specifying which word to use.  path is the directory
 % where the clean speech and mixes live.  Clean speech should be in
@@ -13,6 +12,7 @@ function collectFeatures(word, path, groupedFile, outFile, oldProfile, ...
 
 if ~exist('oldProfile', 'var') || isempty(oldProfile), oldProfile = true; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end    
+if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 29; end
 
 if exist(outFile, 'file') && ~overwrite
     fprintf('Skipping %s\n', outFile)
@@ -35,13 +35,16 @@ end
 mixPaths = mixPaths(:); fracRight = fracRight(:);
 
 cleanFile = fullfile(path, [word '.wav']);
+if ~exist(cleanFile, 'file')
+    cleanFile = fullfile(path, [regexprep(word, 'bps\d+', 'bpsInf') '000.wav']);
+end
 [clean fs nFft] = loadSpecgram(cleanFile);
 
 %features = zeros(length(mixPaths), 2*numel(clean));
 for i = 1:length(mixPaths)
     mix = loadSpecgram(mixPaths{i});
     [features(i,:) origShape weights cleanFeat] = ...
-        bubbleFeatures(clean, mix, fs, nFft, oldProfile);
+        bubbleFeatures(clean, mix, fs, nFft, oldProfile, trimFrames);
 end
 
 fprintf('%d files, avg label: %g\n', size(features,1), mean(fracRight > 0.5))
@@ -50,9 +53,12 @@ fprintf('%d files, avg label: %g\n', size(features,1), mean(fracRight > 0.5))
 %[pcaFeat pcs] = pca(bsxfun(@times, weights, zscore(features))');
 
 ensureDirExists(outFile)
-save(outFile, '-mat-binary', 'features', 'mixPaths', 'fracRight', ...
+save(outFile, 'features', 'mixPaths', 'fracRight', ...
      'pcs', 'pcaFeat', 'fs', 'nFft', 'cleanFeat', 'weights', ...
      'origShape')
+% save(outFile, '-mat-binary', 'features', 'mixPaths', 'fracRight', ...
+%      'pcs', 'pcaFeat', 'fs', 'nFft', 'cleanFeat', 'weights', ...
+%      'origShape')
 
 
 function [spec fs nfft] = loadSpecgram(fileName)
