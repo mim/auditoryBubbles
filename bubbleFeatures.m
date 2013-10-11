@@ -1,4 +1,4 @@
-function [feat origShape weights cleanVec] = bubbleFeatures(clean, mix, fs, nFft, oldProfile, trimFrames)
+function [feat origShape weights cleanVec weightVec] = bubbleFeatures(clean, mix, fs, nFft, oldProfile, trimFrames)
 % Compute features for the classifier from a clean spectrogram and a mix
 % spectrogram.
 
@@ -38,6 +38,7 @@ dF = [diff(freqVec_erb) 0].^(1/3);
 %dF = [diff(freqVec_erb) 0].^(1/4);
 %dF = [diff(freqVec_erb.^2) 0];
 %dF = ones(1, length(freqVec_erb));
+weightVec = dF';
 weights = repmat(dF', 1, size(origFeat,2));
 weights = reshape(weights, size(feat));
 
