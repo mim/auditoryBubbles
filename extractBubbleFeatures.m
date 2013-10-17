@@ -24,7 +24,7 @@ else
 end
 
 % Extract bubble features for every file
-effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, oldProfile);
+effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, oldProfile, overwrite);
 status = extractFeatures(inDir, outFeatDir, 'mat', wavFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
 
@@ -45,7 +45,7 @@ if ~exist(pcaFile, 'file') || overwrite
     pcs = pca(bsxfun(@times, weights, features));
     pcs = pcs(:,1:pcaDims(1));
     ensureDirExists(pcaFile);
-    save(pcaFile, 'pcs', 'mu', 'sig', 'pcaDims', 'origShape');
+    save(pcaFile, 'pcs', 'mu', 'sig', 'pcaDims', 'origShape', 'weightVec');
 else
     load(pcaFile)
 end
@@ -57,14 +57,19 @@ status = extractFeatures(outFeatDir, outPcaDir, 'mat', matFiles, ...
 
 
 
-function ef_bubbleFeatures(ip, op, fn, trimFrames, oldProfile)
+function ef_bubbleFeatures(ip, op, fn, trimFrames, oldProfile, overwrite)
 
-cleanFile = regexprep(regexprep(ip, 'bps\d+', 'bpsInf'), '\d+.wav', '000.wav');
-[clean fs nfft] = loadSpecgram(cleanFile);
+cleanWavFile = regexprep(regexprep(ip, 'bps\d+', 'bpsInf'), '\d+.wav', '000.wav');
+cleanMatFile = regexprep(regexprep(op, 'bps\d+', 'bpsInf'), '\d+.mat', '000.mat');
+
+[clean fs nfft] = loadSpecgram(cleanWavFile);
 [mix   fs nfft] = loadSpecgram(ip);
 [features origShape weights cleanFeat weightVec] = ...
     bubbleFeatures(clean, mix, fs, nfft, oldProfile, trimFrames);
 
+if ~exist(cleanMatFile, 'file') || overwrite
+    save(cleanMatFile, 'cleanFeat', 'origShape', 'fs', 'nfft', 'trimFrames');
+end
 save(op, 'features', 'weightVec', 'origShape', 'fs', 'nfft', 'trimFrames', 'oldProfile')
 
 
