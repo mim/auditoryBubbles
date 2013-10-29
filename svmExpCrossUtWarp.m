@@ -1,8 +1,7 @@
-function mcr = svmExpCrossUtWarp(baseDir, cleanTrFile, trPcaFeatFile, cleanTeFile, pcaFile, groupedFile, pcaDims)
+function mcr = svmExpCrossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedFile, pcaDims)
 
 % Train an SVM on one utterance, test on warped other utterance
 
-cleanTrFile   = fullfile(baseDir, cleanTrFile);
 trPcaFeatFile = fullfile(baseDir, trPcaFeatFile);
 cleanTeFile   = fullfile(baseDir, cleanTeFile);
 pcaFile       = fullfile(baseDir, pcaFile);
@@ -25,14 +24,14 @@ F = pca.origShape(1); T = pca.origShape(2);
 weights = reshape(repmat(pca.weightVec, 1, T), 1, F*T);
 
 % Compute warping to apply to test features
-tr = load(cleanTrFile);
-S1 = reshape(tr.cleanFeat, tr.origShape);
+cf = tr.cleanFeat;
+S1 = reshape(cf.cleanFeat, cf.origShape);
 te = load(cleanTeFile);
 S2 = reshape(te.cleanFeat, te.origShape);
-warp = alignCleanSigs(S1, S2, tr.fs, tr.nfft);
+warp = alignCleanSigs(S1, S2, cf.fs, cf.nfft);
 
 % Compute PCA projections of warped features
-scaled = zeros(length(teFiles), length(tr.cleanFeat));
+scaled = zeros(length(teFiles), length(cf.cleanFeat));
 for f = 1:length(teFiles)
     tef = load(fullfile(teDir, teFiles{f}));
     tmp = reshape(tef.features, tef.origShape);
