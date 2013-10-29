@@ -34,13 +34,16 @@ if ~exist(pcaFile, 'file') || overwrite
     % Load files for PCA
     for f = 1:min(pcaDims(2), length(wavFiles))
         tmp = load(fullfile(outFeatDir, matFiles{f}));
-        features(f,:) = tmp.features;
+        features(f,:) = single(tmp.features);
         weightVec = tmp.weightVec;
         origShape = tmp.origShape;
     end
     
     % Compute PCA across all files, save in directory
-    [features mu sig] = zscore(features);
+    mu = mean(features);
+    sig = std(features);
+    features = bsxfun(@rdivide, bsxfun(@minus, features, mu), sig);
+    %[features mu sig] = zscore(features);
     weights = reshape(repmat(weightVec, 1, origShape(2)), 1, size(features, 2));
     pcs = pca(bsxfun(@times, weights, features));
     pcs = pcs(:,1:pcaDims(1));
