@@ -58,8 +58,8 @@ function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
 Xtr = Xtr(:, 1:min(nDim,end));
 Xte = Xte(:, 1:min(nDim,end));
 
-svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q');
-preds = linear_predict(zeros(size(Xte,1),1), sparse(Xte), svm, '-q');
+svm = linear_train(double(ytr), sparse(double(Xtr)), '-s 2 -q');
+preds = linear_predict(zeros(size(Xte,1),1), sparse(double(Xte)), svm, '-q');
 
 
 function acc = classAvgAcc(yte, preds)
