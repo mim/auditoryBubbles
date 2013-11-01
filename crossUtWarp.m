@@ -1,6 +1,22 @@
-function mcr = svmExpCrossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedFile, pcaDims)
+function [Xtr ytr Xte yte scaled] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath)
 
-% Train an SVM on one utterance, test on warped other utterance
+% Load features after warping test utterance to match training utterance
+%
+% [Xtr ytr Xte yte scaled] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath)
+%
+% Inputs
+%   baseDir        base directory for file arguments
+%   trPcaFeatFile  output of collectPcaFeatures for training utterance
+%   cleanTeFile    clean utterance for test files (noisy files derived from this)
+%   pcaFile        mat file containing pca matrix and normalization params
+%   groupedPath    path to file with grouped listening test results
+%
+% Outputs
+%   Xtr     training PCA features
+%   ytr     training supervision values
+%   Xte     testing PCA features
+%   yte     testing supervision values
+%   scaled  testing full features, centered and scaled before PCA
 
 trPcaFeatFile = fullfile(baseDir, trPcaFeatFile);
 cleanTeFile   = fullfile(baseDir, cleanTeFile);
@@ -16,7 +32,7 @@ Xtr = Xtr(keep,:);
 
 % Load clean files and metadata
 [teFiles teDir] = mixesForClean(cleanTeFile);
-[yte,~,teFiles] = isRightFor(teFiles, groupedFile);
+[yte,~,teFiles] = isRightFor(teFiles, groupedPath);
 
 % Load PCA stuff
 pca = load(pcaFile);
@@ -40,30 +56,9 @@ for f = 1:length(teFiles)
 end
 Xte = scaled * pca.pcs;
 
-% Train SVM, test SVM
-preds = libLinearPredFunDimRed(Xtr, ytr, Xte, pcaDims);
-mcr = 1 - classAvgAcc(yte, preds);
-
-
-
 
 function [files d] = mixesForClean(cleanFile)
 
 [d f] = fileparts(cleanFile);
 p = strrep(strrep(f, 'Inf', '15'), '000', '\d+');
 files = findFiles(d, p);
-
-
-function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
-Xtr = Xtr(:, 1:min(nDim,end));
-Xte = Xte(:, 1:min(nDim,end));
-
-svm = linear_train(double(ytr), sparse(double(Xtr)), '-s 2 -q');
-preds = linear_predict(zeros(size(Xte,1),1), sparse(double(Xte)), svm, '-q');
-
-
-function acc = classAvgAcc(yte, preds)
-% Average accuracy in positive and negative classes, baseline 0.5
-pos = (yte > 0);
-neg = (yte < 0);
-acc = 0.5 * mean(preds(pos) > 0) + 0.5 * mean(preds(neg) < 0);
