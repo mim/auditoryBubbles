@@ -1,8 +1,8 @@
-function [Xtr ytr Xte yte scaled] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath)
+function [Xtr ytr Xte yte warped scaled origShape] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 
 % Load features after warping test utterance to match training utterance
 %
-% [Xtr ytr Xte yte scaled] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath)
+% [Xtr ytr Xte yte warped scaled origShape] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 %
 % Inputs
 %   baseDir        base directory for file arguments
@@ -17,6 +17,8 @@ function [Xtr ytr Xte yte scaled] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeF
 %   Xte     testing PCA features
 %   yte     testing supervision values
 %   scaled  testing full features, centered and scaled before PCA
+
+if ~exist('doWarp', 'var') || isempty(doWarp), doWarp = true; end
 
 trPcaFeatFile = fullfile(baseDir, trPcaFeatFile);
 cleanTeFile   = fullfile(baseDir, cleanTeFile);
@@ -44,17 +46,23 @@ cf = tr.cleanFeat;
 S1 = reshape(cf.cleanFeat, cf.origShape);
 te = load(cleanTeFile);
 S2 = reshape(te.cleanFeat, te.origShape);
-warp = alignCleanSigs(S1, S2, cf.fs, cf.nfft);
+if doWarp
+    warp = alignCleanSigs(S1, S2, cf.fs, cf.nfft);
+else
+    warp = 1:size(S2,2);
+end
 
 % Compute PCA projections of warped features
 scaled = zeros(length(teFiles), length(cf.cleanFeat));
 for f = 1:length(teFiles)
     tef = load(fullfile(teDir, teFiles{f}));
     tmp = reshape(tef.features, tef.origShape);
-    warped = reshape(tmp(:,warp), 1, []);
-    scaled(f,:) = bsxfun(@times, bsxfun(@minus, warped, pca.mu), weights ./ pca.sig);
+    wTmp = reshape(tmp(:,warp), 1, []);
+    warped(f,:) = wTmp;
+    scaled(f,:) = bsxfun(@times, bsxfun(@minus, wTmp, pca.mu), weights ./ pca.sig);
 end
 Xte = scaled * pca.pcs;
+origShape = tef.origShape;
 
 
 function [files d] = mixesForClean(cleanFile)
