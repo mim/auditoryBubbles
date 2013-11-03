@@ -1,17 +1,23 @@
-function expWarpExtensive(expNum, trim)
+function expWarpExtensive(expNum, trim, pcaDims)
 
 % Run lots of experiments on warped bubble noise data
 
-outDir      = 'C:\Temp\plots\exp1\trim10';
-baseDir     = 'C:\Temp\mrtFeatures\shannonLight\exp1\trim10\';
+if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = 60; end
+if ~exist('trim', 'var') || isempty(trim), trim = 10; end
+if ~exist('expNum', 'var') || isempty(expNum), expNum = 1; end
+
+expDir  = sprintf('exp%d', expNum); 
+trimDir = sprintf('trim%d', trim);
+outDir      = fullfile('C:\Temp\plots\', expDir, trimDir);
+baseDir     = fullfile('C:\Temp\mrtFeatures\shannonLight\', expDir, trimDir);
 pcaDataFile = 'pcaData_100dims_1000files.mat';
-groupedFile = 'Z:\data\mrt\shannonResults\groupedExp1Tmp.mat';
+groupedFile = fullfile('Z:\data\mrt\shannonResults', sprintf('groupedExp%dTmp.mat', expNum));
 cleanFiles  = findFiles(baseDir, 'bpsInf');
 pcaFiles    = findFiles(baseDir, 'snr-35_.mat');
 
 fnsForVoicing = {
-    { ... @plotTfctOfEachWord, ...
-    ... @plotTfctOfPooled, ...
+    { @plotTfctOfEachWord, ...
+    @plotTfctOfPooled, ...
     @trainSvmOnTargetTestOnOtherTwo, ...
     @trainSvmOnTargetAndEachWarpedTestOnOther, ...
     @xvalSvmOnEachWord, ...
@@ -34,34 +40,33 @@ for iov = [0]
                     sprintf('doWarp=%d', doWarp), sprintf('target=%d',target), ...
                     sprintf('fn=%s',func2str(fns4v{f})));
                 ensureDirExists(fullOutDir, 1);
-                fns4v{f}(fullOutDir,Xte,yte,warped,origShape);
+                fns4v{f}(fullOutDir,Xte,yte,warped,origShape,pcaDims);
             end
         end
     end
 end
 
 
-function plotTfctOfEachWord(outDir,Xte,yte,warped,origShape)
+function plotTfctOfEachWord(outDir,Xte,yte,warped,origShape,pcaDims)
 for w = 1:length(yte)
     mat(:,:,w) = plotTfct(fullfile(outDir, sprintf('word%d', w)), warped{w}(yte{w}>0,:), warped{w}(yte{w}<0,:), origShape);
 end
 save(fullfile(outDir, 'res'), 'mat');
 
-function plotTfctOfPooled(outDir,Xte,yte,warped,origShape)
+function plotTfctOfPooled(outDir,Xte,yte,warped,origShape,pcaDims)
 allW = cat(1,warped{:}); 
 allYte = cat(1,yte{:});
 mat = plotTfct(fullfile(outDir, 'combined'), allW(allYte>0,:), allW(allYte<0,:), origShape);
 save(fullfile(outDir, 'res'), 'mat');
 
-function mat = plotTfct(outFile, feat1, feat0, origShape)
+function mat = plotTfct(outFile, feat1, feat0, origShape,pcaDims)
 [~,p,isHigh] = tfCrossTab(sum(1-feat0), sum(1-feat1), sum(feat0), sum(feat1));
 mat = reshape((2*isHigh-1).*exp(-p/0.05), origShape);
 subplots(mat)
 print('-dpng', outFile);
 
 
-function trainSvmOnTargetTestOnOtherTwo(outDir,Xs,ys,warped,origShape)
-pcaDims = 60;
+function trainSvmOnTargetTestOnOtherTwo(outDir,Xs,ys,warped,origShape,pcaDims)
 Xtr = Xs{1};
 ytr = ys{1};
 Xte = cat(1, Xs{2:end});
@@ -70,22 +75,29 @@ mcr = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims);
 touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f', pcaDims, mcr)));
 save(fullfile(outDir, 'res'), 'mcr', 'pcaDims');
 
-function trainSvmOnTargetAndEachWarpedTestOnOther(outDir,Xs,ys,warped,origShape)
-pcaDims = 60;
+function trainSvmOnTargetAndEachWarpedTestOnOther(outDir,Xs,ys,warped,origShape,pcaDims)
 for i=2:3
     Xtr = cat(1, Xs{[1 i]});
     ytr = cat(1, ys{[1 i]});
     Xte = Xs{setdiff([2 3], i)};
     yte = ys{setdiff([2 3], i)};
-    mcr = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims);
-    touch(fullfile(outDir, sprintf('pcaDims=%d,trI=%d,mcr=%.04f', pcaDims, i, mcr)));
-    save(fullfile(outDir, sprintf('resTrI=%d', i)), 'mcr', 'pcaDims');
+    mcr(i) = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims);
+    touch(fullfile(outDir, sprintf('pcaDims=%d,trI=%d,mcr=%.04f', pcaDims, i, mcr(i))));
 end
+save(fullfile(outDir, 'res'), 'mcr', 'pcaDims');
 
 
-function xvalSvmOnEachWord(outDir,Xte,yte,warped,origShape)
+function xvalSvmOnEachWord(outDir,Xte,yte,warped,origShape,pcaDims)
+for w = 1:3
+    mcr(w) = svmXVal(Xte{w}, yte{w}, pcaDims);
+    touch(fullfile(outDir, sprintf('pcaDims=%d,w=%d,mcr=%.04f',pcaDims,w,mcr(w))));
+end
+save(fullfile(outDir, 'res'), 'mcr', 'pcaDims')
 
-function xvalSvmOnPooled(outDir,Xte,yte,warped,origShape)
+function xvalSvmOnPooled(outDir,Xte,yte,warped,origShape,pcaDims)
+mcr = svmXVal(cat(1, Xte{:}), cat(1, yte{:}), pcaDims);
+touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f',pcaDims,mcr)));
+save(fullfile(outDir, 'res'), 'mcr', 'pcaDims')
 
 
 

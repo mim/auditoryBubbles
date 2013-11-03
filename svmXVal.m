@@ -1,28 +1,20 @@
-function [mcr data] = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold)
+function [mcr data] = svmXVal(pcaFeat, isRight, pcaDims, nRep, nFold)
     
-% Train an SVM to predict intelligibility of mixtures from time-frequency SNR
+% Run nested cross-validation experiment with SVM to select PCA dims
 %
-% [mcr data] = svmExpOnSavedData(savedFile, pcaDims, balance, nRep, nFold)
+% [mcr data] = svmXVal(pcaFeat, isRight, pcaDims, nRep, nFold)
 
 if ~exist('nFold', 'var') || isempty(nFold), nFold = 5; end
-if ~exist('balance', 'var') || isempty(balance), balance = true; end
 if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = 50; end
 if ~exist('nRep', 'var') || isempty(nRep), nRep = 1; end
-nTrain = inf;
 
-m = load(savedFile);
-
-isRight = (m.fracRight >= 0.4) - (m.fracRight <= 0.3);
-%isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
-%isRight = rand(size(m.fracRight)) <= m.fracRight;
-
-fprintf('Average label value: %g\n', sum(isRight > 0) ./ sum(isRight~= 0))
+%fprintf('Average label value: %g\n', sum(isRight > 0) ./ sum(isRight~= 0))
 
 % for p = 1:length(pcaDims)
 %     for r = 1:nRep
 %         mcr(p,r) = crossValidate(@(Xtr, ytr, Xte) ...
 %                                  libLinearPredFunDimRed(Xtr, ytr, Xte, pcaDims(p)), ...
-%                                  m.pcaFeat, isRight, nFold, r);
+%                                  pcaFeat, isRight, nFold, r);
 %     end
 % end
 % data = [];
@@ -33,7 +25,7 @@ wrapper = @(Xtr, ytr, Xte) ...
                             ytr, Xte, nFold);
 
 for r = 1:nRep
-    [mcr(r) data{r}] = crossValidate(wrapper, m.pcaFeat, isRight, ...
+    [mcr(r) data{r}] = crossValidate(wrapper, pcaFeat, isRight, ...
                                      nFold, r);
 end
 
@@ -87,6 +79,6 @@ function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
 Xtr = Xtr(:, 1:min(nDim,end));
 Xte = Xte(:, 1:min(nDim,end));
 
-svm = linear_train(double(ytr), sparse(Xtr), '-s 2 -q');
-preds = linear_predict(zeros(size(Xte,1),1), sparse(Xte), svm, '-q');
+svm = linear_train(double(ytr), sparse(double(Xtr)), '-s 2 -q');
+preds = linear_predict(zeros(size(Xte,1),1), sparse(double(Xte)), svm, '-q');
 
