@@ -1,9 +1,10 @@
-function extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, oldProfile, overwrite)
+function extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, oldProfile, overwrite)
 
 % Similar to collectFeatures, but parallizeable using extractFeatures.m
 
 if ~exist('filesOrPattern', 'var') || isempty(filesOrPattern), filesOrPattern = '.*.wav'; end
 if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = [50 200]; end
+if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 0; end
 if ~exist('oldProfile', 'var') || isempty(oldProfile), oldProfile = 0; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
@@ -12,7 +13,7 @@ nJobs = 1;
 part = [1 1];
 ignoreErrors = 0;
 
-trimDir = sprintf('trim%02d', trimFrames);
+trimDir = sprintf('trim=%02d,length=%g', trimFrames, setLength_s);
 outFeatDir = fullfile(outDir, trimDir, 'feat');
 pcaFile    = fullfile(outDir, trimDir, sprintf('pcaData_%ddims_%dfiles.mat', pcaDims));
 outPcaDir  = fullfile(outDir, trimDir, sprintf('pca_%ddims_%dfiles', pcaDims));
@@ -24,7 +25,7 @@ else
 end
 
 % Extract bubble features for every file
-effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, oldProfile, overwrite);
+effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, setLength_s, oldProfile, overwrite);
 status = extractFeatures(inDir, outFeatDir, 'mat', wavFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
 
@@ -60,13 +61,13 @@ status = extractFeatures(outFeatDir, outPcaDir, 'mat', matFiles, ...
 
 
 
-function ef_bubbleFeatures(ip, op, fn, trimFrames, oldProfile, overwrite)
+function ef_bubbleFeatures(ip, op, fn, trimFrames, setLength_s, oldProfile, overwrite)
 
 cleanWavFile = regexprep(regexprep(ip, 'bps\d+', 'bpsInf'), '\d+.wav', '000.wav');
 cleanMatFile = regexprep(regexprep(op, 'bps\d+', 'bpsInf'), '\d+.mat', '000.mat');
 
-[clean fs nfft] = loadSpecgram(cleanWavFile);
-[mix   fs nfft] = loadSpecgram(ip);
+[clean fs nfft] = loadSpecgram(cleanWavFile, setLength_s);
+[mix   fs nfft] = loadSpecgram(ip, setLength_s);
 [features origShape weights cleanFeat weightVec] = ...
     bubbleFeatures(clean, mix, fs, nfft, oldProfile, trimFrames);
 
@@ -85,11 +86,24 @@ save(op, 'pcaFeat', 'origShape', 'weightVec', 'fs', 'nfft', ...
     'trimFrames', 'oldProfile', 'pcaFile');
 
 
-function [spec fs nfft] = loadSpecgram(fileName)
+function [spec fs nfft] = loadSpecgram(fileName, setLength_s)
 % Load a spectrogram of a wav file
 win_s = 0.064;
 
 [x fs] = wavReadBetter(fileName);
+nSamp = round(fs * setLength_s);
+
+if nSamp > 0
+    if length(x) < nSamp
+        toAdd = nSamp - length(x);
+        x = [zeros(ceil(toAdd/2),1); x; zeros(floor(toAdd/2),1)];
+    elseif length(x) > nSamp
+        toCut = length(x) - nSamp;
+        x = x(floor(toCut/2) : end-ceil(toCut/2)+1);
+    end
+end
+assert(length(x) == nSamp);
+
 nfft = round(win_s * fs);
 hop = round(nfft/4);
 spec = stft(x', nfft, nfft, hop);
