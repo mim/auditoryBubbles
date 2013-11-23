@@ -17,12 +17,14 @@ function [outStruct keepKeys] = analyzeResultStruct(inStruct, filterBy, compareS
 %                 to compare them
 
 if ~exist('ignoreFields', 'var'), ignoreFields = {}; end
-assert(all(strcmp(sort(fieldnames(compareSrc)), sort(fieldnames(compareDst)))), ...
-    'compareSrc and compareDst must have the same fields');
+% assert(all(strcmp(sort(fieldnames(compareSrc)), sort(fieldnames(compareDst)))), ...
+%     'compareSrc and compareDst must have the same fields');
+assert(~isSubStruct(compareSrc, compareDst))
+assert(~isSubStruct(compareDst, compareSrc))
 assert(isempty(intersect(fieldnames(compareSrc), fieldnames(filterBy))), ...
     'compareSrc/Dst must not share any fields with filterBy');
 
-ignoreFields = union(union(ignoreFields, fieldnames(compareSrc)), {compareField});
+ignoreFields = union(union(union(ignoreFields, fieldnames(compareSrc)), fieldnames(compareDst)), {compareField});
 
 keys = cell(size(inStruct));
 foundVal = [0 0];
