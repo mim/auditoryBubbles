@@ -21,8 +21,8 @@ fns = {
     @xvalSvmOnEachWord, ...
     @xvalSvmOnPooled };
 
-for grouping = 1
-%for grouping = [1 0]
+%for grouping = 1
+for grouping = [1 0]
     for doWarp = [0 1]
         for target = 1:length(pcaFiles)
             sameWord = sameWordFor(target, length(pcaFiles), grouping);
@@ -130,7 +130,7 @@ elseif outOf == 36
     if grouping
         words = (wordSet-1)*6 + (1:6);
     else
-        if any(target == 2:4)
+        if any(mod(target-1,6)+1 == 2:4)
             words = (wordSet-1)*6 + (2:4);
         else
             words = (wordSet-1)*6 + [1 5 6];
