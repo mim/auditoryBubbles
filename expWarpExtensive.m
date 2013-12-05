@@ -21,10 +21,12 @@ fns = {
     @xvalSvmOnEachWord, ...
     @xvalSvmOnPooled };
 
-for grouping = [1 0]
+for grouping = 1
+%for grouping = [1 0]
     for doWarp = [0 1]
         for target = 1:length(pcaFiles)
             sameWord = sameWordFor(target, length(pcaFiles), grouping);
+            clear Xte yte warped
             for c = 1:length(sameWord),
                 [~,~,Xte{c},yte{c},warped{c},~,origShape] = ...
                     crossUtWarp(baseDir, pcaFiles{target}, cleanFiles{sameWord(c)}, pcaDataFile, groupedFile, doWarp);
@@ -79,8 +81,8 @@ touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f', pcaDims, mcr)));
 save(fullfile(outDir, 'res'), 'mcr', 'pcaDims', 'outDir');
 
 function trainSvmOnAllButOne(outDir,Xs,ys,warped,origShape,pcaDims)
-for i=2:length(Xs)
-    tr = [1 setdiff(2:length(Xs), i)];
+for i=1:length(Xs)
+    tr = setdiff(1:length(Xs), i);
     Xtr = cat(1, Xs{tr});
     ytr = cat(1, ys{tr});
     Xte = Xs{i};

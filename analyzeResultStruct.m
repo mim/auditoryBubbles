@@ -57,6 +57,7 @@ for p = 1:2:length(inStruct)
     outStruct = [outStruct outTmp];
     keepKeys{end+1} = keys{p};
 end
+keepKeys = keepKeys';
 
 
 function s = isSubStruct(a, b)
