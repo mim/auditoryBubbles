@@ -7,11 +7,11 @@ if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
 if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 
 prt('ToFile', toDisk, 'StartAt', startAt, ...
-    'Width', 2, 'Height', 1.5, ...
+    'Width', 4, 'Height', 3, ...
     'TargetDir', 'z:\data\plots\waspaa13_2', ...
-    'SaveTicks', 1, 'Resolution', 400)
+    'SaveTicks', 1, 'Resolution', 200)
 
-matDir = 'z:\data\mrt\waspaa13PlotMats';
+matDir = 'D:\Box Sync\data\mrt\waspaa13PlotMats';
 files = {
     {'MTurk_Version_1_din', 'MTurk_Version_1_fin', 'MTurk_Version_1_pin', 'MTurk_Version_1_sin', 'MTurk_Version_1_tin', 'MTurk_Version_1_win';
     'MTurk_Version_1_din_svm', 'MTurk_Version_1_fin_svm', 'MTurk_Version_1_pin_svm', 'MTurk_Version_1_sin_svm', 'MTurk_Version_1_tin_svm', 'MTurk_Version_1_win_svm';
@@ -64,11 +64,18 @@ plotSpecgram(db(Xm1), fs, m.nFft, m.hop, 'din_mix1',   m.cax, m.cmap, [1 1 1]);
 plotSpecgram(db(Xn2), fs, m.nFft, m.hop, 'din_noise2', m.cax, m.cmap, [1 1 1]);
 plotSpecgram(db(Xm2), fs, m.nFft, m.hop, 'din_mix2',   m.cax, m.cmap, [1 1 1]);
 
-
 % % Plot PCA dimensions
-% m = load('d:\mim_helenWordsPad02_din.mat');
-% for d=1:10
-% end
+pca = load('C:\Temp\mrtFeatures\shannonLight\exp1\trim30\pcaData_100dims_1000files.mat');
+nPcs = 16;
+topPcs = reshape(pca.pcs(:,1:nPcs), [pca.origShape nPcs]);
+pFs = 44100;
+pNfft = (pca.origShape(1)-1)*2;
+pHop = pNfft / 4;
+pCax = [-0.01 0.01];
+pCmap = easymap('bwr', 255);
+for i=1:size(topPcs,3)
+    plotSpecgram(topPcs(:,:,i), pFs, pNfft, pHop, sprintf('pc%02d', i), pCax, pCmap, [1 1 0]);
+end
 
 
 
@@ -96,9 +103,9 @@ caxis(cax)
 axis xy
 axis tight
 %title(replaceStrs(name, {'_spec', '', '_svm', ''}), 'interpreter', 'none')
-set(gca, 'YTick', [2 4 6]);
+set(gca, 'YTick', [2:2:fs/2000-1]);
 if labels(1)
-    set(gca, 'YTickLabel', [2 4 6]);
+    set(gca, 'YTickLabel', [2:2:fs/2000-1]);
     ylabel(ylab)
 else
     set(gca, 'YTickLabel', {});

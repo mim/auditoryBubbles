@@ -25,7 +25,7 @@ fns = {
 for grouping = [1 0]
     for doWarp = [0 1]
         for target = 1:length(pcaFiles)
-            sameWord = sameWordFor(target, length(pcaFiles), grouping);
+            sameWord = sameWordFor(target, pcaFiles, grouping);
             clear Xte yte warped
             for c = 1:length(sameWord),
                 [~,~,Xte{c},yte{c},warped{c},~,origShape] = ...
@@ -104,44 +104,6 @@ function xvalSvmOnPooled(outDir,Xte,yte,warped,origShape,pcaDims)
 mcr = svmXVal(cat(1, Xte{:}), cat(1, yte{:}), pcaDims);
 touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f',pcaDims,mcr)));
 save(fullfile(outDir, 'res'), 'mcr', 'pcaDims', 'outDir')
-
-
-
-function words = sameWordFor(target, outOf, grouping)
-% Target word is always first
-
-if outOf == 18
-    % Grouping == 1 means include other voicing (acha+aja, ada+ata,
-    % afa+ava). Grouping == 0 means don't.
-    wordSet = ceil(target/3);
-    if grouping
-        voicingSet = mod(wordSet-1,3)+1;
-        wordSet = voicingSet + [0 3];
-    end
-    
-    words = [];
-    for i = 1:length(wordSet)
-        words = [words (wordSet(i)-1)*3+(1:3)];
-    end
-elseif outOf == 36
-    % Grouping == 1 means include other speaker(s)
-    % Grouping == 0 means don't
-    wordSet = ceil(target/6);
-    if grouping
-        words = (wordSet-1)*6 + (1:6);
-    else
-        if any(mod(target-1,6)+1 == 2:4)
-            words = (wordSet-1)*6 + (2:4);
-        else
-            words = (wordSet-1)*6 + [1 5 6];
-        end
-    end
-else
-    error('Unknown outOf: %d', outOf)
-end
-
-words = [target setdiff(words, target)];
-
 
 function touch(filePath)
 f = fopen(filePath, 'w');
