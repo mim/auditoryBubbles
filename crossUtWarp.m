@@ -1,8 +1,8 @@
-function [Xtr ytr Xte yte warped scaled origShape] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
+function [Xtr ytr Xte yte warped scaled origShape warpedClean] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 
 % Load features after warping test utterance to match training utterance
 %
-% [Xtr ytr Xte yte warped scaled origShape] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
+% [Xtr ytr Xte yte warped scaled origShape warpedClean] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 %
 % Inputs
 %   baseDir        base directory for file arguments
@@ -16,7 +16,10 @@ function [Xtr ytr Xte yte warped scaled origShape] = crossUtWarp(baseDir, trPcaF
 %   ytr     training supervision values
 %   Xte     testing PCA features
 %   yte     testing supervision values
+%   warped  testing features only warped, not centered, scaled, or PCA'd
 %   scaled  testing full features, centered and scaled before PCA
+%   origShape  2-vector of the original shape of the spectrograms
+%   warpedClean  clean spectrogram of test signal warped to align with train
 
 if ~exist('doWarp', 'var') || isempty(doWarp), doWarp = true; end
 
@@ -51,6 +54,7 @@ if doWarp
 else
     warp = 1:size(S2,2);
 end
+warpedClean = S2(:,warp);
 
 % Compute PCA projections of warped features
 scaled = zeros(length(teFiles), length(cf.cleanFeat));
