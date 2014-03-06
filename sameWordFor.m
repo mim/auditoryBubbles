@@ -1,4 +1,4 @@
-function inds = sameWordFor(targetInd, fileNames, combineExps)
+function [inds words speakers] = sameWordFor(targetInd, fileNames, combineExps)
 % Match words from stimuli names
 %
 % inds = sameWordFor(targetInd, fileNames, combineExps)
@@ -27,13 +27,15 @@ end
 
 inds = [];
 for f = 1:length(fileNames)
-    [word spk] = extractWordAndSpeaker(fileNames{f});
-    if strcmp(word, targetWord) && any(strcmp(spk, matchingSpeakers))
+    [words{f} spk{f}] = extractWordAndSpeaker(fileNames{f});
+    if strcmp(words{f}, targetWord) && any(strcmp(spk{f}, matchingSpeakers))
         inds(end+1) = f;
     end
 end
 
 inds = [targetInd setdiff(inds, targetInd)];
+words = words(inds);
+speakers = spk(inds);
 
 
 function [word speaker] = extractWordAndSpeaker(fileName)

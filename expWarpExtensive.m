@@ -23,7 +23,7 @@ fns = {
     };
 
 %for grouping = 1
-for grouping = [1 0]
+for grouping = 0
     for doWarp = [0 1]
         for target = 1:length(pcaFiles)
             sameWord = sameWordFor(target, pcaFiles, grouping);
@@ -63,7 +63,8 @@ for w = 1:length(yte)
     rsNot1 = rsNot1 + sNot1;
 end
 mat(:,:,w+1) = plotTfct(fullfile(outDir, 'combined'), rsNot0, rsNot1, rs0, rs1, clean{1}, origShape);
-save(fullfile(outDir, 'res'), 'mat');
+clean = cat(3, clean{:});
+save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1');
 
 function mat = plotTfct(outFile, sNot0, sNot1, s0, s1, clean, origShape, pcaDims)
 [~,p,isHigh] = tfCrossTab(sNot0, sNot1, s0, s1);
@@ -74,8 +75,9 @@ print('-dpng', outFile);
 subplots(clean)
 print('-dpng', [outFile '_spec'])
 
-minClean = min(clean(:));
-selected = (clean - minClean) .* (mat .* (mat > 0)) + minClean;
+%noiseLevel = min(clean(:));  % not important -> min(clean) dB
+noiseLevel = max(clean(:));  % not important -> max(clean) dB
+selected = (clean - noiseLevel) .* (mat .* (mat > 0)) + noiseLevel;  
 
 subplots(selected)
 print('-dpng', [outFile '_onSpec'])
