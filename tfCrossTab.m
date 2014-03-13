@@ -30,7 +30,7 @@ minCount = 5;
 
 cstat = sum((counts - expected).^2 ./ max(expected, 1e-4), 3);
 p = chi2pval(max(cstat, 1e-4), 1);
-p(all(expected <= minCount, 3)) = NaN;
+p(any(expected <= minCount, 3)) = NaN;  % was "all", seems like it should be "any" for some reason
 h = p < alpha;
 
 function p = chi2pval(x,v)
