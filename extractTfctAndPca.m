@@ -1,4 +1,4 @@
-function extractTfctAndPca(expNum, trimDir, overwrite)
+function extractTfctAndPca(overwrite, expNum, trimDir)
 
 % Extract features necessary to run lots of different experiments and
 % visualizations
@@ -22,19 +22,18 @@ pcaFiles    = findFiles(baseDir, 'snr-35_.mat');
 for grouping = 0
     for doWarp = [1 0]
         for target = [1:6:length(pcaFiles) 2:6:length(pcaFiles)]
-            [sameWord wordNames speakers uts diffWord] = sameWordFor(target, pcaFiles, grouping);
-            diffWordInds = runWithRandomSeed(seed, @() randperm(length(diffWord)));
-            words = [sameWord diffWord(diffWordInds(1:numDiffWords))];
-
             outFile = fullfile(outDir, sprintf('grouping=%d', grouping), ...
                 sprintf('doWarp=%d', doWarp), sprintf('target=%d',target), ...
                 'tfctAndPca.mat');
-
             if exist(outFile, 'file') && ~overwrite
                 fprintf('Skipping %s\n', outFile)
                 continue
             end
             
+            [sameWord wordNames speakers uts diffWord] = sameWordFor(target, pcaFiles, grouping);
+            diffWordInds = runWithRandomSeed(seed, @() randperm(length(diffWord)));
+            words = [sameWord diffWord(diffWordInds(1:numDiffWords))];
+
             clear Xte yte clean warpDist mfccDist startDist
             for c = 1:length(words),
                 [~,~,Xte{c},yte{c},warped{c},~,origShape,clean{c},warpDist(c),mfccDist(c),startDist(c)] = ...
