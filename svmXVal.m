@@ -52,9 +52,15 @@ for i = 1:nFold
     trKeep = balanceSets(y(trInd), false, seed+783926);
     trInd = trInd(trKeep);
     
-    [preds data{i}] = fn(X(trInd,:), y(trInd), X(teInd,:));
+    tData.nTr = sum([(y(trInd)>0) (y(trInd)<0)],1);
+    tData.nTe = sum([(y(teInd)>0) (y(teInd)<0)],1);
+    tData.unbalanced = sum([(y>0) (y<0)], 1);
+    
+    [preds tData.fromFn] = fn(X(trInd,:), y(trInd), X(teInd,:));
     errors = errors + sum(y(teInd) ~= preds);
     nPts = nPts + length(preds);
+    
+    data(i) = tData;
 end
 mcr = errors / nPts;
 

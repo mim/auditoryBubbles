@@ -1,8 +1,9 @@
-function [Xtr ytr Xte yte warped scaled origShape warpedClean] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
+function [Xtr ytr Xte yte warped scaled origShape warpedClean warpDist mfccDist startDist] = ...
+    crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 
 % Load features after warping test utterance to match training utterance
 %
-% [Xtr ytr Xte yte warped scaled origShape warpedClean] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
+% [Xtr ytr Xte yte warped scaled origShape warpedClean warpDist] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 %
 % Inputs
 %   baseDir        base directory for file arguments
@@ -20,6 +21,9 @@ function [Xtr ytr Xte yte warped scaled origShape warpedClean] = crossUtWarp(bas
 %   scaled  testing full features, centered and scaled before PCA
 %   origShape  2-vector of the original shape of the spectrograms
 %   warpedClean  clean spectrogram of test signal warped to align with train
+%   warpDist     average number of frames a frame in S2 is moved
+%   mfccDist     average L2 distance in MFCC space between S1 and warped S2
+%   startDist    average L2 distance in MFCC space between S1 and unwarped S2
 
 if ~exist('doWarp', 'var') || isempty(doWarp), doWarp = true; end
 
@@ -50,13 +54,17 @@ S1 = reshape(cf.cleanFeat, cf.origShape);
 te = load(cleanTeFile);
 S2 = reshape(te.cleanFeat, te.origShape);
 if doWarp
-    warp = alignCleanSigs(S1, S2, cf.fs, cf.nfft);
+    [warp mfccDist startDist] = alignCleanSigs(S1, S2, cf.fs, cf.nfft);
 else
     warp = 1:size(S2,2);
+    mfccDist = 0;
+    startDist = 0;
 end
 warpedClean = S2(:,warp);
+warpDist = mean(abs(warp - (1:size(S2,2))));
 
 % Compute PCA projections of warped features
+warped = zeros(length(teFiles), length(cf.cleanFeat));
 scaled = zeros(length(teFiles), length(cf.cleanFeat));
 for f = 1:length(teFiles)
     tef = load(fullfile(teDir, teFiles{f}));

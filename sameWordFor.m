@@ -1,4 +1,4 @@
-function [inds words speakers] = sameWordFor(targetInd, fileNames, combineExps)
+function [inds words speakers diffWordInds] = sameWordFor(targetInd, fileNames, combineExps)
 % Match words from stimuli names
 %
 % inds = sameWordFor(targetInd, fileNames, combineExps)
@@ -32,6 +32,7 @@ for f = 1:length(fileNames)
         inds(end+1) = f;
     end
 end
+diffWordInds = find(~strcmp(words, targetWord));
 
 inds = [targetInd setdiff(inds, targetInd)];
 words = words(inds);

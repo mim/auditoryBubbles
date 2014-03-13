@@ -1,4 +1,4 @@
-function q2 = alignCleanSigs(S1, S2, fs, nfft)
+function [q2 minD startD] = alignCleanSigs(S1, S2, fs, nfft)
 
 % Find the warping of S2 that best aligns it with S1.
 %
@@ -17,6 +17,8 @@ q2 = zeros(1,max(p));
 for i=1:max(p)
     q2(i) = q(find(p == i, 1, 'first'));
 end
+minD = mean(sqrt(sum((M1 - M2(:,q2)).^2,1)), 2);
+startD = mean(sqrt(sum((M1 - M2).^2,1)), 2);
 
 %subplots({S1, S2, S2(:,q2)}, [], [], @(r,c,i) caxis([-100 10]))
 
