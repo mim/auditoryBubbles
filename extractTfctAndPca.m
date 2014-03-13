@@ -11,8 +11,8 @@ seed = 22;
 numDiffWords = 0;
 
 expDir  = sprintf('exp%d', expNum); 
-outDir      = fullfile('C:\Temp\data\', expDir, trimDir);
-baseDir     = fullfile('C:\Temp\mrtFeatures\shannonLight\', expDir, trimDir);
+outDir      = fullfile('C:\Temp\data\tfctAndPca', expDir, trimDir);
+baseDir     = fullfile('C:\Temp\mrtFeatures\shannonLight', expDir, trimDir);
 pcaDataFile = 'pcaData_100dims_1000files.mat';
 groupedFile = fullfile('D:\Box Sync\data\mrt\shannonResults', sprintf('groupedExp%dTmp.mat', expNum));
 cleanFiles  = findFiles(baseDir, 'bpsInf');
@@ -22,7 +22,7 @@ pcaFiles    = findFiles(baseDir, 'snr-35_.mat');
 for grouping = 0
     for doWarp = [1 0]
         for target = [1:6:length(pcaFiles) 2:6:length(pcaFiles)]
-            [sameWord,~,~,diffWord] = sameWordFor(target, pcaFiles, grouping);
+            [sameWord wordNames speakers uts diffWord] = sameWordFor(target, pcaFiles, grouping);
             diffWordInds = runWithRandomSeed(seed, @() randperm(length(diffWord)));
             words = [sameWord diffWord(diffWordInds(1:numDiffWords))];
 
