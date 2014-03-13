@@ -31,6 +31,7 @@ for grouping = 0
                 'tfctAndPca.mat');
 
             if exist(outFile, 'file') && ~overwrite
+                fprintf('Skipping %s\n', outFile)
                 continue
             end
             
@@ -45,6 +46,7 @@ for grouping = 0
             
             ensureDirExists(outFile);
             save(outFile);
+            fprintf('Wrote %s\n', outFile);
         end
     end
 end
