@@ -43,6 +43,7 @@ for grouping = 0
             [s0 s1 sNot0 sNot1] = computeTfctStats(yte,warped);
             clear warped
             
+            ensureDirExists(outFile);
             save(outFile);
         end
     end
