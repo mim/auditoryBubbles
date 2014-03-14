@@ -1,19 +1,28 @@
-function [mcr mcrBal nTe nTr nTeBal] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, keepAll)
+function [mcr mcrBal nTe nTr nTeBal] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup, keepAll)
 
 % Train SVM, test SVM
+if ~exist('teGroup', 'var') || isempty(teGroup), teGroup = ones(size(yte)); end
 if ~exist('keepAll', 'var') || isempty(keepAll), keepAll = true; end
 seed = 22;
 
-teKeep = balanceSets(yte, keepAll, seed);
-trKeep = balanceSets(ytr, true, seed+783926);
+teKeep = balanceSets(yte, false, seed);
+trKeep = balanceSets(ytr, keepAll, seed+783926);
 nTr = sum([(ytr(trKeep)>0) (ytr(trKeep)<0)], 1);
 
 preds = libLinearPredFunDimRed(Xtr(trKeep,:), ytr(trKeep), Xte, pcaDims);
-[acc nTe(1) nTe(2)] = classAvgAcc(yte(teKeep), preds(teKeep));
-[accBal nTeBal(1) nTeBal(2)] = classAvgAcc(yte, preds);
-mcr = 1 - acc;
-mcrBal = 1 - accBal;
-
+groups = unique(teGroup);
+for g = 1:length(groups)
+    gInds = find(teGroup == groups(g));
+    [acc nTeT(1) nTeT(2)] = classAvgAcc(yte(intersect(gInds,teKeep)), preds(intersect(gInds,teKeep)));
+    [accBal nTeBalT(1) nTeBalT(2)] = classAvgAcc(yte(gInds), preds(gInds));
+    mcr(g) = 1 - acc;
+    mcrBal(g) = 1 - accBal;
+    if g == 1
+        nTe = nTeT;
+        nTeBal = nTeBalT;
+    end
+end
+    
 function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
 Xtr = Xtr(:, 1:min(nDim,end));
 Xte = Xte(:, 1:min(nDim,end));

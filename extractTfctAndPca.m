@@ -8,10 +8,10 @@ if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
 
 seed = 22;
-numDiffWords = 0;
+numDiffWords = 3;
 
 expDir  = sprintf('exp%d', expNum); 
-outDir      = fullfile('C:\Temp\data\tfctAndPca', expDir, trimDir);
+outDir      = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
 baseDir     = fullfile('C:\Temp\mrtFeatures\shannonLight', expDir, trimDir);
 pcaDataFile = 'pcaData_100dims_1000files.mat';
 groupedFile = fullfile('D:\Box Sync\data\mrt\shannonResults', sprintf('groupedExp%dTmp.mat', expNum));

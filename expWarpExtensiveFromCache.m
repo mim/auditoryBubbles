@@ -8,7 +8,7 @@ if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
 
 expDir  = sprintf('exp%d', expNum); 
 outDir  = fullfile('C:\Temp\data\results', expDir, trimDir);
-inDir   = fullfile('C:\Temp\data\tfctAndPca', expDir, trimDir);
+inDir   = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
 
 fns = {
     @trainSvmOnOne, ...
@@ -75,32 +75,35 @@ Xte = cat(1, Xs{2:end});
 yte = cat(1, ys{2:end});
 [mcr mcrBal nTe nTr nTeBal] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims);
 touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f', pcaDims, mcr)));
-save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'outDir');
+save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');
 
 function trainSvmOnAllButOne(outDir,Xs,ys,pcaDims,numDiffWords)
+XteDw = cat(1, Xs{end-numDiffWords+1:end});
+yteDw = cat(1, ys{end-numDiffWords+1:end});
 for i=1:length(Xs)-numDiffWords
     tr = setdiff(1:length(Xs)-numDiffWords, i);
     Xtr = cat(1, Xs{tr});
     ytr = cat(1, ys{tr});
-    Xte = Xs{i};
-    yte = ys{i};
-    [mcr(i) mcrBal(i) nTe(i,:) nTr(i,:) nTeBal(i,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims);
-    touch(fullfile(outDir, sprintf('pcaDims=%d,teI=%d,mcr=%.04f', pcaDims, i, mcr(i))));
+    Xte = [Xs{i}; XteDw];
+    yte = [ys{i}; yteDw];
+    teGroup = [ones(size(ys{i})); 2*ones(size(yteDw))];
+    [mcr(i,:) mcrBal(i,:) nTe(i,:) nTr(i,:) nTeBal(i,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup);
+    touch(fullfile(outDir, sprintf('pcaDims=%d,teI=%d,mcr=%.04f', pcaDims, i, mcr(i,1))));
 end
-save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'outDir');
+save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');
 
 function xvalSvmOnEachWord(outDir,Xte,yte,pcaDims,numDiffWords)
 for w = 1:length(Xte)
     [mcr(w) data(w)] = svmXVal(Xte{w}, yte{w}, pcaDims);
     touch(fullfile(outDir, sprintf('pcaDims=%d,w=%d,mcr=%.04f',pcaDims,w,mcr(w))));
 end
-save(fullfile(outDir, 'res'), 'mcr', 'data', 'pcaDims', 'outDir')
+save(fullfile(outDir, 'res'), 'mcr', 'data', 'pcaDims', 'numDiffWords', 'outDir')
 
 function xvalSvmOnPooled(outDir,Xte,yte,pcaDims,numDiffWords)
 [mcr data] = svmXVal(cat(1, Xte{1:end-numDiffWords}), cat(1, yte{1:end-numDiffWords}), pcaDims);
 [mcrAll dataAll] = svmXVal(cat(1, Xte{:}), cat(1, yte{:}), pcaDims);
 touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f',pcaDims,mcr)));
-save(fullfile(outDir, 'res'), 'mcr', 'data', 'mcrAll', 'dataAll', 'pcaDims', 'outDir')
+save(fullfile(outDir, 'res'), 'mcr', 'data', 'mcrAll', 'dataAll', 'pcaDims', 'numDiffWords', 'outDir')
 
 function touch(filePath)
 f = fopen(filePath, 'w');
