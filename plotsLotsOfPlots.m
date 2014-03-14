@@ -52,7 +52,7 @@ for grouping = [0]
             end
 
             % Plot average spectrogram weighted by combined TFIF
-            selected = (avgSpec - noiseLevel) .* (res.mat(:,:,4) .* (res.mat(:,:,4) > 0)) + noiseLevel;
+            selected = (avgSpec - noiseLevel) .* (res.mat(:,:,end) .* (res.mat(:,:,end) > 0)) + noiseLevel;
             outName = plotFileName('onSpecAvg', 1, grouping, doWarp, target);
             plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labels);
         end

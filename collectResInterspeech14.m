@@ -4,8 +4,8 @@ function collectResInterspeech14()
 
 % cross-validation within each track
 xvalAcc(1:3,:,:) = loadAcc(2:6:36, 'xvalSvmOnEachWord');  % Same talker
-xvalAcc(4:6,:,:) = loadAcc(1:6:36, 'xvalSvmOnEachWord');  % Different talkers
-xvalAcc(7,:,:) = mean(xvalAcc,1);
+xvalAcc(4:7,:,:) = loadAcc(1:6:36, 'xvalSvmOnEachWord');  % Different talkers
+xvalAcc(8,:,:) = mean(xvalAcc,1);
 
 % rows: same talker v1,2,3, different talker 2,3,4
 % cols: acha, ada, afa, aja, ata, ava
