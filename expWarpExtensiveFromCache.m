@@ -7,7 +7,7 @@ if ~exist('trimDir', 'var') || isempty(trimDir), trimDir = 'trim=30,length=2.2';
 if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
 
 expDir  = sprintf('exp%d', expNum); 
-outDir  = fullfile('C:\Temp\data\results', expDir, trimDir);
+outDir  = fullfile('C:\Temp\data\results3dw', expDir, trimDir);
 inDir   = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
 
 fns = {
@@ -80,21 +80,21 @@ save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims'
 function trainSvmOnAllButOne(outDir,Xs,ys,pcaDims,numDiffWords)
 XteDw = cat(1, Xs{end-numDiffWords+1:end});
 yteDw = cat(1, ys{end-numDiffWords+1:end});
-for i=1:length(Xs)-numDiffWords
-    tr = setdiff(1:length(Xs)-numDiffWords, i);
+for w=1:length(Xs)-numDiffWords
+    tr = setdiff(1:length(Xs)-numDiffWords, w);
     Xtr = cat(1, Xs{tr});
     ytr = cat(1, ys{tr});
-    Xte = [Xs{i}; XteDw];
-    yte = [ys{i}; yteDw];
-    teGroup = [ones(size(ys{i})); 2*ones(size(yteDw))];
-    [mcr(i,:) mcrBal(i,:) nTe(i,:) nTr(i,:) nTeBal(i,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup);
-    touch(fullfile(outDir, sprintf('pcaDims=%d,teI=%d,mcr=%.04f', pcaDims, i, mcr(i,1))));
+    Xte = [Xs{w}; XteDw];
+    yte = [ys{w}; yteDw];
+    teGroup = [ones(size(ys{w})); 2*ones(size(yteDw))];
+    [mcr(w,:) mcrBal(w,:) nTe(w,:) nTr(w,:) nTeBal(w,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup);
+    touch(fullfile(outDir, sprintf('pcaDims=%d,teI=%d,mcr=%.04f', pcaDims, w, mcr(w,1))));
 end
 save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');
 
 function xvalSvmOnEachWord(outDir,Xte,yte,pcaDims,numDiffWords)
 for w = 1:length(Xte)
-    [mcr(w) data(w)] = svmXVal(Xte{w}, yte{w}, pcaDims);
+    [mcr(w,1) data(w,1)] = svmXVal(Xte{w}, yte{w}, pcaDims);
     touch(fullfile(outDir, sprintf('pcaDims=%d,w=%d,mcr=%.04f',pcaDims,w,mcr(w))));
 end
 save(fullfile(outDir, 'res'), 'mcr', 'data', 'pcaDims', 'numDiffWords', 'outDir')
