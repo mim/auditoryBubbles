@@ -87,7 +87,7 @@ for w=1:length(Xs)-numDiffWords
     Xte = [Xs{w}; XteDw];
     yte = [ys{w}; yteDw];
     teGroup = [ones(size(ys{w})); 2*ones(size(yteDw))];
-    [mcr(w,:) mcrBal(w,:) nTe(w,:) nTr(w,:) nTeBal(w,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup);
+    [mcr(w,:) mcrBal(w,:) nTe(w,:,:) nTr(w,:) nTeBal(w,:,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup);
     touch(fullfile(outDir, sprintf('pcaDims=%d,teI=%d,mcr=%.04f', pcaDims, w, mcr(w,1))));
 end
 save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');

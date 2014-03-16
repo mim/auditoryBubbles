@@ -5,7 +5,6 @@ if ~exist('teGroup', 'var') || isempty(teGroup), teGroup = ones(size(yte)); end
 if ~exist('keepAll', 'var') || isempty(keepAll), keepAll = true; end
 seed = 22;
 
-teKeep = balanceSets(yte, false, seed);
 trKeep = balanceSets(ytr, keepAll, seed+783926);
 nTr = sum([(ytr(trKeep)>0) (ytr(trKeep)<0)], 1);
 
@@ -13,14 +12,11 @@ preds = libLinearPredFunDimRed(Xtr(trKeep,:), ytr(trKeep), Xte, pcaDims);
 groups = unique(teGroup);
 for g = 1:length(groups)
     gInds = find(teGroup == groups(g));
-    [acc nTeT(1) nTeT(2)] = classAvgAcc(yte(intersect(gInds,teKeep)), preds(intersect(gInds,teKeep)));
-    [accBal nTeBalT(1) nTeBalT(2)] = classAvgAcc(yte(gInds), preds(gInds));
+    teKeep = balanceSets(yte(gInds), false, seed+g);
+    [acc nTe(g,1) nTe(g,2)] = classAvgAcc(yte(gInds(teKeep)), preds(gInds(teKeep)));
+    [accBal nTeBal(g,1) nTeBal(g,2)] = classAvgAcc(yte(gInds), preds(gInds));
     mcr(g) = 1 - acc;
     mcrBal(g) = 1 - accBal;
-    if g == 1
-        nTe = nTeT;
-        nTeBal = nTeBalT;
-    end
 end
     
 function [preds svm] = libLinearPredFunDimRed(Xtr, ytr, Xte, nDim)
