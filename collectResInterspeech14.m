@@ -41,7 +41,7 @@ printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utteranc
 table2 = [permute(mean(t2t1SameAcc,1), [3 2 1]);
     permute(mean(t2t1SameAccDiffWord,1), [3 2 1]);
     mean(xvalAcc(1:3,:,1), 1)];
-printLatexTable(table2, '%0.1f', 'Cross validation accuracy for single talker');
+printLatexTable(table2, '%0.1f', 'Cross-utterance accuracy for single talker');
 
 [t2t1SameNTe t2t1SameNTeDiffWord t2t1SameNTr] = loadTtNumTest(2:6:36, 'trainSvmOnAllButOne');
 table2te = [permute(sum(t2t1SameNTe, 1), [3 2 1]);
@@ -59,7 +59,7 @@ printLatexTable(table2te, '%d', 'Number of test instances for single talker');
 table3 = [permute(mean(t2t1DiffAcc,1), [3 2 1]);
     permute(mean(t2t1DiffAccDiffWord,1), [3 2 1]);
     mean(xvalAcc(3:6,:,1),1)];
-printLatexTable(table3, '%0.1f', 'Cross validation accuracy for different talkers');
+printLatexTable(table3, '%0.1f', 'Cross-utterance accuracy for different talkers');
 
 [t2t1DiffNTe t2t1DiffNTeDiffWord t2t1DiffNTr] = loadTtNumTest(1:6:36, 'trainSvmOnAllButOne');
 table3te = [permute(sum(t2t1DiffNTe, 1), [3 2 1]);
@@ -154,7 +154,7 @@ fprintf('\\end{tabular}\n')
 
 function path = resFileFor(grouping, doWarp, target, fn)
 
-baseDir = 'C:\Temp\data\results3dw\exp12\trim=30,length=2.2\';
+baseDir = 'C:\Temp\data\results3dwBalTr\exp12\trim=30,length=2.2\';
 path = fullfile(baseDir, ...
     sprintf('grouping=%d', grouping), ...
     sprintf('doWarp=%d', doWarp), ...

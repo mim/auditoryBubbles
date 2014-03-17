@@ -7,7 +7,7 @@ if ~exist('trimDir', 'var') || isempty(trimDir), trimDir = 'trim=30,length=2.2';
 if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
 
 expDir  = sprintf('exp%d', expNum); 
-outDir  = fullfile('C:\Temp\data\results3dw', expDir, trimDir);
+outDir  = fullfile('C:\Temp\data\results3dwBalTr', expDir, trimDir);
 inDir   = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
 
 fns = {
@@ -73,7 +73,7 @@ Xtr = Xs{1};
 ytr = ys{1};
 Xte = cat(1, Xs{2:end});
 yte = cat(1, ys{2:end});
-[mcr mcrBal nTe nTr nTeBal] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims);
+[mcr mcrBal nTe nTr nTeBal] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, [], true);
 touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f', pcaDims, mcr)));
 save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');
 
@@ -87,7 +87,7 @@ for w=1:length(Xs)-numDiffWords
     Xte = [Xs{w}; XteDw];
     yte = [ys{w}; yteDw];
     teGroup = [ones(size(ys{w})); 2*ones(size(yteDw))];
-    [mcr(w,:) mcrBal(w,:) nTe(w,:,:) nTr(w,:) nTeBal(w,:,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup);
+    [mcr(w,:) mcrBal(w,:) nTe(w,:,:) nTr(w,:) nTeBal(w,:,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup, true);
     touch(fullfile(outDir, sprintf('pcaDims=%d,teI=%d,mcr=%.04f', pcaDims, w, mcr(w,1))));
 end
 save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');
