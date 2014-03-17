@@ -36,12 +36,14 @@ printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utteranc
 % train 2, test 1, same talker
 [t2t1SameAcc t2t1SameAccDiffWord] = loadAcc(2:6:36, 'trainSvmOnAllButOne');
 table2 = [permute(mean(t2t1SameAcc,1), [3 2 1]);
-    permute(mean(t2t1SameAccDiffWord,1), [3 2 1])];
+    permute(mean(t2t1SameAccDiffWord,1), [3 2 1]);
+    mean(xvalAcc(1:3,:,1), 1)];
 printLatexTable(table2, '%0.1f', 'Cross validation accuracy for single talker');
 
 [t2t1SameNTe t2t1SameNTeDiffWord t2t1SameNTr] = loadTtNumTest(2:6:36, 'trainSvmOnAllButOne');
 table2te = [permute(sum(t2t1SameNTe, 1), [3 2 1]);
-    permute(sum(t2t1SameNTeDiffWord, 1), [3 2 1])];
+    permute(sum(t2t1SameNTeDiffWord, 1), [3 2 1]);
+    sum(nTe(1:3,:,1),1)];
 table2tr = permute(mean(t2t1SameNTr, 1), [3 2 1]);
 printLatexTable(table2tr, '%d', 'Number of training instances for single talker');
 printLatexTable(table2te, '%d', 'Number of test instances for single talker');
@@ -52,12 +54,14 @@ printLatexTable(table2te, '%d', 'Number of test instances for single talker');
 % train 2, test 1, different talker
 [t2t1DiffAcc t2t1DiffAccDiffWord] = loadAcc(1:6:36, 'trainSvmOnAllButOne');
 table3 = [permute(mean(t2t1DiffAcc,1), [3 2 1]);
-    permute(mean(t2t1DiffAccDiffWord,1), [3 2 1])];
+    permute(mean(t2t1DiffAccDiffWord,1), [3 2 1]);
+    mean(xvalAcc(3:6,:,1),1)];
 printLatexTable(table3, '%0.1f', 'Cross validation accuracy for different talkers');
 
 [t2t1DiffNTe t2t1DiffNTeDiffWord t2t1DiffNTr] = loadTtNumTest(1:6:36, 'trainSvmOnAllButOne');
 table3te = [permute(sum(t2t1DiffNTe, 1), [3 2 1]);
-    permute(sum(t2t1DiffNTeDiffWord, 1), [3 2 1])];
+    permute(sum(t2t1DiffNTeDiffWord, 1), [3 2 1]);
+    sum(nTe(3:6,:,1),1)];
 table3tr = permute(mean(t2t1DiffNTr, 1), [3 2 1]);
 printLatexTable(table3tr, '%d', 'Number of training instances for different talkers');
 printLatexTable(table3te, '%d', 'Number of test instances for different talkers');
