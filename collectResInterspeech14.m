@@ -9,9 +9,9 @@ allRes = loadAcc(1:6:36, 'xvalSvmOnEachWord');  % Different talkers
 xvalAcc(4:6,:,:) = allRes([1 3 4],:,:);
 xvalAcc(7,:,:) = mean(xvalAcc,1);
 
-% rows: same talker v1,2,3, different talker 2,3,4, average
-% cols: acha, ada, afa, aja, ata, ava
-printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation per utterance');
+% % rows: same talker v1,2,3, different talker 2,3,4, average
+% % cols: acha, ada, afa, aja, ata, ava
+%printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utterance');
 
 
 [allNTe allNTr] = loadXvalNumTest(2:6:36);  % Same talker
@@ -28,6 +28,10 @@ nTr(7,:,:) = mean(nTr,1);
 printLatexTable(nTr(:,:,1), '%0.1f', 'Number of training instances per utterance');
 printLatexTable(nTe(:,:,1), '%d', 'Number of test instances per utterance');
 
+% rows: same talker v1,2,3, different talker 2,3,4, average
+% cols: acha, ada, afa, aja, ata, ava
+isSig = significantBinomial(xvalAcc(:,:,1), nTe(:,:,1));
+printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utterance', isSig);
 
 % train 2, test 1, same talker
 [t2t1SameAcc t2t1SameAccDiffWord] = loadAcc(2:6:36, 'trainSvmOnAllButOne');
@@ -42,6 +46,9 @@ table2tr = permute(mean(t2t1SameNTr, 1), [3 2 1]);
 printLatexTable(table2tr, '%d', 'Number of training instances for single talker');
 printLatexTable(table2te, '%d', 'Number of test instances for single talker');
 
+%isSig = significantBinomial(table2, table2te);
+%printLatexTable(table2, '%0.1f', 'Cross validation accuracy for single talker', isSig);
+
 % train 2, test 1, different talker
 [t2t1DiffAcc t2t1DiffAccDiffWord] = loadAcc(1:6:36, 'trainSvmOnAllButOne');
 table3 = [permute(mean(t2t1DiffAcc,1), [3 2 1]);
@@ -54,6 +61,9 @@ table3te = [permute(sum(t2t1DiffNTe, 1), [3 2 1]);
 table3tr = permute(mean(t2t1DiffNTr, 1), [3 2 1]);
 printLatexTable(table3tr, '%d', 'Number of training instances for different talkers');
 printLatexTable(table3te, '%d', 'Number of test instances for different talkers');
+
+%isSig = significantBinomial(table3, table3te);
+%printLatexTable(table3, '%0.1f', 'Cross validation accuracy for different talkers', isSig);
 
 
 function [allRes allResDiffWord] = loadAcc(targets, fn)
@@ -97,14 +107,38 @@ for target = 1:length(targets)
     end
 end
 
-function printLatexTable(X, format, name)
+function isSig = significantBinomial(acc, nTe)
+k = acc(:)/100 .* nTe(:);
+n = nTe(:);
+[~,pc] = binofit(k, n);
+isSig = pc(:,1) > 0.5;
+isSig = reshape(isSig, size(nTe));
+
+function isSig = compareProportions(p1, p2, n1, n2)
+% score test for two proportions. see slide 13 of http://ocw.jhsph.edu/courses/methodsinbiostatisticsii/PDFs/lecture18.pdf
+% Determine whether p1 is significantly bigger than p2 under a
+% normal approximation of a binomial distribution at a 0.05% level.
+p = (p1.*n1 + p2.*n2) ./ (n1 + n2);
+ts = (p1 - p2) ./ sqrt(p .* (1 - p) .* (1./n1 + 1./n2));
+pVal = normcdf(ts);
+isSig = pVal >= 0.975;
+
+function printLatexTable(X, format, name, B)
 if nargin < 2, format = '%g'; end
 if nargin < 3, name = ''; end
+if nargin < 4, B = zeros(size(X)); end
 
 fprintf('\n%s\n', name);
 fprintf(['\\begin{tabular}{' repmat('c', 1, size(X,2)) '}\n']);
 for r = 1:size(X,1)
-    row = listMap(@(x) sprintf(format, x), num2cell(X(r,:)));
+    row = cell(1,size(X,2));
+    for c = 1:size(X,2)
+        if B(r,c)
+            row{c} = sprintf(['\\sig{' format '}'], X(r,c));
+        else
+            row{c} = sprintf(format, X(r,c));
+        end
+    end
     fprintf('%s \\\\ \n', join(row, ' & '))
 end
 fprintf('\\end{tabular}\n')
