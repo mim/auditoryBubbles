@@ -23,6 +23,15 @@ for grouping = [0]
         for target = [1:6:36 2:6:36]
             fileName = resFileFor(grouping, doWarp, target);
             res = load(fileName);
+            res.mat(isnan(res.mat)) = 0;
+            
+            if isfield(res, 'numDiffPlots')
+                numDiffPlots = res.numDiffPlots;
+            else
+                numDiffPlots = 3;
+            end
+            res.mat = res.mat(:,:,[(1:end-numDiffPlots-1) end]);
+            res.clean = res.clean(:,:,1:end-numDiffPlots);
             
             % Plot all TFIFs
             for p = 1:size(res.mat,3)
@@ -61,7 +70,7 @@ end
 
 function path = resFileFor(grouping, doWarp, target)
 
-baseDir = 'C:\Temp\data\results\exp12\trim=30,length=2.2\';
+baseDir = 'C:\Temp\data\results3dw\exp12\trim=30,length=2.2\';
 path = fullfile(baseDir, ...
     sprintf('grouping=%d', grouping), ...
     sprintf('doWarp=%d', doWarp), ...

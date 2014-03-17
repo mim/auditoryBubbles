@@ -61,7 +61,7 @@ rsNot1 = sum(sNot1(1:nSame,:), 1);
 
 mat(:,:,w+1) = plotableTfct(rsNot0, rsNot1, rs0, rs1, origShape);
 clean = cat(3, clean{:});
-save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1');
+save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1', 'numDiffWords');
 
 function mat = plotableTfct(sNot0, sNot1, s0, s1, origShape)
 [~,p,isHigh] = tfCrossTab(sNot0, sNot1, s0, s1);
