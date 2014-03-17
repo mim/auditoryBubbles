@@ -14,19 +14,22 @@ xvalAcc(7,:,:) = mean(xvalAcc,1);
 %printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utterance');
 
 
-[allNTe allNTr] = loadXvalNumTest(2:6:36);  % Same talker
+[allNTe allNTr allGtClassDist] = loadXvalNumTest(2:6:36);  % Same talker
 nTe(1:3,:,:) = allNTe(1:3,:,:);
 nTr(1:3,:,:) = allNTr(1:3,:,:);
-[allNTe allNTr] = loadXvalNumTest(1:6:36);  % Different talker
+gtClassDist(1:3,:,:) = allGtClassDist(1:3,:,:);
+[allNTe allNTr allGtClassDist] = loadXvalNumTest(1:6:36);  % Different talker
 nTe(4:6,:,:) = allNTe([1 3 4],:,:);
 nTe(7,:,:) = sum(nTe,1);
 nTr(4:6,:,:) = allNTr([1 3 4],:,:);
 nTr(7,:,:) = mean(nTr,1);
+gtClassDist(4:6,:,:) = allGtClassDist([1 3 4],:,:);
 
 % rows: same talker v1,2,3, different talker 2,3,4, total
 % cols: acha, ada, afa, aja, ata, ava
 printLatexTable(nTr(:,:,1), '%0.1f', 'Number of training instances per utterance');
 printLatexTable(nTe(:,:,1), '%d', 'Number of test instances per utterance');
+printLatexTable(gtClassDist(:,:,1), '%0.1f', 'Percent of responses correct');
 
 % rows: same talker v1,2,3, different talker 2,3,4, average
 % cols: acha, ada, afa, aja, ata, ava
@@ -84,7 +87,7 @@ for target = 1:length(targets)
     end
 end
 
-function [nTe nTr] = loadXvalNumTest(targets)
+function [nTe nTr gtClassDist] = loadXvalNumTest(targets)
 grouping = 0;
 fn = 'xvalSvmOnEachWord';
 for target = 1:length(targets)
@@ -92,8 +95,9 @@ for target = 1:length(targets)
         resFile = resFileFor(grouping, doWarp, targets(target), fn);
         res = load(resFile);
         for v = 1:length(res.data)
-            nTe(v,target,doWarp+1) = sum(sum(cat(1, res.data{v}.nTe), 1), 2);
+            nTe(v,target,doWarp+1) = sum(sum(cat(1, res.data{v}.nTe), 2), 1);
             nTr(v,target,doWarp+1) = mean(sum(cat(1, res.data{v}.nTr), 2), 1);
+            gtClassDist(v,target,doWarp+1) = res.data{v}(1).unbalanced(1) / sum(res.data{v}(1).unbalanced) * 100;
         end
     end
 end
