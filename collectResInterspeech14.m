@@ -5,9 +5,11 @@ function collectResInterspeech14()
 % cross-validation within each track
 allRes = loadAcc(2:6:36, 'xvalSvmOnEachWord');  % Same talker
 xvalAcc(1:3,:,:) = allRes(1:3,:,:);
+xvalAcc(4,:,:) = mean(xvalAcc(1:3,:,:), 1);
 allRes = loadAcc(1:6:36, 'xvalSvmOnEachWord');  % Different talkers
-xvalAcc(4:6,:,:) = allRes([1 3 4],:,:);
-xvalAcc(7,:,:) = mean(xvalAcc,1);
+xvalAcc(5:7,:,:) = allRes([1 3 4],:,:);
+xvalAcc(8,:,:) = mean(xvalAcc([3 5:7],:,:),1);
+xvalAcc(9,:,:) = mean(xvalAcc([1:3 5:7],:,:),1);
 
 % % rows: same talker v1,2,3, different talker 2,3,4, average
 % % cols: acha, ada, afa, aja, ata, ava
@@ -16,12 +18,16 @@ xvalAcc(7,:,:) = mean(xvalAcc,1);
 
 [allNTe allNTr] = loadXvalNumTest(2:6:36);  % Same talker
 nTe(1:3,:,:) = allNTe(1:3,:,:);
+nTe(4,:,:) = sum(nTe(1:3,:,:),1);
 nTr(1:3,:,:) = allNTr(1:3,:,:);
+nTr(4,:,:) = mean(nTr(1:3,:,:),1);
 [allNTe allNTr] = loadXvalNumTest(1:6:36);  % Different talker
-nTe(4:6,:,:) = allNTe([1 3 4],:,:);
-nTe(7,:,:) = sum(nTe,1);
-nTr(4:6,:,:) = allNTr([1 3 4],:,:);
-nTr(7,:,:) = mean(nTr,1);
+nTe(5:7,:,:) = allNTe([1 3 4],:,:);
+nTe(8,:,:) = sum(nTe([3 5:7],:,:),1);
+nTe(9,:,:) = sum(nTe([1:3 5:7],:,:),1);
+nTr(5:7,:,:) = allNTr([1 3 4],:,:);
+nTr(8,:,:) = mean(nTr([3 5:7],:,:),1);
+nTr(9,:,:) = mean(nTr([1:3 5:7],:,:),1);
 
 % rows: same talker v1,2,3, different talker 2,3,4, total
 % cols: acha, ada, afa, aja, ata, ava
