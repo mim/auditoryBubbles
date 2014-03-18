@@ -5,6 +5,10 @@ function collectResInterspeech14()
 sameTalkerInds = 2:6:36;
 diffTalkerInds = 5:6:36;
 diffTalkersOnly = [1 2 4];
+talkerIds = {'1v3', '1v2', '1v1', '2', '3', '4'};
+longTalkerIds = {'1v3', '1v2', '1v1', '2', '3', '1v1', '4'};
+colNames = {'acha', 'ada', 'afa', 'aja', 'ata', 'ava'};
+summaryRowNames = {'Right & $-$', 'Right & $+$', 'Wrong & $-$', 'Wrong & $+$', '\multicolumn{2}{c}{Cross-val}'};
 
 % cross-validation within each track
 allRes = loadAcc(sameTalkerInds, 'xvalSvmOnEachWord');  % Same talker
@@ -31,29 +35,29 @@ gtClassDist(4:6,:,:) = allGtClassDist(diffTalkersOnly,:,:);
 
 % rows: same talker v1,2,3, different talker 2,3,4, total
 % cols: acha, ada, afa, aja, ata, ava
-printLatexTable(nTr(:,:,1), '%0.1f', 'Number of training instances per utterance');
-printLatexTable(nTe(:,:,1), '%d', 'Number of test instances per utterance');
-printLatexTable(gtClassDist(:,:,1), '%0.1f', 'Percent of responses correct');
+printLatexTable(nTr(:,:,1), '%0.1f', 'Number of training instances per utterance', [], [talkerIds {'Avg'}], colNames);
+printLatexTable(nTe(:,:,1), '%d', 'Number of test instances per utterance', [], [talkerIds {'Total'}], colNames);
+printLatexTable(gtClassDist(:,:,1), '%0.1f', 'Percent of responses correct', [], [talkerIds {'Avg'}], colNames);
 
 % rows: same talker v1,2,3, different talker 2,3,4, average
 % cols: acha, ada, afa, aja, ata, ava
 isSig = significantBinomial(xvalAcc(:,:,1), nTe(:,:,1));
-printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utterance', isSig);
+printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utterance', isSig, [talkerIds {'Avg'}], colNames);
 
 % train 2, test 1, same talker
 [t2t1SameAcc t2t1SameAccDiffWord] = loadAcc(sameTalkerInds, 'trainSvmOnAllButOne');
 table2 = [permute(mean(t2t1SameAcc,1), [3 2 1]);
     permute(mean(t2t1SameAccDiffWord,1), [3 2 1]);
     mean(xvalAcc(1:3,:,1), 1)];
-printLatexTable(table2, '%0.1f', 'Cross-utterance accuracy for single talker');
+printLatexTable(table2, '%0.1f', 'Cross-utterance accuracy for single talker', [], summaryRowNames, colNames);
 
 [t2t1SameNTe t2t1SameNTeDiffWord t2t1SameNTr] = loadTtNumTest(sameTalkerInds, 'trainSvmOnAllButOne');
 table2te = [permute(sum(t2t1SameNTe, 1), [3 2 1]);
     permute(sum(t2t1SameNTeDiffWord, 1), [3 2 1]);
     sum(nTe(1:3,:,1),1)];
 table2tr = permute(mean(t2t1SameNTr, 1), [3 2 1]);
-printLatexTable(table2tr, '%d', 'Number of training instances for single talker');
-printLatexTable(table2te, '%d', 'Number of test instances for single talker');
+printLatexTable(table2tr, '%d', 'Number of training instances for single talker', [], {}, colNames);
+printLatexTable(table2te, '%d', 'Number of test instances for single talker', [], summaryRowNames, colNames);
 
 %isSig = significantBinomial(table2, table2te);
 %printLatexTable(table2, '%0.1f', 'Cross validation accuracy for single talker', isSig);
@@ -63,15 +67,15 @@ printLatexTable(table2te, '%d', 'Number of test instances for single talker');
 table3 = [permute(mean(t2t1DiffAcc,1), [3 2 1]);
     permute(mean(t2t1DiffAccDiffWord,1), [3 2 1]);
     mean(xvalAcc(3:6,:,1),1)];
-printLatexTable(table3, '%0.1f', 'Cross-utterance accuracy for different talkers');
+printLatexTable(table3, '%0.1f', 'Cross-utterance accuracy for different talkers', [], summaryRowNames, colNames);
 
 [t2t1DiffNTe t2t1DiffNTeDiffWord t2t1DiffNTr] = loadTtNumTest(diffTalkerInds, 'trainSvmOnAllButOne');
 table3te = [permute(sum(t2t1DiffNTe, 1), [3 2 1]);
     permute(sum(t2t1DiffNTeDiffWord, 1), [3 2 1]);
     sum(nTe(3:6,:,1),1)];
 table3tr = permute(mean(t2t1DiffNTr, 1), [3 2 1]);
-printLatexTable(table3tr, '%d', 'Number of training instances for different talkers');
-printLatexTable(table3te, '%d', 'Number of test instances for different talkers');
+printLatexTable(table3tr, '%d', 'Number of training instances for different talkers', [], {}, colNames);
+printLatexTable(table3te, '%d', 'Number of test instances for different talkers', [], summaryRowNames, colNames);
 
 %isSig = significantBinomial(table3, table3te);
 %printLatexTable(table3, '%0.1f', 'Cross validation accuracy for different talkers', isSig);
@@ -82,8 +86,8 @@ table4 = [table4; mean(table4,1)];
 table4te = [t2t1SameNTe; t2t1DiffNTe];
 table4te = [table4te; sum(table4te,1)];
 isSig = significantBinomial(table4, table4te);
-printLatexTable(table4(:,:,1), '%0.1f', 'Cross-utterance accuracy without warping tested on each utterance', isSig(:,:,1));
-printLatexTable(table4(:,:,2), '%0.1f', 'Cross-utterance accuracy with warping tested on each utterance', isSig(:,:,2));
+printLatexTable(table4(:,:,1), '%0.1f', 'Cross-utterance accuracy without warping tested on each utterance', isSig(:,:,1), [longTalkerIds {'Avg'}], colNames);
+printLatexTable(table4(:,:,2), '%0.1f', 'Cross-utterance accuracy with warping tested on each utterance', isSig(:,:,2), [longTalkerIds {'Avg'}], colNames);
 
 
 
@@ -145,20 +149,24 @@ ts = (p1 - p2) ./ sqrt(p .* (1 - p) .* (1./n1 + 1./n2));
 pVal = normcdf(ts);
 isSig = pVal >= 0.975;
 
-function printLatexTable(X, format, name, B)
-if nargin < 2, format = '%g'; end
-if nargin < 3, name = ''; end
-if nargin < 4, B = zeros(size(X)); end
+function printLatexTable(X, format, name, B, rowNames, colNames)
+if ~exist('format', 'var') || isempty(format), format = '%g'; end
+if ~exist('name', 'var') || isempty(name), name = ''; end
+if ~exist('B', 'var') || isempty(B), B = zeros(size(X)); end
+if ~exist('rowNames', 'var') || isempty(rowNames), rowNames = repmat({''}, size(X,1), 1); end
+if ~exist('colNames', 'var') || isempty(colNames), colNames = repmat({''}, 1, size(X,2)); end
 
 fprintf('\n%s\n', name);
-fprintf(['\\begin{tabular}{' repmat('c', 1, size(X,2)) '}\n']);
+fprintf(['\\begin{tabular}{' repmat('c', 1, size(X,2)+1) '}\n']);
+fprintf('%s \\\\ \n', join([{''} colNames], ' & '));
 for r = 1:size(X,1)
-    row = cell(1,size(X,2));
+    row = cell(1,size(X,2)+1);
+    row{1} = rowNames{r};
     for c = 1:size(X,2)
         if B(r,c)
-            row{c} = sprintf(['\\sig{' format '}'], X(r,c));
+            row{c+1} = sprintf(['\\sig{' format '}'], X(r,c));
         else
-            row{c} = sprintf(format, X(r,c));
+            row{c+1} = sprintf(format, X(r,c));
         end
     end
     fprintf('%s \\\\ \n', join(row, ' & '))
