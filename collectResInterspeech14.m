@@ -5,8 +5,8 @@ function collectResInterspeech14()
 sameTalkerInds = 2:6:36;
 diffTalkerInds = 5:6:36;
 diffTalkersOnly = [1 2 4];
-talkerIds = {'1v3', '1v2', '1v1', '2', '3', '4'};
-longTalkerIds = {'1v3', '1v2', '1v1', '2', '3', '1v1', '4'};
+talkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W5', 'W2', 'W4'};
+longTalkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W5', 'W2', 'W3 v1', 'W4'};
 colNames = {'acha', 'ada', 'afa', 'aja', 'ata', 'ava'};
 summaryRowNames = {'Right & $-$', 'Right & $+$', 'Wrong & $-$', 'Wrong & $+$', '\multicolumn{2}{c}{Cross-val}'};
 
@@ -89,8 +89,14 @@ isSig = significantBinomial(table4, table4te);
 printLatexTable(table4(:,:,1), '%0.1f', 'Cross-utterance accuracy without warping tested on each utterance', isSig(:,:,1), [longTalkerIds {'Avg'}], colNames);
 printLatexTable(table4(:,:,2), '%0.1f', 'Cross-utterance accuracy with warping tested on each utterance', isSig(:,:,2), [longTalkerIds {'Avg'}], colNames);
 
+isSig = compareProportions(table4(:,:,2)/100, table4(:,:,1)/100, table4te(:,:,2), table4te(:,:,1));
+printLatexTable(table4(:,:,2) - table4(:,:,1), '%0.2f', 'Cross utterance accuracy delta from warping', isSig, [longTalkerIds {'Avg'}], colNames);
+
+isSig = compareProportions(table4([1:5 7 8],:,2)/100, xvalAcc(:,:,1)/100, table4te([1:5 7 8],:,2), nTe(:,:,1));
+printLatexTable(table4([1:5 7 8],:,2) - xvalAcc(:,:,1), '%0.2f', 'Cross utterance accuracy with warping delta vs cross-validation', isSig, [talkerIds {'Avg'}], colNames);
 
 
+%%
 function [allRes allResDiffWord] = loadAcc(targets, fn)
 grouping = 0;
 allResDiffWord = [];
@@ -140,7 +146,7 @@ n = nTe(:);
 isSig = pc(:,1) > 0.5;
 isSig = reshape(isSig, size(nTe));
 
-function isSig = compareProportions(p1, p2, n1, n2)
+function [isSig pVal] = compareProportions(p1, p2, n1, n2)
 % score test for two proportions. see slide 13 of http://ocw.jhsph.edu/courses/methodsinbiostatisticsii/PDFs/lecture18.pdf
 % Determine whether p1 is significantly bigger than p2 under a
 % normal approximation of a binomial distribution at a 0.05% level.
