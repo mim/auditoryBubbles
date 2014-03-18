@@ -20,7 +20,7 @@ fns = {
 %for grouping = 1
 for grouping = 0
     for doWarp = [1 0]
-        for target = [1:6:36 2:6:36]
+        for target = [5:6:36 2:6:36]
             inFile = dataFileFor(inDir, grouping, doWarp, target);
             fprintf('Loading %s\n', inFile);
             d = load(inFile);

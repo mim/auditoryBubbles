@@ -7,7 +7,7 @@ if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 
 prt('ToFile', toDisk, 'StartAt', startAt, ...
     'Width', 4, 'Height', 3, 'NumberPlots', 0, ...
-    'TargetDir', 'C:\Temp\data\plots\exp12_new\trim=30,length=2.2', ...
+    'TargetDir', 'C:\Temp\data\plots\exp12_w4\trim=30,length=2.2', ...
     'SaveTicks', 1, 'Resolution', 200)
 
 fs = 44100;
@@ -20,7 +20,7 @@ labels = [1 1 1];
 
 for grouping = [0]
     for doWarp = [0 1]
-        for target = [1:6:36 2:6:36]
+        for target = [5:6:36 2:6:36]
             fileName = resFileFor(grouping, doWarp, target);
             res = load(fileName);
             res.mat(isnan(res.mat)) = 0;
@@ -70,7 +70,7 @@ end
 
 function path = resFileFor(grouping, doWarp, target)
 
-baseDir = 'C:\Temp\data\results3dw\exp12\trim=30,length=2.2\';
+baseDir = 'C:\Temp\data\results3dwBalTr\exp12\trim=30,length=2.2\';
 path = fullfile(baseDir, ...
     sprintf('grouping=%d', grouping), ...
     sprintf('doWarp=%d', doWarp), ...

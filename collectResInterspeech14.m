@@ -2,11 +2,15 @@ function collectResInterspeech14()
 
 % Collect data from expWarpExtensive, format into tables for interspeech paper
 
+sameTalkerInds = 2:6:36;
+diffTalkerInds = 5:6:36;
+diffTalkersOnly = [1 2 4];
+
 % cross-validation within each track
-allRes = loadAcc(2:6:36, 'xvalSvmOnEachWord');  % Same talker
+allRes = loadAcc(sameTalkerInds, 'xvalSvmOnEachWord');  % Same talker
 xvalAcc(1:3,:,:) = allRes(1:3,:,:);
-allRes = loadAcc(1:6:36, 'xvalSvmOnEachWord');  % Different talkers
-xvalAcc(4:6,:,:) = allRes([1 3 4],:,:);
+allRes = loadAcc(diffTalkerInds, 'xvalSvmOnEachWord');  % Different talkers
+xvalAcc(4:6,:,:) = allRes(diffTalkersOnly,:,:);
 xvalAcc(7,:,:) = mean(xvalAcc,1);
 
 % % rows: same talker v1,2,3, different talker 2,3,4, average
@@ -14,16 +18,16 @@ xvalAcc(7,:,:) = mean(xvalAcc,1);
 %printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utterance');
 
 
-[allNTe allNTr allGtClassDist] = loadXvalNumTest(2:6:36);  % Same talker
+[allNTe allNTr allGtClassDist] = loadXvalNumTest(sameTalkerInds);  % Same talker
 nTe(1:3,:,:) = allNTe(1:3,:,:);
 nTr(1:3,:,:) = allNTr(1:3,:,:);
 gtClassDist(1:3,:,:) = allGtClassDist(1:3,:,:);
-[allNTe allNTr allGtClassDist] = loadXvalNumTest(1:6:36);  % Different talker
-nTe(4:6,:,:) = allNTe([1 3 4],:,:);
+[allNTe allNTr allGtClassDist] = loadXvalNumTest(diffTalkerInds);  % Different talker
+nTe(4:6,:,:) = allNTe(diffTalkersOnly,:,:);
 nTe(7,:,:) = sum(nTe,1);
-nTr(4:6,:,:) = allNTr([1 3 4],:,:);
+nTr(4:6,:,:) = allNTr(diffTalkersOnly,:,:);
 nTr(7,:,:) = mean(nTr,1);
-gtClassDist(4:6,:,:) = allGtClassDist([1 3 4],:,:);
+gtClassDist(4:6,:,:) = allGtClassDist(diffTalkersOnly,:,:);
 
 % rows: same talker v1,2,3, different talker 2,3,4, total
 % cols: acha, ada, afa, aja, ata, ava
@@ -37,13 +41,13 @@ isSig = significantBinomial(xvalAcc(:,:,1), nTe(:,:,1));
 printLatexTable(xvalAcc(:,:,1), '%0.1f', 'Cross validation accuracy per utterance', isSig);
 
 % train 2, test 1, same talker
-[t2t1SameAcc t2t1SameAccDiffWord] = loadAcc(2:6:36, 'trainSvmOnAllButOne');
+[t2t1SameAcc t2t1SameAccDiffWord] = loadAcc(sameTalkerInds, 'trainSvmOnAllButOne');
 table2 = [permute(mean(t2t1SameAcc,1), [3 2 1]);
     permute(mean(t2t1SameAccDiffWord,1), [3 2 1]);
     mean(xvalAcc(1:3,:,1), 1)];
 printLatexTable(table2, '%0.1f', 'Cross-utterance accuracy for single talker');
 
-[t2t1SameNTe t2t1SameNTeDiffWord t2t1SameNTr] = loadTtNumTest(2:6:36, 'trainSvmOnAllButOne');
+[t2t1SameNTe t2t1SameNTeDiffWord t2t1SameNTr] = loadTtNumTest(sameTalkerInds, 'trainSvmOnAllButOne');
 table2te = [permute(sum(t2t1SameNTe, 1), [3 2 1]);
     permute(sum(t2t1SameNTeDiffWord, 1), [3 2 1]);
     sum(nTe(1:3,:,1),1)];
@@ -55,13 +59,13 @@ printLatexTable(table2te, '%d', 'Number of test instances for single talker');
 %printLatexTable(table2, '%0.1f', 'Cross validation accuracy for single talker', isSig);
 
 % train 2, test 1, different talker
-[t2t1DiffAcc t2t1DiffAccDiffWord] = loadAcc(1:6:36, 'trainSvmOnAllButOne');
+[t2t1DiffAcc t2t1DiffAccDiffWord] = loadAcc(diffTalkerInds, 'trainSvmOnAllButOne');
 table3 = [permute(mean(t2t1DiffAcc,1), [3 2 1]);
     permute(mean(t2t1DiffAccDiffWord,1), [3 2 1]);
     mean(xvalAcc(3:6,:,1),1)];
 printLatexTable(table3, '%0.1f', 'Cross-utterance accuracy for different talkers');
 
-[t2t1DiffNTe t2t1DiffNTeDiffWord t2t1DiffNTr] = loadTtNumTest(1:6:36, 'trainSvmOnAllButOne');
+[t2t1DiffNTe t2t1DiffNTeDiffWord t2t1DiffNTr] = loadTtNumTest(diffTalkerInds, 'trainSvmOnAllButOne');
 table3te = [permute(sum(t2t1DiffNTe, 1), [3 2 1]);
     permute(sum(t2t1DiffNTeDiffWord, 1), [3 2 1]);
     sum(nTe(3:6,:,1),1)];
@@ -71,6 +75,16 @@ printLatexTable(table3te, '%d', 'Number of test instances for different talkers'
 
 %isSig = significantBinomial(table3, table3te);
 %printLatexTable(table3, '%0.1f', 'Cross validation accuracy for different talkers', isSig);
+
+% Warped per-utterance cross-utterance results
+table4 = [t2t1SameAcc; t2t1DiffAcc];
+table4 = [table4; mean(table4,1)];
+table4te = [t2t1SameNTe; t2t1DiffNTe];
+table4te = [table4te; sum(table4te,1)];
+isSig = significantBinomial(table4, table4te);
+printLatexTable(table4(:,:,1), '%0.1f', 'Cross-utterance accuracy without warping tested on each utterance', isSig(:,:,1));
+printLatexTable(table4(:,:,2), '%0.1f', 'Cross-utterance accuracy with warping tested on each utterance', isSig(:,:,2));
+
 
 
 function [allRes allResDiffWord] = loadAcc(targets, fn)

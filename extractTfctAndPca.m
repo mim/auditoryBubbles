@@ -21,7 +21,7 @@ pcaFiles    = findFiles(baseDir, 'snr-35_.mat');
 %for grouping = 1
 for grouping = 0
     for doWarp = [1 0]
-        for target = [1:6:length(pcaFiles) 2:6:length(pcaFiles)]
+        for target = [5:6:length(pcaFiles) 2:6:length(pcaFiles)]
             outFile = fullfile(outDir, sprintf('grouping=%d', grouping), ...
                 sprintf('doWarp=%d', doWarp), sprintf('target=%d',target), ...
                 'tfctAndPca.mat');
