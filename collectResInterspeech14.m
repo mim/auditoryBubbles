@@ -107,6 +107,16 @@ isSig = compareProportions(table4([1:5 7 8],:,2)/100, xvalAcc(:,:,1)/100, table4
 printLatexTable(outFile, table4([1:5 7 8],:,2) - xvalAcc(:,:,1), '%0.2f', 'Cross utterance accuracy with warping - cross-validation accuracy', isSig, [talkerIds {'Avg'}], colNames);
 
 
+[table5 isSig] = compareSameDiff(t2t1SameAcc, t2t1SameAccDiffWord, t2t1DiffAcc, t2t1DiffAccDiffWord, t2t1SameNTe, t2t1SameNTeDiffWord, t2t1DiffNTe, t2t1DiffNTeDiffWord);
+printLatexTable(outFile, table5(:,:,2), '%0.1f', 'Same word vs different word', isSig(:,:,2), {'ST SW', 'ST DW', 'ST \Delta', 'DT SW', 'DT DW', 'DT \Delta'}, colNames);
+
+[table6 isSig] = compareSameDiff(t2t1SameAcc, t2t1DiffAcc, t2t1SameAccDiffWord, t2t1DiffAccDiffWord, t2t1SameNTe, t2t1DiffNTe, t2t1SameNTeDiffWord, t2t1DiffNTeDiffWord);
+printLatexTable(outFile, table6(:,:,2), '%0.1f', 'Same talker vs different talker', isSig(:,:,2), {'SW ST', 'SW DT', 'SW \Delta', 'DW ST', 'DW DT', 'DW \Delta'}, colNames);
+
+
+
+
+%%
 plot(nTr(:,:,1), xvalAcc(:,:,1), '.')
 xlabel('Number of training points')
 ylabel('Cross-validation accuracy (%)')
@@ -184,6 +194,24 @@ p = (p1.*n1 + p2.*n2) ./ (n1 + n2);
 ts = (p1 - p2) ./ sqrt(p .* (1 - p) .* (1./n1 + 1./n2));
 pVal = normcdf(ts);
 isSig = pVal >= 0.975;
+
+function [acc isSig] = compareSameDiff(stsw, stdw, dtsw, dtdw, stswNte, stdwNTe, dtswNte, dtdwNte)
+
+acc = [mean(stsw,1); 
+    mean(stdw,1); 
+    mean(stsw,1) - mean(stdw,1);
+    mean(dtsw,1);
+    mean(dtdw,1); 
+    mean(dtsw,1) - mean(dtdw,1)];
+isSig = [significantBinomial(mean(stsw,1), sum(stswNte,1)); 
+    significantBinomial(mean(stdw,1), sum(stdwNTe,1)); 
+    compareProportions(mean(stsw,1)/100, mean(stdw,1)/100, sum(stswNte,1), sum(stdwNTe,1));
+    significantBinomial(mean(dtsw,1), sum(dtswNte,1)); 
+    significantBinomial(mean(dtdw,1), sum(dtdwNte,1)); 
+    compareProportions(mean(dtsw,1)/100, mean(dtdw,1)/100, sum(dtswNte,1), sum(dtdwNte,1))];
+
+
+
 
 function printLatexTable(outFile, X, format, name, B, rowNames, colNames)
 if ~exist('format', 'var') || isempty(format), format = '%g'; end
