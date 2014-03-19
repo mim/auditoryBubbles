@@ -12,7 +12,7 @@ diffTalkersOnly = [1 2 4];
 talkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W5'};
 longTalkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W3 v1', 'W5'};
 colNames = {'acha', 'ada', 'afa', 'aja', 'ata', 'ava'};
-summaryRowNames = {'Right & $-$', 'Right & $+$', 'Wrong & $-$', 'Wrong & $+$', '\multicolumn{2}{c}{Cross-val}'};
+summaryRowNames = {'Same & $-$', 'Same & $+$', 'Diff & $-$', 'Diff & $+$', '\multicolumn{2}{c}{Cross-val}'};
 
 prt('ToFile', toDisk, 'StartAt', startAt, ...
     'Width', 4, 'Height', 3, 'NumberPlots', 0, ...
