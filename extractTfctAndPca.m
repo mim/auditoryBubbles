@@ -11,7 +11,7 @@ seed = 22;
 numDiffWords = 3;
 
 expDir  = sprintf('exp%d', expNum); 
-outDir      = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
+outDir      = fullfile('C:\Temp\data\tfctAndPca3dwBin', expDir, trimDir);
 baseDir     = fullfile('C:\Temp\mrtFeatures\shannonLight', expDir, trimDir);
 pcaDataFile = 'pcaData_100dims_1000files.mat';
 groupedFile = fullfile('D:\Box Sync\data\mrt\shannonResults', sprintf('groupedExp%dTmp.mat', expNum));
@@ -57,8 +57,9 @@ sNot0 = zeros(size(s0));
 sNot1 = zeros(size(s0));
 
 for w = 1:length(yte)
-    feat0 = warped{w}(yte{w}<0,:);
-    feat1 = warped{w}(yte{w}>0,:);
+    binThresh = 2.0 * mean(warped{w}, 1);
+    feat0 = bsxfun(@gt, warped{w}(yte{w}<0,:), binThresh);
+    feat1 = bsxfun(@gt, warped{w}(yte{w}>0,:), binThresh);
     s0(w,:) = sum(feat0, 1);
     s1(w,:) = sum(feat1, 1);
     sNot0(w,:) = size(feat0,1) - s0(w,:);

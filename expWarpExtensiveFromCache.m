@@ -7,8 +7,8 @@ if ~exist('trimDir', 'var') || isempty(trimDir), trimDir = 'trim=30,length=2.2';
 if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
 
 expDir  = sprintf('exp%d', expNum); 
-outDir  = fullfile('C:\Temp\data\results3dwBalTr', expDir, trimDir);
-inDir   = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
+outDir  = fullfile('C:\Temp\data\results3dwBalTrBin', expDir, trimDir);
+inDir   = fullfile('C:\Temp\data\tfctAndPca3dwBin', expDir, trimDir);
 
 fns = {
     @trainSvmOnOne, ...
