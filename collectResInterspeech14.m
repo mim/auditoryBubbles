@@ -1,6 +1,9 @@
-function collectResInterspeech14()
+function collectResInterspeech14(toDisk, startAt)
 
 % Collect data from expWarpExtensive, format into tables for interspeech paper
+
+if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
+if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 
 outFile = 'z:/resInterspeech14Tables.tex';
 sameTalkerInds = 2:6:36;
@@ -10,6 +13,11 @@ talkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W5'};
 longTalkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W3 v1', 'W5'};
 colNames = {'acha', 'ada', 'afa', 'aja', 'ata', 'ava'};
 summaryRowNames = {'Right & $-$', 'Right & $+$', 'Wrong & $-$', 'Wrong & $+$', '\multicolumn{2}{c}{Cross-val}'};
+
+prt('ToFile', toDisk, 'StartAt', startAt, ...
+    'Width', 4, 'Height', 3, 'NumberPlots', 0, ...
+    'TargetDir', 'C:\Temp\data\plots\accResults', ...
+    'SaveTicks', 1, 'Resolution', 200)
 
 if exist(outFile, 'file'), delete(outFile); end
 
@@ -97,6 +105,25 @@ printLatexTable(outFile, table4(:,:,2) - table4(:,:,1), '%0.2f', 'Cross utteranc
 
 isSig = compareProportions(table4([1:5 7 8],:,2)/100, xvalAcc(:,:,1)/100, table4te([1:5 7 8],:,2), nTe(:,:,1));
 printLatexTable(outFile, table4([1:5 7 8],:,2) - xvalAcc(:,:,1), '%0.2f', 'Cross utterance accuracy with warping - cross-validation accuracy', isSig, [talkerIds {'Avg'}], colNames);
+
+
+plot(nTr(:,:,1), xvalAcc(:,:,1), '.')
+xlabel('Number of training points')
+ylabel('Cross-validation accuracy (%)')
+legend(colNames);
+prt('xval_vs_ntr')
+
+plot(xvalAcc(:,:,1), table4([1:5 7 8],:,2), '.', [50 90], [50 90])
+xlabel('Cross-validation accuracy (%)')
+ylabel('Warped cross-utterance accuracy (%)')
+legend(colNames);
+prt('warped_vs_xval')
+
+plot(table4(:,:,1), table4(:,:,2), '.', [50 90], [50 90])
+xlabel('Un-warped cross-utterance accuracy (%)')
+ylabel('Warped cross-utterance accuracy (%)')
+legend(colNames);
+prt('warped_vs_unwarped')
 
 
 %%
