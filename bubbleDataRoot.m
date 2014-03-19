@@ -1,7 +1,7 @@
 function root = bubbleDataRoot()
 
 if ispc
-    root = 'Z:\data';
+    root = 'D:\Box Sync\data';
 else
     root = '/home/data';
     if ~exist(root, 'file')
