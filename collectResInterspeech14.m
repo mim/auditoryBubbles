@@ -9,6 +9,8 @@ outFile = 'z:/resInterspeech14Tables.tex';
 sameTalkerInds = 2:6:36;
 diffTalkerInds = 5:6:36;
 diffTalkersOnly = [1 2 4];
+sameTalkersInTables = 1:3;
+diffTalkersInTables = 3:6;
 talkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W5'};
 longTalkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W3 v1', 'W5'};
 colNames = {'acha', 'ada', 'afa', 'aja', 'ata', 'ava'};
@@ -46,8 +48,8 @@ gtClassDist(4:6,:,:) = allGtClassDist(diffTalkersOnly,:,:);
 
 % rows: same talker v1,2,3, different talker 2,3,4, total
 % cols: acha, ada, afa, aja, ata, ava
-printLatexTable(outFile, nTr(:,:,1), '%0.1f', 'Number of training instances per utterance', [], [talkerIds {'Avg'}], colNames);
-printLatexTable(outFile, nTe(:,:,1), '%d', 'Number of test instances per utterance', [], [talkerIds {'Total'}], colNames);
+printLatexTable(outFile, nTr(:,:,1), '%0.1f', 'Average number of cross-validation training instances per utterance', [], [talkerIds {'Avg'}], colNames);
+printLatexTable(outFile, nTe(:,:,1), '%d', 'Total number of cross-validation test instances per utterance', [], [talkerIds {'Total'}], colNames);
 printLatexTable(outFile, gtClassDist(:,:,1), '%0.1f', 'Percent of responses correct', [], [talkerIds {'Avg'}], colNames);
 
 % rows: same talker v1,2,3, different talker 2,3,4, average
@@ -67,8 +69,8 @@ table2te = [permute(sum(t2t1SameNTe, 1), [3 2 1]);
     permute(sum(t2t1SameNTeDiffWord, 1), [3 2 1]);
     sum(nTe(1:3,:,1),1)];
 table2tr = permute(mean(t2t1SameNTr, 1), [3 2 1]);
-printLatexTable(outFile, table2tr, '%d', 'Number of training instances for single talker', [], {}, colNames);
-printLatexTable(outFile, table2te, '%d', 'Number of test instances for single talker', [], summaryRowNames, [{''} colNames]);
+printLatexTable(outFile, table2tr, '%0.1f', 'Average number of training instances for single talker', [], {}, colNames);
+printLatexTable(outFile, table2te, '%d', 'Total number of test instances for single talker', [], summaryRowNames, [{''} colNames]);
 
 %isSig = significantBinomial(table2, table2te);
 %printLatexTable(outFile, table2, '%0.1f', 'Cross validation accuracy for single talker', isSig);
@@ -85,8 +87,8 @@ table3te = [permute(sum(t2t1DiffNTe, 1), [3 2 1]);
     permute(sum(t2t1DiffNTeDiffWord, 1), [3 2 1]);
     sum(nTe(3:6,:,1),1)];
 table3tr = permute(mean(t2t1DiffNTr, 1), [3 2 1]);
-printLatexTable(outFile, table3tr, '%d', 'Number of training instances for different talkers', [], {}, colNames);
-printLatexTable(outFile, table3te, '%d', 'Number of test instances for different talkers', [], summaryRowNames, [{''} colNames]);
+printLatexTable(outFile, table3tr, '%0.1f', 'Average number of training instances for different talkers', [], {}, colNames);
+printLatexTable(outFile, table3te, '%d', 'Total number of test instances for different talkers', [], summaryRowNames, [{''} colNames]);
 
 %isSig = significantBinomial(table3, table3te);
 %printLatexTable(outFile, table3, '%0.1f', 'Cross validation accuracy for different talkers', isSig);
@@ -112,14 +114,15 @@ printLatexTable(outFile, table5(:,:,2), '%0.1f', 'Various cross-utterance tests'
 
 [limNTrSTSW limNTrSTDW] = loadAcc(sameTalkerInds, 'trainSvmOnAllButOneLimNtr');
 [limNTrDTSW limNTrDTDW] = loadAcc(diffTalkerInds, 'trainSvmOnAllButOneLimNtr');
-[limNTrSTSWnTe limNTrSTDWnTe] = loadTtNumTest(sameTalkerInds, 'trainSvmOnAllButOneLimNtr');
-[limNTrDTSWnTe limNTrDTDWnTe] = loadTtNumTest(diffTalkerInds, 'trainSvmOnAllButOneLimNtr');
-table6 = [mean(limNTrSTSW,1);
-    mean(limNTrSTDW,1);
-    mean(limNTrDTSW,1);
-    mean(limNTrDTDW,1);
-    xvalAcc(end,:,[1 1])];
-printLatexTable(outFile, table6(:,:,2), '%0.1f', 'Limiting cross-utterance training data to the same as cross-validation', [], {'ST SW', 'ST DW', 'DT SW', 'DT DW', 'XVal'}, colNames);
+[limNTrSTSWnTe limNTrSTDWnTe limNTrSTSWnTr] = loadTtNumTest(sameTalkerInds, 'trainSvmOnAllButOneLimNtr');
+[limNTrDTSWnTe limNTrDTDWnTe limNTrDTSWnTr] = loadTtNumTest(diffTalkerInds, 'trainSvmOnAllButOneLimNtr');
+table6 = [mean(mean(t2t1SameNTr,1),2) mean(t2t1SameAcc,1);
+    mean(mean(limNTrSTSWnTr,1),2) mean(limNTrSTSW,1);
+    mean(mean(nTr(sameTalkersInTables,:,[1 1]),1),2) mean(xvalAcc(sameTalkersInTables,:,[1 1]));
+    mean(mean(t2t1DiffNTr,1),2) mean(t2t1DiffAcc,1);
+    mean(mean(limNTrDTSWnTr,1),2) mean(limNTrDTSW,1);
+    mean(mean(nTr(diffTalkersInTables,:,[1 1]),1),2) mean(xvalAcc(diffTalkersInTables,:,[1 1]))];
+printLatexTable(outFile, table6(:,:,2), '%0.1f', 'Limiting cross-utterance training data to the same as cross-validation', [], {'Same', 'Same', 'Same xval', 'Diff', 'Diff', 'Diff xval'}, colNames);
 
 
 %%
