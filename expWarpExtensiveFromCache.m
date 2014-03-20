@@ -13,6 +13,7 @@ inDir   = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
 fns = {
     @trainSvmOnOne, ...
     @trainSvmOnAllButOne, ...
+    @trainSvmOnAllButOneLimNtr, ...
     @xvalSvmOnEachWord, ...
     @xvalSvmOnPooled ...
     };
@@ -77,7 +78,11 @@ yte = cat(1, ys{2:end});
 touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f', pcaDims, mcr)));
 save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');
 
-function trainSvmOnAllButOne(outDir,Xs,ys,pcaDims,numDiffWords)
+function trainSvmOnAllButOneLimNtr(outDir,Xs,ys,pcaDims,numDiffWords)
+trainSvmOnAllButOne(outDir,Xs,ys,pcaDims,numDiffWords,0.8)
+
+function trainSvmOnAllButOne(outDir,Xs,ys,pcaDims,numDiffWords,limitNTrPct)
+if ~exist('limitNTrPct', 'var') || isempty(limitNTrPct), limitNTrPct = -1; end
 XteDw = cat(1, Xs{end-numDiffWords+1:end});
 yteDw = cat(1, ys{end-numDiffWords+1:end});
 for w=1:length(Xs)-numDiffWords
@@ -86,8 +91,17 @@ for w=1:length(Xs)-numDiffWords
     ytr = cat(1, ys{tr});
     Xte = [Xs{w}; XteDw];
     yte = [ys{w}; yteDw];
+    
+    if limitNTrPct > 0
+        limNTr = ceil(limitNTrPct * length(balanceSets(ys{w}, false)));
+        keepAllTr = false;
+    else
+        limNTr = inf;
+        keepAllTr = true;
+    end
+    
     teGroup = [ones(size(ys{w})); 2*ones(size(yteDw))];
-    [mcr(w,:) mcrBal(w,:) nTe(w,:,:) nTr(w,:) nTeBal(w,:,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup, true);
+    [mcr(w,:) mcrBal(w,:) nTe(w,:,:) nTr(w,:) nTeBal(w,:,:)] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup, keepAllTr, limNTr);
     touch(fullfile(outDir, sprintf('pcaDims=%d,teI=%d,mcr=%.04f', pcaDims, w, mcr(w,1))));
 end
 save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');

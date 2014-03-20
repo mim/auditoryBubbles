@@ -108,12 +108,18 @@ printLatexTable(outFile, table4([1:5 7 8],:,2) - xvalAcc(:,:,1), '%0.2f', 'Cross
 
 
 [table5 isSig] = compareSameDiff(t2t1SameAcc, t2t1SameAccDiffWord, t2t1DiffAcc, t2t1DiffAccDiffWord, t2t1SameNTe, t2t1SameNTeDiffWord, t2t1DiffNTe, t2t1DiffNTeDiffWord);
-printLatexTable(outFile, table5(:,:,2), '%0.1f', 'Same word vs different word', isSig(:,:,2), {'ST SW', 'ST DW', 'ST \Delta', 'DT SW', 'DT DW', 'DT \Delta'}, colNames);
+printLatexTable(outFile, table5(:,:,2), '%0.1f', 'Various cross-utterance tests', isSig(:,:,2), {'ST SW', 'ST DW', 'DT SW', 'DT DW', 'ST $\Delta$W', 'DT $\Delta$W', 'SW $\Delta$T', 'DW $\Delta$T'}, colNames);
 
-[table6 isSig] = compareSameDiff(t2t1SameAcc, t2t1DiffAcc, t2t1SameAccDiffWord, t2t1DiffAccDiffWord, t2t1SameNTe, t2t1DiffNTe, t2t1SameNTeDiffWord, t2t1DiffNTeDiffWord);
-printLatexTable(outFile, table6(:,:,2), '%0.1f', 'Same talker vs different talker', isSig(:,:,2), {'SW ST', 'SW DT', 'SW \Delta', 'DW ST', 'DW DT', 'DW \Delta'}, colNames);
-
-
+[limNTrSTSW limNTrSTDW] = loadAcc(sameTalkerInds, 'trainSvmOnAllButOneLimNtr');
+[limNTrDTSW limNTrDTDW] = loadAcc(diffTalkerInds, 'trainSvmOnAllButOneLimNtr');
+[limNTrSTSWnTe limNTrSTDWnTe] = loadTtNumTest(sameTalkerInds, 'trainSvmOnAllButOneLimNtr');
+[limNTrDTSWnTe limNTrDTDWnTe] = loadTtNumTest(diffTalkerInds, 'trainSvmOnAllButOneLimNtr');
+table6 = [mean(limNTrSTSW,1);
+    mean(limNTrSTDW,1);
+    mean(limNTrDTSW,1);
+    mean(limNTrDTDW,1);
+    xvalAcc(end,:,[1 1])];
+printLatexTable(outFile, table6(:,:,2), '%0.1f', 'Limiting cross-utterance training data to the same as cross-validation', [], {'ST SW', 'ST DW', 'DT SW', 'DT DW', 'XVal'}, colNames);
 
 
 %%
@@ -195,20 +201,24 @@ ts = (p1 - p2) ./ sqrt(p .* (1 - p) .* (1./n1 + 1./n2));
 pVal = normcdf(ts);
 isSig = pVal >= 0.975;
 
-function [acc isSig] = compareSameDiff(stsw, stdw, dtsw, dtdw, stswNte, stdwNTe, dtswNte, dtdwNte)
+function [acc isSig] = compareSameDiff(stsw, stdw, dtsw, dtdw, stswNte, stdwNte, dtswNte, dtdwNte)
 
 acc = [mean(stsw,1); 
     mean(stdw,1); 
-    mean(stsw,1) - mean(stdw,1);
     mean(dtsw,1);
     mean(dtdw,1); 
-    mean(dtsw,1) - mean(dtdw,1)];
+    mean(stsw,1) - mean(stdw,1);
+    mean(dtsw,1) - mean(dtdw,1);
+    mean(stsw,1) - mean(dtsw,1);
+    mean(stdw,1) - mean(dtdw,1)];
 isSig = [significantBinomial(mean(stsw,1), sum(stswNte,1)); 
-    significantBinomial(mean(stdw,1), sum(stdwNTe,1)); 
-    compareProportions(mean(stsw,1)/100, mean(stdw,1)/100, sum(stswNte,1), sum(stdwNTe,1));
+    significantBinomial(mean(stdw,1), sum(stdwNte,1)); 
     significantBinomial(mean(dtsw,1), sum(dtswNte,1)); 
     significantBinomial(mean(dtdw,1), sum(dtdwNte,1)); 
-    compareProportions(mean(dtsw,1)/100, mean(dtdw,1)/100, sum(dtswNte,1), sum(dtdwNte,1))];
+    compareProportions(mean(stsw,1)/100, mean(stdw,1)/100, sum(stswNte,1), sum(stdwNte,1));
+    compareProportions(mean(dtsw,1)/100, mean(dtdw,1)/100, sum(dtswNte,1), sum(dtdwNte,1));
+    compareProportions(mean(stsw,1)/100, mean(dtsw,1)/100, sum(stswNte,1), sum(dtswNte,1));
+    compareProportions(mean(stdw,1)/100, mean(dtdw,1)/100, sum(stdwNte,1), sum(dtdwNte,1))];
 
 
 
