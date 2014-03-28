@@ -6,8 +6,8 @@ if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
 if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 
 prt('ToFile', toDisk, 'StartAt', startAt, ...
-    'Width', 4, 'Height', 3, 'NumberPlots', 0, ...
-    'TargetDir', 'C:\Temp\data\plots\exp12_w4\trim=30,length=2.2', ...
+    'Width', 2, 'Height', 1.5, 'NumberPlots', 0, ...
+    'TargetDir', 'C:\Temp\data\plots\exp12_is14\trim=30,length=2.2', ...
     'SaveTicks', 1, 'Resolution', 200)
 
 fs = 44100;
@@ -36,19 +36,19 @@ for grouping = [0]
             % Plot all TFIFs
             for p = 1:size(res.mat,3)
                 outName = plotFileName('tfif', p, grouping, doWarp, target);
-                plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labels);
+                plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, [p==3 1 0]);
             end
             
             % Plot all spectrograms
             for p = 1:size(res.clean,3)
                 outName = plotFileName('spec', p, grouping, doWarp, target);
-                plotSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, labels);
+                plotSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, [p==3 0 0]);
             end
             
             % Plot average spectrogram
             avgSpec = db(mean(db2mag(res.clean),3));
             outName = plotFileName('specAvg', 1, grouping, doWarp, target);
-            plotSpectrogram(avgSpec, outName, fs, hop_s, specCmap, specCax, labels);
+            plotSpectrogram(avgSpec, outName, fs, hop_s, specCmap, specCax, [0 0 doWarp]);
             
             %noiseLevel = min(res.clean(:));  % not important -> min(clean) dB
             noiseLevel = max(res.clean(:));  % not important -> max(clean) dB
@@ -57,13 +57,13 @@ for grouping = [0]
             for p = 1:size(res.clean,3)
                 selected = (res.clean(:,:,p) - noiseLevel) .* (res.mat(:,:,p) .* (res.mat(:,:,p) > 0)) + noiseLevel;
                 outName = plotFileName('onSpec', p, grouping, doWarp, target);
-                plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labels);
+                plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, [p==3 1 0]);
             end
 
             % Plot average spectrogram weighted by combined TFIF
             selected = (avgSpec - noiseLevel) .* (res.mat(:,:,end) .* (res.mat(:,:,end) > 0)) + noiseLevel;
             outName = plotFileName('onSpecAvg', 1, grouping, doWarp, target);
-            plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labels);
+            plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, [0 1 doWarp]);
         end
     end
 end
@@ -84,6 +84,7 @@ fileName = sprintf('grouping=%d_doWarp=%d_target=%d_%s%d', ...
 function plotSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels)
 
 % Labels: [ylabel xlabel colorbar]
+clf  % Need this to make plots the right size for some reason...
 
 f_khz = freqAxis_khz((size(X,1)-1)/2, fs);
 ylab = 'Frequency (kHz)';
