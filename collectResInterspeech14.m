@@ -122,7 +122,14 @@ table6 = [mean(mean(t2t1SameNTr,1),2) mean(t2t1SameAcc,1);
     mean(mean(t2t1DiffNTr,1),2) mean(t2t1DiffAcc,1);
     mean(mean(limNTrDTSWnTr,1),2) mean(limNTrDTSW,1);
     mean(mean(nTr(diffTalkersInTables,:,[1 1]),1),2) mean(xvalAcc(diffTalkersInTables,:,[1 1]))];
-printLatexTable(outFile, table6(:,:,2), '%0.1f', 'Limiting cross-utterance training data to the same as cross-validation', [], {'Same', 'Same', 'Same xval', 'Diff', 'Diff', 'Diff xval'}, colNames);
+table6te = [sum(t2t1SameNTe,1);
+    sum(limNTrSTSWnTe,1);
+    sum(nTe(sameTalkersInTables,:,[1 1]));
+    sum(t2t1DiffNTe,1);
+    sum(limNTrDTSWnTe,1);
+    sum(nTe(diffTalkersInTables,:,[1 1]))];
+isSig = [zeros(size(table6te,1),1) significantBinomial(table6(:,2:end,2), table6te(:,:,2))];
+printLatexTable(outFile, table6(:,:,2), '%0.1f', 'Limiting cross-utterance training data to the same as cross-validation', isSig, {'S & D', 'S & D', 'S & S', 'D & D', 'D & D', 'D & S'}, colNames);
 
 
 %%
@@ -198,11 +205,12 @@ isSig = reshape(isSig, size(nTe));
 function [isSig pVal] = compareProportions(p1, p2, n1, n2)
 % score test for two proportions. see slide 13 of http://ocw.jhsph.edu/courses/methodsinbiostatisticsii/PDFs/lecture18.pdf
 % Determine whether p1 is significantly bigger than p2 under a
-% normal approximation of a binomial distribution at a 0.05% level.
+% normal approximation of a binomial distribution at a 0.05% level. This is
+% a two-sided test with the comparison against 0.975.
 p = (p1.*n1 + p2.*n2) ./ (n1 + n2);
 ts = (p1 - p2) ./ sqrt(p .* (1 - p) .* (1./n1 + 1./n2));
 pVal = normcdf(ts);
-isSig = pVal >= 0.975;
+isSig = (pVal >= 0.975) | (pVal <= 0.025);
 
 function [acc isSig] = compareSameDiff(stsw, stdw, dtsw, dtdw, stswNte, stdwNte, dtswNte, dtdwNte)
 
