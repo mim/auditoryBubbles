@@ -7,8 +7,8 @@ if ~exist('trimDir', 'var') || isempty(trimDir), trimDir = 'trim=30,length=2.2';
 if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
 
 expDir  = sprintf('exp%d', expNum); 
-outDir  = fullfile('C:\Temp\data\results3dwBalTr', expDir, trimDir);
-inDir   = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
+outDir  = fullfile('C:\Temp\data\resultsPbcBalTr', expDir, trimDir);
+inDir   = fullfile('C:\Temp\data\tfctAndPcaPbc', expDir, trimDir);
 
 fns = {
     @trainSvmOnOne, ...
@@ -30,6 +30,10 @@ for grouping = 0
             tfctOutDir = fullfile(partialOutDir, 'fn=plotTfctWrapper');
             ensureDirExists(tfctOutDir, 1);
             plotTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape, d.numDiffWords)
+            
+            pbcOutDir = fullfile(partialOutDir, 'fn=plotPbc');
+            ensureDirExists(pbcOutDir, 1);
+            plotPbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.origShape, d.numDiffWords)
             
             for f = 1:length(fns)
                 fullOutDir = fullfile(partialOutDir, sprintf('fn=%s',func2str(fns{f})));
@@ -67,6 +71,14 @@ save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1', 
 function mat = plotableTfct(sNot0, sNot1, s0, s1, origShape)
 [~,p,isHigh] = tfCrossTab(sNot0, sNot1, s0, s1);
 mat = reshape((2*isHigh-1).*exp(-p/0.05), origShape);
+
+function plotPbc(outDir, s0, s1, n0, n1, sig, origShape, numDiffWords)
+[tpbc tpval tvis] = pointBiserialCorr(s0, s1, n0, n1, sig);
+W = size(s0,1);
+pbc  = reshape(tpbc, [origShape W]);
+pval = reshape(tpval, [origShape W]);
+vis  = reshape(tvis, [origShape W]);
+save(fullfile(outDir, 'res'), 'pbc', 'pval', 'vis', 'origShape', 'numDiffWords');
 
 
 function trainSvmOnOne(outDir,Xs,ys,pcaDims,numDiffWords)

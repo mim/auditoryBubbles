@@ -11,7 +11,7 @@ seed = 22;
 numDiffWords = 3;
 
 expDir  = sprintf('exp%d', expNum); 
-outDir      = fullfile('C:\Temp\data\tfctAndPca3dw', expDir, trimDir);
+outDir      = fullfile('C:\Temp\data\tfctAndPcaPbc', expDir, trimDir);
 baseDir     = fullfile('C:\Temp\mrtFeatures\shannonLight', expDir, trimDir);
 pcaDataFile = 'pcaData_100dims_1000files.mat';
 groupedFile = fullfile('D:\Box Sync\data\mrt\shannonResults', sprintf('groupedExp%dTmp.mat', expNum));
@@ -40,7 +40,7 @@ for grouping = 0
                     crossUtWarp(baseDir, pcaFiles{target}, cleanFiles{words(c)}, pcaDataFile, groupedFile, doWarp);
             end
             
-            [s0 s1 sNot0 sNot1] = computeTfctStats(yte,warped);
+            [s0 s1 sNot0 sNot1 n0 n1 sig] = computeTfctStats(yte,warped);
             clear warped
             
             ensureDirExists(outFile);
@@ -50,17 +50,26 @@ for grouping = 0
     end
 end
 
-function [s0 s1 sNot0 sNot1] = computeTfctStats(yte,warped)
+function [s0 s1 sNot0 sNot1 n0 n1 sig] = computeTfctStats(yte,warped)
+n0 = zeros(size(yte));
+n1 = zeros(size(yte));
 s0 = zeros(length(yte), size(warped{1}, 2));
 s1 = zeros(size(s0));
 sNot0 = zeros(size(s0));
 sNot1 = zeros(size(s0));
+sig   = zeros(size(s0));
 
 for w = 1:length(yte)
+    % For TFCT
     feat0 = warped{w}(yte{w}<0,:);
     feat1 = warped{w}(yte{w}>0,:);
     s0(w,:) = sum(feat0, 1);
     s1(w,:) = sum(feat1, 1);
     sNot0(w,:) = size(feat0,1) - s0(w,:);
     sNot1(w,:) = size(feat1,1) - s1(w,:);
+
+    % For point-biserial correlation
+    n0(w) = size(feat0,1);
+    n1(w) = size(feat1,1);
+    sig(w,:) = std(warped{w});
 end
