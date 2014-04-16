@@ -11,8 +11,8 @@ seed = 22;
 numDiffWords = 3;
 
 expDir  = sprintf('exp%d', expNum); 
-outDir      = fullfile('C:\Temp\data\tfctAndPcaPbc', expDir, trimDir);
-baseDir     = fullfile('C:\Temp\mrtFeatures\shannonLight', expDir, trimDir);
+outDir      = fullfile('C:\Temp\data\jasaTfctAndPcaPbc', expDir, trimDir);
+baseDir     = fullfile('C:\Temp\mrtFeatures\shannonJasa', expDir, trimDir);
 pcaDataFile = 'pcaData_100dims_1000files.mat';
 groupedFile = fullfile('D:\Box Sync\data\mrt\shannonResults', sprintf('groupedExp%dTmp.mat', expNum));
 cleanFiles  = findFiles(baseDir, 'bpsInf');

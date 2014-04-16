@@ -23,7 +23,8 @@ noiseRel = bsxfun(@rdivide, noise, noiseLevel);
 %origFeat = max(-100, db(clean .* (db(noise) < -35))) + 0.1*randn(size(clean));
 %origFeat = (db(noise) < -35) + 0.01*randn(size(clean));
 %origFeat = (db(noiseRel) < -35) + 0.001*randn(size(clean));
-origFeat = lim(db(noiseRel) / -80, -0.1, 1.1);
+%origFeat = lim(db(noiseRel) / -80, -0.1, 1.1);
+origFeat = lim((-db(noiseRel) + 20) / 85, -0.1, 1.1);
 
 origFeat = origFeat(:, trimFrames+1:end-trimFrames);
 origShape = size(origFeat);
@@ -38,7 +39,8 @@ dF = [diff(freqVec_erb) 0].^(1/3);
 %dF = [diff(freqVec_erb) 0].^(1/4);
 %dF = [diff(freqVec_erb.^2) 0];
 %dF = ones(1, length(freqVec_erb));
-weightVec = dF';
-weights = repmat(dF', 1, size(origFeat,2));
+%weightVec = dF';
+weightVec = noiseLevel.^(1/3);
+weights = repmat(weightVec, 1, size(origFeat,2));
 weights = reshape(weights, size(feat));
 
