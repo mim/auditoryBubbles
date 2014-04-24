@@ -16,7 +16,6 @@ if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false;
 if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false; end
 
 outCsvFile = fullfile(inDir, [subjectName '_' datestr(clock, 30) '.csv']);
-choiceNums = [1 2 3 4 5 6];
 
 % Load all files, randomize them
 [~,files] = findFiles(inDir, '.wav$');
@@ -25,7 +24,10 @@ files = files(randperm(length(files)));
 % Figure out right answers, possible choices
 rightAnswers = listMap(@figureOutRightAnswerFromFileName, files);
 words = unique(rightAnswers)';
-assert(length(choiceNums) == length(words))
+if length(words) ~= 6
+    warning('Using %d choices instead of 6', length(words))
+end
+choiceNums = 1:length(words);
 correct = 0; incorrect = 0;
 
 % Write headers in output file
