@@ -34,13 +34,13 @@ for grouping = 0
             diffWordInds = runWithRandomSeed(seed, @() randperm(length(diffWord)));
             words = [sameWord diffWord(diffWordInds(1:numDiffWords))];
 
-            clear Xte yte clean warpDist mfccDist startDist
+            clear Xte yte clean warpDist mfccDist startDist s0 s1 sNot0 sNot1 n0 n1 sig
             for c = 1:length(words),
-                [~,~,Xte{c},yte{c},warped{c},~,origShape,clean{c},warpDist(c),mfccDist(c),startDist(c)] = ...
+                [~,~,Xte{c},yte{c},warped,~,origShape,clean{c},warpDist(c),mfccDist(c),startDist(c)] = ...
                     crossUtWarp(baseDir, pcaFiles{target}, cleanFiles{words(c)}, pcaDataFile, groupedFile, doWarp);
-            end
-            
-            [s0 s1 sNot0 sNot1 n0 n1 sig] = computeTfctStats(yte,warped);
+                
+                [s0(c,:) s1(c,:) sNot0(c,:) sNot1(c,:) n0(c) n1(c) sig(c,:)] = computeTfctStats(yte{c}, warped);
+            end            
             clear warped
             
             ensureDirExists(outFile);
@@ -51,25 +51,15 @@ for grouping = 0
 end
 
 function [s0 s1 sNot0 sNot1 n0 n1 sig] = computeTfctStats(yte,warped)
-n0 = zeros(size(yte));
-n1 = zeros(size(yte));
-s0 = zeros(length(yte), size(warped{1}, 2));
-s1 = zeros(size(s0));
-sNot0 = zeros(size(s0));
-sNot1 = zeros(size(s0));
-sig   = zeros(size(s0));
+% For TFCT
+feat0 = warped(yte<0,:);
+feat1 = warped(yte>0,:);
+s0 = sum(feat0, 1);
+s1 = sum(feat1, 1);
+sNot0 = size(feat0,1) - s0;
+sNot1 = size(feat1,1) - s1;
 
-for w = 1:length(yte)
-    % For TFCT
-    feat0 = warped{w}(yte{w}<0,:);
-    feat1 = warped{w}(yte{w}>0,:);
-    s0(w,:) = sum(feat0, 1);
-    s1(w,:) = sum(feat1, 1);
-    sNot0(w,:) = size(feat0,1) - s0(w,:);
-    sNot1(w,:) = size(feat1,1) - s1(w,:);
-
-    % For point-biserial correlation
-    n0(w) = size(feat0,1);
-    n1(w) = size(feat1,1);
-    sig(w,:) = std(warped{w});
-end
+% For point-biserial correlation
+n0 = size(feat0,1);
+n1 = size(feat1,1);
+sig = std(warped,[],1);
