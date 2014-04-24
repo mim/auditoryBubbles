@@ -1,6 +1,8 @@
-function [mix targetSr clean] = mixBubbleNoise(cleanFile, targetSr, useHoles, bubblesPerSec, snr, dur_s)
+function [mix targetSr clean] = mixBubbleNoise(cleanFile, targetSr, useHoles, bubblesPerSec, snr, dur_s, normalize)
 
 % SNR is in linear units
+
+if ~exist('normalize', 'var') || isempty(normalize), normalize = 1; end
 
 scale_dB = 6;
 speechRms = 0.1;
@@ -14,11 +16,15 @@ else
 end
 
 [speech sr] = wavread(cleanFile);
+speech = mean(speech,2);
 if targetSr <= 0
     targetSr = sr;
 end
 speech = resample(speech, targetSr, sr);
-speech = speech * speechRms / rmsNonZero(speech, -60);
+
+if normalize
+    speech = speech * speechRms / rmsNonZero(speech, -60);
+end
 
 dur = round(dur_s * targetSr);
 pad = dur - length(speech);
