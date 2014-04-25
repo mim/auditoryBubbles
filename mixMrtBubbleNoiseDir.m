@@ -1,4 +1,4 @@
-function mixMrtBubbleNoiseDir(speechFiles, nMixes, bubblesPerSec, snr_db, outDir, dur_s, inDir, normalize)
+function mixMrtBubbleNoiseDir(speechFiles, nMixes, bubblesPerSec, snr_db, outDir, dur_s, inDir, normalize, noiseShape)
 
 if ~exist('outDir', 'var') || isempty(outDir), outDir = 'Z:\data\mrt\mixes\helenWords01\'; end
 if ~exist('inDir', 'var') || isempty(inDir), inDir = 'Z:\data\mrt\helen\helenWords01'; end
@@ -8,6 +8,7 @@ if ~exist('snr_db', 'var') || isempty(snr_db), snr_db = -30; end
 if ~exist('nMixes', 'var') || isempty(nMixes), nMixes = 1; end
 if ~exist('dur_s', 'var') || isempty(dur_s), dur_s = 2; end
 if ~exist('normalize', 'var') || isempty(normalize), normalize = 1; end
+if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 
 if ischar(speechFiles)  % Can supply a pattern
     speechFiles = findFiles(inDir, speechFiles, 1);
@@ -39,7 +40,7 @@ for i = 1:length(speechFiles)
         end
         fprintf('%d %d: %s\n', i, num, outFile)
         
-        [mix sr] = mixBubbleNoise(cleanFile, sr, useHoles, bubblesPerSec, snr, dur_s, normalize);
+        [mix sr] = mixBubbleNoise(cleanFile, sr, useHoles, bubblesPerSec, snr, dur_s, normalize, noiseShape);
         
         ensureDirExists(outFile);
         wavwrite(mix, sr, outFile);

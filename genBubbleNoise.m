@@ -1,6 +1,6 @@
 function [noise mask noiseSpec] = ...
     genBubbleNoise(dur_s, sr, bubblesPerSec, makeHoles, ...
-    sizeF_erb, sizeT_s, window_s, hopFrac, randomness)
+    sizeF_erb, sizeT_s, window_s, hopFrac, randomness, noiseShape)
 
 % Generate noise that is localized in time and frequency
 
@@ -11,6 +11,7 @@ if ~exist('sizeT_s', 'var') || isempty(sizeT_s), sizeT_s  = 0.04; end
 if ~exist('window_s', 'var') || isempty(window_s), window_s = 0.064; end
 if ~exist('hopFrac', 'var') || isempty(hopFrac), hopFrac = 0.25; end
 if ~exist('randomness', 'var') || isempty(randomness), randomness = 2; end
+if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 
 phaseIter = 3;
 suppressHolesTo_db = -80;
@@ -21,7 +22,7 @@ dur  = round(dur_s * sr);
 nFft = (nF-1)*2;
 hop  = round(hopFrac * nFft);
 
-profile = speechProfile(sr, nFft, hop);
+profile = speechProfile(sr, nFft, hop, noiseShape);
 
 whiteNoise = randn(1, dur + nFft);
 whiteNoise = whiteNoise * 0.99 / max(abs(whiteNoise));
