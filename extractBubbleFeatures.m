@@ -24,7 +24,7 @@ else
     wavFiles = findFiles(inDir, filesOrPattern); 
 end
 
-% Extract bubble features for every file
+disp('Extracting bubble features for every file')
 effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, setLength_s, oldProfile, overwrite);
 status = extractFeatures(inDir, outFeatDir, 'mat', wavFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
@@ -32,7 +32,7 @@ status = extractFeatures(inDir, outFeatDir, 'mat', wavFiles, ...
 matFiles = strrep(wavFiles, '.wav', '.mat');
 
 if ~exist(pcaFile, 'file') || overwrite
-    % Load files for PCA
+    disp('Loading files for PCA')
     for f = 1:min(pcaDims(2), length(wavFiles))
         tmp = load(fullfile(outFeatDir, matFiles{f}));
         features(f,:) = single(tmp.features);
@@ -40,7 +40,7 @@ if ~exist(pcaFile, 'file') || overwrite
         origShape = tmp.origShape;
     end
     
-    % Compute PCA across all files, save in directory
+    disp('Computing PCA across all files')
     mu = mean(features);
     sig = std(features);
     features = bsxfun(@rdivide, bsxfun(@minus, features, mu), sig);
@@ -54,7 +54,7 @@ else
     load(pcaFile)
 end
 
-% Augment computed features with PCA features
+disp('Augmenting computed features with PCA features')
 effn =  @(ip,op,fn) ef_pcaFeatures(ip,op,fn, pcs, mu, sig, pcaFile);
 status = extractFeatures(outFeatDir, outPcaDir, 'mat', matFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
@@ -101,8 +101,8 @@ if nSamp > 0
         toCut = length(x) - nSamp;
         x = x(floor(toCut/2) : end-ceil(toCut/2)+1);
     end
+    assert(length(x) == nSamp);
 end
-assert(length(x) == nSamp);
 
 nfft = round(win_s * fs);
 hop = round(nfft/4);
