@@ -1,27 +1,20 @@
-function expWarpExtensiveFromCache(expNum, trimDir, pcaDims)
+function expWarpExtensiveFromCache(outDir, inDir, runFunctions, doWarps, targets, pcaDims)
 
 % Run lots of experiments on warped bubble noise data
 
-if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = 70; end
-if ~exist('trimDir', 'var') || isempty(trimDir), trimDir = 'trim=30,length=2.2'; end
-if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
-
-expDir  = sprintf('exp%d', expNum); 
-outDir  = fullfile('C:\Temp\data\jasaResultsPbcBalTr', expDir, trimDir);
-inDir   = fullfile('C:\Temp\data\jasaTfctAndPcaPbc', expDir, trimDir);
-
-fns = {
-    @trainSvmOnOne, ...
-    @trainSvmOnAllButOne, ...
-    @trainSvmOnAllButOneLimNtr, ...
-    @xvalSvmOnEachWord, ...
-    @xvalSvmOnPooled ...
-    };
+allFns = struct(...
+    'trainSvmOnOne', @trainSvmOnOne, ...
+    'trainSvmOnAllButOne', @trainSvmOnAllButOne, ...
+    'trainSvmOnAllButOneLimNtr', @trainSvmOnAllButOneLimNtr, ...
+    'xvalSvmOnEachWord', @xvalSvmOnEachWord, ...
+    'xvalSvmOnPooled', @xvalSvmOnPooled ...
+);
+fns = listMap(@(x) allFns.(x), runFunctions);
 
 %for grouping = 1
 for grouping = 0
-    for doWarp = [1 0]
-        for target = [5:6:36 2:6:36]
+    for doWarp = doWarps
+        for target = targets
             inFile = dataFileFor(inDir, grouping, doWarp, target);
             fprintf('Loading %s\n', inFile);
             d = load(inFile);

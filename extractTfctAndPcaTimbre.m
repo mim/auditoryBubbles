@@ -5,7 +5,7 @@ function extractTfctAndPcaTimbre(overwrite)
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
 
-outDir = 'C:\Temp\data\timbre\v1';
+outDir = 'C:\Temp\data\timbre\v1\expWarpCache';
 baseDir = fullfile('C:\Temp\mrtFeatures\timbre\mim\trim=15,length=0');
 pcaDataFile = 'pcaData_100dims_1000files.mat';
 groupedFile = 'D:\Box Sync\timbre\results\mim100grouped.mat';
