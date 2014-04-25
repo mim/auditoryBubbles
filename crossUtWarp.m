@@ -74,7 +74,7 @@ for f = 1:length(teFiles)
     scaled(f,:) = bsxfun(@times, bsxfun(@minus, wTmp, pca.mu), weights ./ pca.sig);
 end
 Xte = scaled * pca.pcs;
-origShape = tef.origShape;
+origShape = cf.origShape;
 
 
 function [files d] = mixesForClean(cleanFile)

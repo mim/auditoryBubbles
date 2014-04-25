@@ -46,7 +46,13 @@ speakers = spk(inds);
 
 
 function [word speaker utName] = extractWordAndSpeaker(fileName)
-tokens = regexp(fileName, '(a\w+a)_(w\d)', 'tokens');
-word = tokens{1}{1};
-speaker = tokens{1}{2};
+try
+    tokens = regexp(fileName, '(a\w+a)_(w\d)', 'tokens');
+    word = tokens{1}{1};
+    speaker = tokens{1}{2};
+catch err
+    tokens = regexp(fileName, '\\(\w+)_bps', 'tokens');
+    word = tokens{1}{1};
+    speaker = 1;
+end
 utName = basename(fileName, 0);

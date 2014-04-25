@@ -1,4 +1,4 @@
-function extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, targets, doWarps, overwrite)
+function extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, targets, doWarps, numDiffWords, overwrite)
 
 % Generic function to extract features necessary to run lots of different
 % experiments and visualizations. Write a wrapper for it for the particular
@@ -14,12 +14,12 @@ function extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, targets, d
 %   overwrite    if 1, overwrite existing output files
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
+if ~exist('numDiffWords', 'var') || isempty(numDiffWords), numDiffWords = 3; end
 
 seed = 22;
-numDiffWords = 3;
 
 cleanFiles  = findFiles(baseDir, 'bpsInf');
-pcaFiles    = findFiles(baseDir, 'snr-35_.mat');
+pcaFiles    = findFiles(baseDir, 'snr-\d+_.mat');
 
 %for grouping = 1
 for grouping = 0

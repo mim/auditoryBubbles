@@ -15,5 +15,6 @@ groupedFile = fullfile('D:\Box Sync\data\mrt\shannonResults', sprintf('groupedEx
 
 targets = [5:6:36 2:6:36];
 doWarps = [1 0];
+numDiffWords = 3;
 
-extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, targets, doWarps, overwrite);
+extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, targets, doWarps, numDiffWords, overwrite);
