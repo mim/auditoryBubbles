@@ -1,27 +1,30 @@
-function extractTfctAndPca(overwrite, expNum, trimDir)
+function extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, targets, doWarps, overwrite)
 
-% Extract features necessary to run lots of different experiments and
-% visualizations
+% Generic function to extract features necessary to run lots of different
+% experiments and visualizations. Write a wrapper for it for the particular
+% directories you need.
+%
+% extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, overwrite)
+%
+% Inputs
+%   outDir       base directory for output directory tree
+%   baseDir      base directory for input directory tree
+%   pcaDataFile  .mat file with pca info, e.g. 'pcaData_100dims_1000files.mat'
+%   groupedFile  .mat file containing grouped results from listening test
+%   overwrite    if 1, overwrite existing output files
 
-if ~exist('trimDir', 'var') || isempty(trimDir), trimDir = 'trim=30,length=2.2'; end
-if ~exist('expNum', 'var') || isempty(expNum), expNum = 12; end
-if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
+if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 
 seed = 22;
 numDiffWords = 3;
 
-expDir  = sprintf('exp%d', expNum); 
-outDir      = fullfile('C:\Temp\data\jasaTfctAndPcaPbc', expDir, trimDir);
-baseDir     = fullfile('C:\Temp\mrtFeatures\shannonJasa', expDir, trimDir);
-pcaDataFile = 'pcaData_100dims_1000files.mat';
-groupedFile = fullfile('D:\Box Sync\data\mrt\shannonResults', sprintf('groupedExp%dTmp.mat', expNum));
 cleanFiles  = findFiles(baseDir, 'bpsInf');
 pcaFiles    = findFiles(baseDir, 'snr-35_.mat');
 
 %for grouping = 1
 for grouping = 0
-    for doWarp = [1 0]
-        for target = [5:6:length(pcaFiles) 2:6:length(pcaFiles)]
+    for doWarp = doWarps
+        for target = targets
             outFile = fullfile(outDir, sprintf('grouping=%d', grouping), ...
                 sprintf('doWarp=%d', doWarp), sprintf('target=%d',target), ...
                 'tfctAndPca.mat');
