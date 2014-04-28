@@ -1,7 +1,8 @@
-function plotsTimbre(toDisk, startAt, allLabels)
+function plotsTimbre(groupedName, toDisk, startAt, allLabels)
 
 % Make plots from tfct data files from expWarpExtensive.
-    
+
+if ~exist('groupedName', 'var') || isempty(groupedName), groupedName = 'mim100'; end
 if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
 if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 if ~exist('allLabels', 'var') || isempty(allLabels), allLabels = true; end
@@ -12,7 +13,7 @@ prt('ToFile', toDisk, 'StartAt', startAt, ...
     'SaveTicks', 1, 'Resolution', 200)
 %    'Width', 2, 'Height', 1.5, 'NumberPlots', 0, ...
 
-inDir = 'C:\Temp\data\timbre\v1\expWarpOut';
+inDir = fullfile('C:\Temp\data\timbre\v1', groupedName, 'expWarpOut');
 
 fs = 44100;
 hop_s  = 0.016;

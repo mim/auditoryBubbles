@@ -21,7 +21,10 @@ for f = 1:length(files)
     end
 end
 
-assert(all(keep));
+if ~all(keep)
+    warning('Only keeping %d of %d files', sum(keep), length(keep));
+    %assert(all(keep))
+end
 assert(all(strcmp(files(keep), ansFile(match(keep)))))
 files     = files(keep);
 fracRight = cell2mat(fracRight(match(keep)));
