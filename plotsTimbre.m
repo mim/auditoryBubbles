@@ -7,13 +7,14 @@ if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
 if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 if ~exist('allLabels', 'var') || isempty(allLabels), allLabels = true; end
 
+inDir = fullfile('C:\Temp\data\timbre\v1', groupedName, 'expWarpOut');
+outDir = fullfile('C:\Temp\data\plots\timbreV1', groupedName);
+
 prt('ToFile', toDisk, 'StartAt', startAt, ...
     'Width', 3, 'Height', 3, 'NumberPlots', 0, ...
-    'TargetDir', 'C:\Temp\data\plots\timbreV1', ...
+    'TargetDir', outDir, ...
     'SaveTicks', 1, 'Resolution', 200)
 %    'Width', 2, 'Height', 1.5, 'NumberPlots', 0, ...
-
-inDir = fullfile('C:\Temp\data\timbre\v1', groupedName, 'expWarpOut');
 
 fs = 44100;
 hop_s  = 0.016;
@@ -57,16 +58,16 @@ for grouping = 0
 %             res.mat = res.mat(:,:,[(1:end-numDiffPlots-1) end]);
 %             res.clean = res.clean(:,:,1:end-numDiffPlots);
             
-            % Plot all TFIFs
-            for p = 1:size(res.mat,3)
-                outName = plotFileName('tfif', p, grouping, doWarp, target);
-                plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels));
-            end
-            
             % Plot all spectrograms
             for p = 1:size(res.clean,3)
                 outName = plotFileName('spec', p, grouping, doWarp, target);
                 plotSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 0, 0, allLabels));
+            end
+            
+            % Plot all TFIFs
+            for p = 1:size(res.mat,3)
+                outName = plotFileName('tfif', p, grouping, doWarp, target);
+                plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels));
             end
             
             %noiseLevel = min(res.clean(:));  % not important -> min(clean) dB
@@ -91,8 +92,10 @@ path = fullfile(baseDir, ...
     'fn=plotTfctWrapper/res.mat');
 
 function fileName = plotFileName(desc, p, grouping, doWarp, target)
-fileName = sprintf('grouping=%d_doWarp=%d_target=%d_%s%d', ...
-    grouping, doWarp, target, desc, p);
+% fileName = sprintf('grouping=%d_doWarp=%d_target=%d_%s%d', ...
+%     grouping, doWarp, target, desc, p);
+names = {'Cello', 'Harp', 'Harpsichord', 'Marimba', 'Piano', 'TubularBells', 'Vibraphone'};
+fileName = sprintf('%s_%s%d', names{target}, desc, p);
 
 function labs = labelsFor(y, x, c, allLabels)
 if allLabels

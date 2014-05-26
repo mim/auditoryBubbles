@@ -19,6 +19,8 @@ tfifCmap = easymap('bwr', 255);
 tfifCax = [-.99 .99];
 specCmap = easymap('bcyr', 255);
 specCax = [-89 9];
+svmCmap = easymap('bcyr', 255);
+svmCax = [-1 1];
 trim = 30;
 length_s = 2.2;
 
@@ -45,7 +47,7 @@ end
 for grouping = [0]
     for doWarp = [0 1]
         for target = [5:6:36 2:6:36]
-            fileName = resFileFor(grouping, doWarp, target);
+            fileName = resFileFor(grouping, doWarp, target, 'plotTfctWrapper');
             res = load(fileName);
             res.mat(isnan(res.mat)) = 0;
             
@@ -88,18 +90,26 @@ for grouping = [0]
             selected = (avgSpec - noiseLevel) .* (res.mat(:,:,end) .* (res.mat(:,:,end) > 0)) + noiseLevel;
             outName = plotFileName('onSpecAvg', 1, grouping, doWarp, target);
             plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(0, 1, doWarp, allLabels));
+
+            % Visualize SVM
+            fileName = resFileFor(grouping, doWarp, target, 'visSvmOnOne');
+            res = load(fileName);
+            outName = plotFileName('visSvmOnOne', 1, grouping, doWarp, target);
+            svmVis = res.mat ./ max(abs(res.mat(:)));
+            plotSpectrogram(svmVis, outName, fs,  hop_s, svmCmap, svmCax, labelsFor(1, 1, 1, allLabels));
         end
     end
 end
 
-function path = resFileFor(grouping, doWarp, target)
+function path = resFileFor(grouping, doWarp, target, fn)
 
-baseDir = 'C:\Temp\data\results3dwBalTr\exp12\trim=30,length=2.2\';
+baseDir = 'C:\Temp\data\resultsPbcBalTr\exp12\trim=30,length=2.2\';
 path = fullfile(baseDir, ...
     sprintf('grouping=%d', grouping), ...
     sprintf('doWarp=%d', doWarp), ...
     sprintf('target=%d', target), ...
-    'fn=plotTfctWrapper/res.mat');
+    sprintf('fn=%s', fn), ...
+    'res.mat');
 
 function fileName = plotFileName(desc, p, grouping, doWarp, target)
 fileName = sprintf('grouping=%d_doWarp=%d_target=%d_%s%d', ...

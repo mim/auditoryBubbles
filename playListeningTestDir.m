@@ -1,10 +1,13 @@
 function playListeningTestDir(inDir, subjectName, giveFeedback, allowRepeats)
 
 % playListeningTestDir(inDir, subjectName, [giveFeedback], [allowRepeats])
+% playListeningTestDir(inDir, existingResultFileName, [giveFeedback], [allowRepeats])
 %
 % Run a listening test using all of the files in a directory. Save
-% results to a comma-separated variable (CSV) file in the same
-% directory with a date-time-stamp.
+% results to a comma-separated value (CSV) file in the same
+% directory with a date-time-stamp.  If the name of an existing file is
+% given as the second argument instead of a subject name, continue that
+% experiment and write to that file instead of starting over.
 %
 % Inputs:
 %   inDir         directory to find wav files to play
@@ -15,10 +18,27 @@ function playListeningTestDir(inDir, subjectName, giveFeedback, allowRepeats)
 if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false; end
 if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false; end
 
-outCsvFile = fullfile(inDir, [subjectName '_' datestr(clock, 30) '.csv']);
+% If subjectName is actually a file name, then use that directly as the
+% output file (and save a backup of the current version)
+if exist(subjectName, 'file')
+    outCsvFile = subjectName;
+    copyfile(outCsvFile, [outCsvFile '.bak']);
+else
+    outCsvFile = fullfile(inDir, [subjectName '_' datestr(clock, 30) '.csv']);
+end
 
+% Figure out which files have already been done to exclude them
+doneFiles = [];
+if exist(outCsvFile, 'file')
+    doneCsv = csvReadCells(outCsvFile);
+    if size(doneCsv,1) > 1
+        doneFiles = doneCsv(2:end,1);
+    end
+end
+    
 % Load all files, randomize them
 [~,files] = findFiles(inDir, '.wav$');
+files = setdiff(files, doneFiles);
 files = files(randperm(length(files)));
 
 % Figure out right answers, possible choices

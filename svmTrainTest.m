@@ -1,4 +1,4 @@
-function [mcr mcrBal nTe nTr nTeBal] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup, keepAll, limNTr)
+function [mcr mcrBal nTe nTr nTeBal svm] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, teGroup, keepAll, limNTr)
 
 % Train SVM, test SVM
 if ~exist('teGroup', 'var') || isempty(teGroup), teGroup = ones(size(yte)); end
@@ -9,8 +9,9 @@ seed = 22;
 trKeep = balanceSets(ytr, keepAll, seed+783926, limNTr);
 nTr = sum([(ytr(trKeep)>0) (ytr(trKeep)<0)], 1);
 
-preds = libLinearPredFunDimRed(Xtr(trKeep,:), ytr(trKeep), Xte, pcaDims);
+[preds svm] = libLinearPredFunDimRed(Xtr(trKeep,:), ytr(trKeep), Xte, pcaDims);
 groups = unique(teGroup);
+mcr = []; mcrBal = []; nTe = []; nTeBal = [];
 for g = 1:length(groups)
     gInds = find(teGroup == groups(g));
     teKeep = balanceSets(yte(gInds), false, seed+g);

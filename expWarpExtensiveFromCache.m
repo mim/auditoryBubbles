@@ -1,15 +1,17 @@
-function expWarpExtensiveFromCache(outDir, inDir, runFunctions, doWarps, targets, pcaDims)
+function expWarpExtensiveFromCache(outDir, inDir, pcaStructFile, runFunctions, doWarps, targets, pcaDims)
 
 % Run lots of experiments on warped bubble noise data
+
+pcaStruct = load(pcaStructFile);
 
 allFns = struct(...
     'trainSvmOnOne', @trainSvmOnOne, ...
     'trainSvmOnAllButOne', @trainSvmOnAllButOne, ...
     'trainSvmOnAllButOneLimNtr', @trainSvmOnAllButOneLimNtr, ...
     'xvalSvmOnEachWord', @xvalSvmOnEachWord, ...
-    'xvalSvmOnPooled', @xvalSvmOnPooled ...
+    'xvalSvmOnPooled', @xvalSvmOnPooled, ...
+    'visSvmOnOne', @(outDir, Xs, ys, pcaDims, numDiffWords) visSvmOnOne(outDir, Xs, ys, pcaDims, numDiffWords, pcaStruct) ...
 );
-fns = listMap(@(x) allFns.(x), runFunctions);
 
 %for grouping = 1
 for grouping = 0
@@ -28,10 +30,11 @@ for grouping = 0
             ensureDirExists(pbcOutDir, 1);
             plotPbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.origShape, d.numDiffWords)
             
-            for f = 1:length(fns)
-                fullOutDir = fullfile(partialOutDir, sprintf('fn=%s',func2str(fns{f})));
+            for f = 1:length(runFunctions)
+                fn = runFunctions{f};
+                fullOutDir = fullfile(partialOutDir, sprintf('fn=%s', fn));
                 ensureDirExists(fullOutDir, 1);
-                fns{f}(fullOutDir, d.Xte, d.yte, pcaDims, d.numDiffWords);
+                allFns.(fn)(fullOutDir, d.Xte, d.yte, pcaDims, d.numDiffWords);
             end
         end
     end
@@ -82,6 +85,15 @@ yte = cat(1, ys{2:end});
 [mcr mcrBal nTe nTr nTeBal] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, [], false);
 touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f', pcaDims, mcr)));
 save(fullfile(outDir, 'res'), 'mcr', 'mcrBal', 'nTe', 'nTr', 'nTeBal', 'pcaDims', 'numDiffWords', 'outDir');
+
+function visSvmOnOne(outDir, Xs, ys, pcaDims, numDiffWords, pcaStruct)
+Xtr = Xs{1};
+ytr = ys{1};
+Xte = cat(1, Xs{2:end});
+yte = cat(1, ys{2:end});
+[~,~,~,~,~,svm] = svmTrainTest(Xtr, ytr, Xte, yte, pcaDims, [], false);
+mat = reshape((pcaStruct.pcs(:, (1:length(svm.w))) * svm.w'), pcaStruct.origShape);
+save(fullfile(outDir, 'res'), 'mat', 'pcaDims', 'numDiffWords', 'outDir');
 
 function trainSvmOnAllButOneLimNtr(outDir,Xs,ys,pcaDims,numDiffWords)
 trainSvmOnAllButOne(outDir,Xs,ys,pcaDims,numDiffWords,0.8)
