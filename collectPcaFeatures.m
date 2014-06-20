@@ -1,6 +1,17 @@
 function collectPcaFeatures(pcaDir, groupedFile, outDir, overwrite)
 
 % Collect output of extractBubbleFeatures and match up with user results
+%
+% collectPcaFeatures(pcaDir, groupedFile, outDir, overwrite)
+%
+% Saves one file of PCA reduced features for each unique clean stimulus,
+% grouping together mixture files that share the same clean stimulus.
+%
+% Inputs:
+%   pcaDir       directory containing PCA features for all files
+%   groupedFile  mat file with output of processListeningData()
+%   outDir       directory to write PCA .mat file and 
+%   overwrite    if 0, do not overwrite existing files
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
 

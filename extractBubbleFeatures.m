@@ -1,6 +1,26 @@
 function extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
 
-% Similar to collectFeatures, but parallizeable using extractFeatures.m
+% Extract features from all bubble mixtures
+%
+% extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
+%
+% Extracts bubble features, computes PCA on those features, and then also
+% saves a dimensionality-reduced version of each feature using that PCA.
+%
+% Inputs:
+%   inDir           directory to read mixtures from
+%   outDir          base directory to write files to (in directories
+%                   containing info on trim and length)
+%   filesOrPattern  list of files or pattern to find in inDir
+%   pcaDims         [dims files] pair, specifying how many PCA dimensions
+%                   to keep from a sampling of that many files
+%   trimFrames      number of frames to remove from beginning and end of
+%                   spectrograms before performing PCA
+%   setLength_s     zero-pad wav files to this length before computing
+%                   spectrogram. Set to 0 to leave the length as-is.
+%   noiseShape      numeric specifier of noise shape that was passed to
+%                   speechProfile() to generate the mixtures
+%   overwrite       if 0, do not overwrite existing files, including PCA matrix file  
 
 if ~exist('filesOrPattern', 'var') || isempty(filesOrPattern), filesOrPattern = '.*.wav'; end
 if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = [50 200]; end
