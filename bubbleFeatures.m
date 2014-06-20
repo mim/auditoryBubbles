@@ -1,10 +1,10 @@
-function [feat origShape weights cleanVec weightVec] = bubbleFeatures(clean, mix, fs, nFft, oldProfile, trimFrames)
+function [feat origShape weights cleanVec weightVec] = bubbleFeatures(clean, mix, fs, nFft, noiseShape, trimFrames)
 % Compute features for the classifier from a clean spectrogram and a mix
 % spectrogram.
 
 if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 29; end
 
-if oldProfile
+if noiseShape == 1
     scale_db = 14;
 else
     scale_db = 6;
@@ -13,7 +13,7 @@ end
 noise = mix - clean;
 snr = db(clean) - db(noise);
 
-noiseLevel = 10^(scale_db / 20) .* speechProfile(fs, nFft, round(nFft / 4), oldProfile);
+noiseLevel = 10^(scale_db / 20) .* speechProfile(fs, nFft, round(nFft / 4), noiseShape);
 noiseRel = bsxfun(@rdivide, noise, noiseLevel);
 
 %origFeat = snr;

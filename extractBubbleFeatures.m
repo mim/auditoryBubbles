@@ -1,4 +1,4 @@
-function extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, oldProfile, overwrite)
+function extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
 
 % Similar to collectFeatures, but parallizeable using extractFeatures.m
 
@@ -6,7 +6,7 @@ if ~exist('filesOrPattern', 'var') || isempty(filesOrPattern), filesOrPattern = 
 if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = [50 200]; end
 if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 0; end
-if ~exist('oldProfile', 'var') || isempty(oldProfile), oldProfile = 0; end
+if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 
 nJobs = 1;
@@ -25,7 +25,7 @@ else
 end
 
 disp('Extracting bubble features for every file')
-effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, setLength_s, oldProfile, overwrite);
+effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, setLength_s, noiseShape, overwrite);
 status = extractFeatures(inDir, outFeatDir, 'mat', wavFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
 
@@ -61,7 +61,7 @@ status = extractFeatures(outFeatDir, outPcaDir, 'mat', matFiles, ...
 
 
 
-function ef_bubbleFeatures(ip, op, fn, trimFrames, setLength_s, oldProfile, overwrite)
+function ef_bubbleFeatures(ip, op, fn, trimFrames, setLength_s, noiseShape, overwrite)
 
 cleanWavFile = regexprep(regexprep(ip, 'bps\d+', 'bpsInf'), '\d+.wav', '000.wav');
 cleanMatFile = regexprep(regexprep(op, 'bps\d+', 'bpsInf'), '\d+.mat', '000.mat');
@@ -69,7 +69,7 @@ cleanMatFile = regexprep(regexprep(op, 'bps\d+', 'bpsInf'), '\d+.mat', '000.mat'
 [clean fs nfft] = loadSpecgram(cleanWavFile, setLength_s);
 [mix   fs nfft] = loadSpecgram(ip, setLength_s);
 [features origShape weights cleanFeat weightVec] = ...
-    bubbleFeatures(clean, mix, fs, nfft, oldProfile, trimFrames);
+    bubbleFeatures(clean, mix, fs, nfft, noiseShape, trimFrames);
 
 if ~exist(cleanMatFile, 'file') || overwrite
     save(cleanMatFile, 'cleanFeat', 'origShape', 'fs', 'nfft', 'trimFrames');
