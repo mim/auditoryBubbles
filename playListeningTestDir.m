@@ -20,6 +20,9 @@ if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false;
 
 % If subjectName is actually a file name, then use that directly as the
 % output file (and save a backup of the current version)
+if exist(fullfile(inDir, subjectName), 'file')
+    subjectName = fullfile(inDir, subjectName);
+end
 if exist(subjectName, 'file')
     outCsvFile = subjectName;
     copyfile(outCsvFile, [outCsvFile '.bak']);
@@ -28,7 +31,7 @@ else
 end
 
 % Figure out which files have already been done to exclude them
-doneFiles = [];
+doneFiles = {};
 if exist(outCsvFile, 'file')
     doneCsv = csvReadCells(outCsvFile);
     if size(doneCsv,1) > 1
