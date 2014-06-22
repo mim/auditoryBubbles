@@ -108,7 +108,13 @@ pcaBaseDir = fullfile(baseFeatDir, trimDir);
 pcaDataFile = ['pcaData_' pcaDimStr];
 extractTfctAndPcaSimple(cacheDir, pcaBaseDir, pcaDataFile, resultFile, overwrite)
 
-% Plot pictures, run SVM cross validation within each file
-plotDir = fullfile(baseFeatDir, trimDir, ['plots_', pcaDimStr]);
+% Run SVM cross validation within each file, massage TFCT data
+resDir = fullfile(baseFeatDir, trimDir, ['res_' pcaDimStr]);
 pcaDims = 40;
-expWarpSimpleFromCache(plotDir, cacheDir, pcaDims);
+expWarpSimpleFromCache(resDir, cacheDir, pcaDims);
+
+% Plot pictures
+plotDir = fullfile(baseFeatDir, trimDir, ['plots_' pcaDimStr]);
+toDisk = 0;
+startAt = 0;
+plotsSimple(resDir, plotDir, toDisk, startAt);
