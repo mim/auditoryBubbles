@@ -119,4 +119,6 @@ expWarpSimpleFromCache(resDir, cacheDir, pcaDims);
 plotDir = fullfile(basePcaDir, 'plots');
 toDisk = 1;
 startAt = 0;
+fs = 44100;
+hop_s = '';
 plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt);
