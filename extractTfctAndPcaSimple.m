@@ -17,8 +17,7 @@ cleanFiles  = findFiles(baseDir, 'bpsInf');
 pcaFiles    = findFiles(baseDir, 'snr-\d+_.mat');
 
 for target = 1:length(pcaFiles)
-    outFile = fullfile(outDir, sprintf('grouping=%d', grouping), ...
-        sprintf('doWarp=%d', doWarp), sprintf('target=%d',target), ...
+    outFile = fullfile(outDir, sprintf('target=%d',target), ...
         'tfctAndPca.mat');
     if exist(outFile, 'file') && ~overwrite
         fprintf('Skipping %s\n', outFile)

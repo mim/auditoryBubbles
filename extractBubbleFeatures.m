@@ -67,7 +67,7 @@ if ~exist(pcaFile, 'file') || overwrite
     %[features mu sig] = zscore(features);
     weights = reshape(repmat(weightVec, 1, origShape(2)), 1, size(features, 2));
     pcs = pca(bsxfun(@times, weights, features));
-    pcs = pcs(:,1:pcaDims(1));
+    pcs = pcs(:,1:min(pcaDims(1),end));
     ensureDirExists(pcaFile);
     save(pcaFile, 'pcs', 'mu', 'sig', 'pcaDims', 'origShape', 'weightVec');
 else
@@ -92,9 +92,9 @@ cleanMatFile = regexprep(regexprep(op, 'bps\d+', 'bpsInf'), '\d+.mat', '000.mat'
     bubbleFeatures(clean, mix, fs, nfft, noiseShape, trimFrames);
 
 if ~exist(cleanMatFile, 'file') || overwrite
-    save(cleanMatFile, 'cleanFeat', 'origShape', 'fs', 'nfft', 'trimFrames');
+    save(cleanMatFile, 'cleanFeat', 'origShape', 'fs', 'nfft', 'trimFrames', 'weightVec', 'noiseShape');
 end
-save(op, 'features', 'weightVec', 'origShape', 'fs', 'nfft', 'trimFrames', 'oldProfile')
+save(op, 'features', 'weightVec', 'origShape', 'fs', 'nfft', 'trimFrames', 'noiseShape')
 
 
 function ef_pcaFeatures(ip, op, fn, pcs, mu, sig, pcaFile)
@@ -103,7 +103,7 @@ weights = reshape(repmat(weightVec, 1, origShape(2)), size(features));
 features = bsxfun(@times, bsxfun(@minus, features, mu), weights ./ sig);
 pcaFeat = features * pcs;
 save(op, 'pcaFeat', 'origShape', 'weightVec', 'fs', 'nfft', ...
-    'trimFrames', 'oldProfile', 'pcaFile');
+    'trimFrames', 'noiseShape', 'pcaFile');
 
 
 function [spec fs nfft] = loadSpecgram(fileName, setLength_s)

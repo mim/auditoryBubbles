@@ -38,10 +38,11 @@ cleanFeat = load(cleanFileName(word, inDir));
 for f = 1:length(files)
     tmp = load(fullfile(inDir, files{f}));
     pcaFeat(f,:) = tmp.pcaFeat';
+    origShape = tmp.origShape;
 end
 
 ensureDirExists(outFile)
-save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', 'cleanFeat')
+save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', 'cleanFeat', 'origShape')
 
 
 function cf = cleanFileName(word, pcaDir)

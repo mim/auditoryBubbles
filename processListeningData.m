@@ -17,7 +17,7 @@ if ~iscell(inCsvFiles), inCsvFiles = {inCsvFiles}; end
 
 digestedFile = tempname;
 for i = 1:length(inCsvFiles)
-    unpackFn(inCsvFiles, digestedFile);
+    unpackFn(inCsvFiles{i}, digestedFile);
 end
 
 digested = csvReadCells(digestedFile);

@@ -1,5 +1,6 @@
 # Bubble noise generation, presentation, and analysis
-Michael Mandel
+Copyright 2013-2014 Michael Mandel <mim@mr-pc.org>, all rights reserved
+Last updated 2014-06-21
 
 ## Overview
 
@@ -52,17 +53,18 @@ baseSnr_db = -35;
 % make sure baseSnr_db is set so that these are completely unintelligible
 nMixes = 5;
 bubblesPerSecond = 0;
-noiseDir = 'D:\mixes\shannon\oneSpeaker0bps';
+noiseDir = 'D:\mixes\dev\mix_bps0';
 mixMrtBubbleNoiseDir(wavInDir, noiseDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 
 % Actual bubbles files
-mixDir = 'D:\mixes\shannon\oneSpeaker15bps';
+mixDir = 'D:\mixes\dev\mix_bps15';
 nMixes = 200;
 bubblesPerSecond = 15;
 mixMrtBubbleNoiseDir(wavInDir, mixDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 
-% Clean files for reference
-cleanDir = 'D:\mixes\shannon\oneSpeakerClean';
+% Clean files for reference (correct scaling, etc)
+% Note that this has to be named something_bpsInf for extractBubbleFeatures to find it
+cleanDir = 'D:\mixes\dev\mix_bpsInf';
 nMixes = 1;
 bubblesPerSecond = inf;
 mixMrtBubbleNoiseDir(wavInDir, cleanDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
@@ -78,34 +80,35 @@ playListeningTestDir(mixDir, subjectName)
 ## Analysis
 
 % Massage and combine listening test data from multiple tests
-inCsvFiles = fullfile(mixDir, 'TLA_20140620T112233.csv');  % Can be a cell array of multiple csv files
-resultFile = 'D:\Box Sync\data\mrt\shannonResults\preExps\grouped_pre1sub1';
+inCsvFiles = fullfile(mixDir, 'TLA_20140621T114000.csv');  % Can be a cell array of multiple csv files
+resultFile = 'D:\mixes\dev\results1.mat';
 verbose = 1;
 processListeningData(inCsvFiles, resultFile, verbose);
 
 % Extract features from mixtures
-baseFeatDir = 'C:\Temp\mrtFeatures\timbre\mim';
+baseFeatDir = 'D:\mixes\dev\features';
 pattern = 'bps15.*.wav';
 pcaDims = [100 1000];  % 100 dimensions from 1000 files
 trimFrames = 15;
 setLength_s = 0;
 noiseShape = 5;
 overwrite = 0;
-extractBubbleFeatures(mixDir, baseFeatDir, filesOrPattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
+extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
 
 % Compute PCA on features
-trimDir = sprintf('trim=%d_length=%d', trimFrames, setLength_s);
+trimDir = sprintf('trim=%d,length=%d', trimFrames, setLength_s);
 pcaDimStr = sprintf('%ddims_%dfiles', pcaDims);
-featDir = fullfile(featDir, trimDir, ['pca_' pcaDimStr]);
-pcaFeatDir = fullfile(featDir, trimDir, ['pcaFeat_' pcaDimStr]);
+featDir = fullfile(baseFeatDir, trimDir, ['pca_' pcaDimStr]);
+pcaFeatDir = fullfile(baseFeatDir, trimDir, ['pcaFeat_' pcaDimStr]);
 collectPcaFeatures(featDir, resultFile, pcaFeatDir, overwrite);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
-cacheDir = fullfile(featDir, trimDir, ['cache_' pcaDimStr]);
-pcaDataFile = fullfile(featDir, trimDir, ['pcaData_' pcaDimStr]);
-extractTfctAndPcaSimple(cacheDir, featDir, pcaDataFile, resultFile, overwrite)
+cacheDir = fullfile(baseFeatDir, trimDir, ['cache_' pcaDimStr]);
+pcaBaseDir = fullfile(baseFeatDir, trimDir);
+pcaDataFile = ['pcaData_' pcaDimStr];
+extractTfctAndPcaSimple(cacheDir, pcaBaseDir, pcaDataFile, resultFile, overwrite)
 
 % Plot pictures, run SVM cross validation within each file
-plotDir = fullfile(featDir, trimDir, ['plots_', pcaDimStr]);
+plotDir = fullfile(baseFeatDir, trimDir, ['plots_', pcaDimStr]);
 pcaDims = 40;
 expWarpSimpleFromCache(plotDir, cacheDir, pcaDims);

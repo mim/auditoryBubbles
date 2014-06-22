@@ -22,68 +22,56 @@ function expWarpSimpleFromCache(outDir, inDir, pcaDims)
 %   pcaDims  Vector of numbers of PCA dimensions to use in SVM experiment,
 %            must be no more than that extracted from them 
 
-for target = targets
-    inFile = dataFileFor(inDir, grouping, doWarp, target);
-    fprintf('Loading %s\n', inFile);
-    d = load(inFile);
+[inFiles,inPaths] = findFiles(inDir, 'tfctAndPca.mat');
+for i = 1:length(inFiles)
+    fprintf('Loading %s\n', inFiles{i});
+    d = load(inPaths{i});
     
-    partialOutDir = gwtDirFor(outDir, grouping, doWarp, target);
+    partialOutDir = fullfile(outDir, fileparts(inFiles{i}));
     tfctOutDir = fullfile(partialOutDir, 'fn=plotTfctWrapper');
     ensureDirExists(tfctOutDir, 1);
-    plotTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape, d.numDiffWords)
+    plotTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape)
     
     pbcOutDir = fullfile(partialOutDir, 'fn=plotPbc');
     ensureDirExists(pbcOutDir, 1);
-    plotPbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.origShape, d.numDiffWords)
+    plotPbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.origShape)
     
-    svmOutDir = fullfile(partialOutDir, sprintf('fn=%s', fn));
+    svmOutDir = fullfile(partialOutDir, 'fn=xvalSvmOnEachWord');
     ensureDirExists(svmOutDir, 1);
-    xvalSvmOnEachWord(svmOutDir, d.Xte, d.yte, pcaDims, d.numDiffWords);
+    xvalSvmOnEachWord(svmOutDir, d.Xte, d.yte, pcaDims);
 end
 
 
-function path = dataFileFor(baseDir, grouping, doWarp, target)
-path = fullfile(gwtDirFor(baseDir, grouping, doWarp, target), 'tfctAndPca.mat');
-
-function path = gwtDirFor(baseDir, grouping, doWarp, target)
-path = fullfile(baseDir, ...
-    sprintf('grouping=%d', grouping), ...
-    sprintf('doWarp=%d', doWarp), ...
-    sprintf('target=%d', target));
-
-function plotTfctWrapper(outDir,s0,s1,sNot0,sNot1,clean,origShape,numDiffWords)
+function plotTfctWrapper(outDir,s0,s1,sNot0,sNot1,clean,origShape)
 for w = 1:size(s0,1)
     mat(:,:,w) = plotableTfct(sNot0(w,:), sNot1(w,:), s0(w,:), s1(w,:), origShape);
 end
 
-nSame = size(s0,1) - numDiffWords;
+nSame = size(s0,1);
 rs0 = sum(s0(1:nSame,:), 1);
 rs1 = sum(s1(1:nSame,:), 1);
 rsNot0 = sum(sNot0(1:nSame,:), 1);
 rsNot1 = sum(sNot1(1:nSame,:), 1);
 
 mat(:,:,w+1) = plotableTfct(rsNot0, rsNot1, rs0, rs1, origShape);
-clean = cat(3, clean{:});
-save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1', 'numDiffWords');
+save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1');
 
 function mat = plotableTfct(sNot0, sNot1, s0, s1, origShape)
 [~,p,isHigh] = tfCrossTab(sNot0, sNot1, s0, s1);
 mat = reshape((2*isHigh-1).*exp(-p/0.05), origShape);
 
-function plotPbc(outDir, s0, s1, n0, n1, sig, origShape, numDiffWords)
+function plotPbc(outDir, s0, s1, n0, n1, sig, origShape)
 [tpbc tpval tvis] = pointBiserialCorr(s0, s1, n0, n1, sig);
 W = size(s0,1);
 pbc  = reshape(tpbc, [origShape W]);
 pval = reshape(tpval, [origShape W]);
 vis  = reshape(tvis, [origShape W]);
-save(fullfile(outDir, 'res'), 'pbc', 'pval', 'vis', 'origShape', 'numDiffWords');
+save(fullfile(outDir, 'res'), 'pbc', 'pval', 'vis', 'origShape');
 
-function xvalSvmOnEachWord(outDir,Xte,yte,pcaDims,numDiffWords)
-for w = 1:length(Xte)
-    [mcr(w,1) data(w,1)] = svmXVal(Xte{w}, yte{w}, pcaDims);
-    touch(fullfile(outDir, sprintf('pcaDims=%d,w=%d,mcr=%.04f',pcaDims,w,mcr(w))));
-end
-save(fullfile(outDir, 'res'), 'mcr', 'data', 'pcaDims', 'numDiffWords', 'outDir')
+function xvalSvmOnEachWord(outDir,Xte,yte,pcaDims)
+[mcr data] = svmXVal(Xte, yte, pcaDims);
+touch(fullfile(outDir, sprintf('pcaDims=%d,mcr=%.04f',pcaDims,mcr)));
+save(fullfile(outDir, 'res'), 'mcr', 'data', 'pcaDims', 'outDir')
 
 function touch(filePath)
 f = fopen(filePath, 'w');
