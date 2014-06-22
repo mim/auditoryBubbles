@@ -88,37 +88,10 @@ processListeningData(inCsvFiles, resultFile, verbose);
 % Extract features from mixtures
 baseFeatDir = 'D:\mixes\dev\features';
 pattern = 'bps15.*.wav';
+noiseShape = 5;        % whatever you use for your noise shape
 pcaDims = [100 1000];  % 100 dimensions from 1000 files
+usePcaDims = 40;
 trimFrames = 15;
 setLength_s = 0;
-noiseShape = 5;
 overwrite = 0;
-extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
-
-% Collect PCA features for mixes of the same clean file
-trimDir = sprintf('trim=%d,length=%d', trimFrames, setLength_s);
-pcaDir  = sprintf('pca_%ddims_%dfiles', pcaDims);
-baseTrimDir = fullfile(baseFeatDir, trimDir);
-basePcaDir = fullfile(baseTrimDir, pcaDir);
-featDir = fullfile(baseTrimDir, 'feat');
-pcaFeatDir = fullfile(basePcaDir, 'feat');
-groupedFeatDir = fullfile(basePcaDir, 'grouped');
-collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite);
-
-% Compute statistics necessary for plotting pictures, running SVM experiments
-cacheDir = fullfile(basePcaDir, 'cache');
-pcaDataFile = fullfile(basePcaDir, 'data.mat');
-extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite)
-
-% Run SVM cross validation within each file, massage TFCT data
-resDir = fullfile(basePcaDir, 'res');
-pcaDims = 40;
-expWarpSimpleFromCache(resDir, cacheDir, pcaDims);
-
-% Plot pictures
-plotDir = fullfile(basePcaDir, 'plots');
-toDisk = 1;
-startAt = 0;
-fs = 44100;
-hop_s = '';
-plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt);
+mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, fs, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
