@@ -25,13 +25,13 @@ for target = 1:length(resFiles)
     
     % Plot all spectrograms
     for p = 1:size(res.clean,3)
-        outName = plotFileName('spec', p, target);
+        outName = plotFileName('spec', p, resFiles{target});
         plotSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 0, 0, allLabels));
     end
     
     % Plot all TFIFs
     for p = 1:size(res.mat,3)
-        outName = plotFileName('tfif', p, target);
+        outName = plotFileName('tfif', p, resFiles{target});
         plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels));
     end
     
@@ -41,13 +41,13 @@ for target = 1:length(resFiles)
     % Plot spectrogram weighted by TFIF
     for p = 1:size(res.clean,3)
         selected = (res.clean(:,:,p) - noiseLevel) .* (res.mat(:,:,p) .* (res.mat(:,:,p) > 0)) + noiseLevel;
-        outName = plotFileName('onSpec', p, target);
+        outName = plotFileName('onSpec', p, resFiles{target});
         plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels));
     end
 end
 
 function fileName = plotFileName(desc, p, target)
-fileName = sprintf('target=%d_%s%d', target, desc, p);
+fileName = sprintf('%s%s%d', basename(fileparts(target)), desc, p);
 
 function labs = labelsFor(y, x, c, allLabels)
 if allLabels

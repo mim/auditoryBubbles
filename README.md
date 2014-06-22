@@ -95,26 +95,28 @@ noiseShape = 5;
 overwrite = 0;
 extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
 
-% Compute PCA on features
+% Collect PCA features for mixes of the same clean file
 trimDir = sprintf('trim=%d,length=%d', trimFrames, setLength_s);
-pcaDimStr = sprintf('%ddims_%dfiles', pcaDims);
-featDir = fullfile(baseFeatDir, trimDir, ['pca_' pcaDimStr]);
-pcaFeatDir = fullfile(baseFeatDir, trimDir, ['pcaFeat_' pcaDimStr]);
-collectPcaFeatures(featDir, resultFile, pcaFeatDir, overwrite);
+pcaDir  = sprintf('pca_%ddims_%dfiles', pcaDims);
+baseTrimDir = fullfile(baseFeatDir, trimDir);
+basePcaDir = fullfile(baseTrimDir, pcaDir);
+featDir = fullfile(baseTrimDir, 'feat');
+pcaFeatDir = fullfile(basePcaDir, 'feat');
+groupedFeatDir = fullfile(basePcaDir, 'grouped');
+collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
-cacheDir = fullfile(baseFeatDir, trimDir, ['cache_' pcaDimStr]);
-pcaBaseDir = fullfile(baseFeatDir, trimDir);
-pcaDataFile = ['pcaData_' pcaDimStr];
-extractTfctAndPcaSimple(cacheDir, pcaBaseDir, pcaDataFile, resultFile, overwrite)
+cacheDir = fullfile(basePcaDir, 'cache');
+pcaDataFile = fullfile(basePcaDir, 'data.mat');
+extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite)
 
 % Run SVM cross validation within each file, massage TFCT data
-resDir = fullfile(baseFeatDir, trimDir, ['res_' pcaDimStr]);
+resDir = fullfile(basePcaDir, 'res');
 pcaDims = 40;
 expWarpSimpleFromCache(resDir, cacheDir, pcaDims);
 
 % Plot pictures
-plotDir = fullfile(baseFeatDir, trimDir, ['plots_' pcaDimStr]);
-toDisk = 0;
+plotDir = fullfile(basePcaDir, 'plots');
+toDisk = 1;
 startAt = 0;
-plotsSimple(resDir, plotDir, toDisk, startAt);
+plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt);

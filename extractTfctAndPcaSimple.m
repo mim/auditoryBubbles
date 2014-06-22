@@ -1,23 +1,25 @@
-function extractTfctAndPcaSimple(outDir, baseDir, pcaDataFile, groupedFile, overwrite)
+function extractTfctAndPcaSimple(outDir, featDir, groupedFeatDir, pcaDataFile, groupedFile, overwrite)
 
 % Extract features necessary to run several experiments and visualizations
 %
-% extractTfctAndPca(outDir, baseDir, pcaDataFile, groupedFile, overwrite)
+% extractTfctAndPcaSimple(outDir, featDir, groupedFeatDir, pcaDataFile, groupedFile, overwrite)
 %
 % Inputs
 %   outDir       base directory for output directory tree
-%   baseDir      base directory for input directory tree
+%   featDir      base directory containing full (non-PCA) features
+%   groupedFeatDir  base directory containing full PCA features grouped by
+%                   original word
 %   pcaDataFile  .mat file with pca info, e.g. 'pcaData_100dims_1000files.mat'
 %   groupedFile  .mat file containing grouped results from listening test
 %   overwrite    if 1, overwrite existing output files
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 
-cleanFiles  = findFiles(baseDir, 'bpsInf');
-pcaFiles    = findFiles(baseDir, 'snr-\d+_.mat');
+cleanFiles  = findFiles(featDir, 'bpsInf');
+pcaFiles    = findFiles(groupedFeatDir, 'snr-\d+_.mat');
 
 for target = 1:length(pcaFiles)
-    outFile = fullfile(outDir, sprintf('target=%d',target), ...
+    outFile = fullfile(outDir, sprintf('target=%s',basename(pcaFiles{target},0,0)), ...
         'tfctAndPca.mat');
     if exist(outFile, 'file') && ~overwrite
         fprintf('Skipping %s\n', outFile)
@@ -25,7 +27,8 @@ for target = 1:length(pcaFiles)
     end
     
     [~,~,Xte,yte,warped,~,origShape,clean,warpDist,mfccDist,startDist] = ...
-        crossUtWarp(baseDir, pcaFiles{target}, cleanFiles{target}, pcaDataFile, groupedFile, 0);
+        crossUtWarp(fullfile(groupedFeatDir, pcaFiles{target}), ...
+        fullfile(featDir, cleanFiles{target}), pcaDataFile, groupedFile, 0);
     
     [s0 s1 sNot0 sNot1 n0 n1 sig] = computeTfctStats(yte, warped);
     clear warped

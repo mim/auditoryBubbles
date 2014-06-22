@@ -1,12 +1,11 @@
 function [Xtr ytr Xte yte warped scaled origShape warpedClean warpDist mfccDist startDist] = ...
-    crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
+    crossUtWarp(trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 
 % Load features after warping test utterance to match training utterance
 %
-% [Xtr ytr Xte yte warped scaled origShape warpedClean warpDist] = crossUtWarp(baseDir, trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
+% [Xtr ytr Xte yte warped scaled origShape warpedClean warpDist] = crossUtWarp(trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 %
 % Inputs
-%   baseDir        base directory for file arguments
 %   trPcaFeatFile  output of collectPcaFeatures for training utterance
 %   cleanTeFile    clean utterance for test files (noisy files derived from this)
 %   pcaFile        mat file containing pca matrix and normalization params
@@ -26,10 +25,6 @@ function [Xtr ytr Xte yte warped scaled origShape warpedClean warpDist mfccDist 
 %   startDist    average L2 distance in MFCC space between S1 and unwarped S2
 
 if ~exist('doWarp', 'var') || isempty(doWarp), doWarp = true; end
-
-trPcaFeatFile = fullfile(baseDir, trPcaFeatFile);
-cleanTeFile   = fullfile(baseDir, cleanTeFile);
-pcaFile       = fullfile(baseDir, pcaFile);
 
 % Load training set
 tr = load(trPcaFeatFile);

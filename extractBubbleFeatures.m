@@ -34,9 +34,10 @@ part = [1 1];
 ignoreErrors = 0;
 
 trimDir = sprintf('trim=%02d,length=%g', trimFrames, setLength_s);
+pcaDir = sprintf('pca_%ddims_%dfiles', pcaDims);
 outFeatDir = fullfile(outDir, trimDir, 'feat');
-pcaFile    = fullfile(outDir, trimDir, sprintf('pcaData_%ddims_%dfiles.mat', pcaDims));
-outPcaDir  = fullfile(outDir, trimDir, sprintf('pca_%ddims_%dfiles', pcaDims));
+pcaFile    = fullfile(outDir, trimDir, pcaDir, 'data.mat');
+outPcaDir  = fullfile(outDir, trimDir, pcaDir, 'feat');
 
 if iscell(filesOrPattern)
     wavFiles = filesOrPattern;

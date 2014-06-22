@@ -46,6 +46,6 @@ save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', 'cleanFeat', 
 
 
 function cf = cleanFileName(word, pcaDir)
-d = fileparts(pcaDir(1:end-1));
+d = fileparts(fileparts(pcaDir(1:end-1)));
 fileName = [regexprep(word, 'bps\d+', 'bpsInf') '000.mat'];
 cf = fullfile(d, 'feat', fileName);

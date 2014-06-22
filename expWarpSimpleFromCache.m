@@ -38,7 +38,7 @@ for i = 1:length(inFiles)
     
     svmOutDir = fullfile(partialOutDir, 'fn=xvalSvmOnEachWord');
     ensureDirExists(svmOutDir, 1);
-    xvalSvmOnEachWord(svmOutDir, d.Xte, d.yte, pcaDims);
+    %xvalSvmOnEachWord(svmOutDir, d.Xte, d.yte, pcaDims);
 end
 
 
