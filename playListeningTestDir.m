@@ -21,13 +21,14 @@ if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false;
 % If subjectName is actually a file name, then use that directly as the
 % output file (and save a backup of the current version)
 if exist(fullfile(inDir, subjectName), 'file')
-    subjectName = fullfile(inDir, subjectName);
-end
-if exist(subjectName, 'file')
+    outCsvFile = fullfile(inDir, subjectName);
+    restarting = 1;
+elseif exist(subjectName, 'file') == 2
     outCsvFile = subjectName;
-    copyfile(outCsvFile, [outCsvFile '.bak']);
+    restarting = 1;
 else
     outCsvFile = fullfile(inDir, [subjectName '_' datestr(clock, 30) '.csv']);
+    restarting = 0;
 end
 
 % Figure out which files have already been done to exclude them
@@ -53,17 +54,21 @@ end
 choiceNums = 1:length(words);
 correct = 0; incorrect = 0;
 
-% Write headers in output file
-outHeader = {'Intput.file1'};
-for i = 1:length(words)
-    outHeader{end+1} = sprintf('Input.word1%d', i);
+if restarting
+    copyfile(outCsvFile, [outCsvFile '.bak']);
+else
+    % Write headers in output file
+    outHeader = {'Intput.file1'};
+    for i = 1:length(words)
+        outHeader{end+1} = sprintf('Input.word1%d', i);
+    end
+    outHeader{end+1} = 'Timestamp';
+    outHeader{end+1} = 'Input.rightAnswer1';
+    outHeader{end+1} = 'Answer.wordchoice1';
+    outHeader{end+1} = 'RejectionTime';
+    outHeader{end+1} = 'WorkerId';
+    csvWriteCells(outCsvFile, {outHeader}, 'w');
 end
-outHeader{end+1} = 'Timestamp';
-outHeader{end+1} = 'Input.rightAnswer1';
-outHeader{end+1} = 'Answer.wordchoice1';
-outHeader{end+1} = 'RejectionTime';
-outHeader{end+1} = 'WorkerId';
-csvWriteCells(outCsvFile, {outHeader}, 'w');
 
 % Run them
 for f = 1:length(files)
