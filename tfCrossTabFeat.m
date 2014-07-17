@@ -7,7 +7,7 @@ function mat = tfCrossTabFeat(fileName, pThresh)
 if ~exist('pThresh', 'var') || isempty(pThresh), pThresh = 0.05; end
 
 m = load(fileName);
-isRight = (m.fracRight >= 0.7) - (m.fracRight <= 0.3);
+isRight = (m.fracRight >= 0.9) - (m.fracRight <= 0.6);
 %isRight = rand(size(m.fracRight)) <= m.fracRight;
 feat1 = m.features(isRight > 0,:);
 feat0 = m.features(isRight < 0,:);
