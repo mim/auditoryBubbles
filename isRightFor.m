@@ -28,4 +28,4 @@ end
 assert(all(strcmp(files(keep), ansFile(match(keep)))))
 files     = files(keep);
 fracRight = cell2mat(fracRight(match(keep)));
-isRight   = (fracRight >= 0.4) - (fracRight <= 0.3);
+isRight   = (fracRight >= 0.9) - (fracRight <= 0.6);

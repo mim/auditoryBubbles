@@ -32,6 +32,8 @@ if ~exist('hop_s', 'var'), hop_s = ''; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 setLength_s = 0;
 
+resultFileName = basename(resultFile, 0);
+
 % Extract features from mixtures
 extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
 
@@ -42,20 +44,21 @@ baseTrimDir = fullfile(baseFeatDir, trimDir);
 basePcaDir = fullfile(baseTrimDir, pcaDir);
 featDir = fullfile(baseTrimDir, 'feat');
 pcaFeatDir = fullfile(basePcaDir, 'feat');
-groupedFeatDir = fullfile(basePcaDir, 'grouped');
+baseResultDir = fullfile(basePcaDir, resultFileName);
+groupedFeatDir = fullfile(baseResultDir, 'grouped');
 collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
-cacheDir = fullfile(basePcaDir, 'cache');
+cacheDir = fullfile(baseResultDir, 'cache');
 pcaDataFile = fullfile(basePcaDir, 'data.mat');
 extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite)
 
 % Run SVM cross validation within each file, massage TFCT data
-resDir = fullfile(basePcaDir, 'res');
+resDir = fullfile(baseResultDir, 'res');
 expWarpSimpleFromCache(resDir, cacheDir, usePcaDims);
 
 % Plot pictures
-plotDir = fullfile(basePcaDir, 'plots');
+plotDir = fullfile(baseResultDir, 'plots');
 toDisk = 1;
 startAt = 0;
 plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt);

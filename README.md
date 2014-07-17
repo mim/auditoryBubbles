@@ -92,6 +92,7 @@ noiseShape = 5;        % whatever you use for your noise shape
 pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
 trimFrames = 15;
-setLength_s = 0;
 overwrite = 0;
+fs = 44100;            % whatever your sampling frequency is
+hop_s = 0.016;         % this is the default hop size used in the analysis
 mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, fs, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
