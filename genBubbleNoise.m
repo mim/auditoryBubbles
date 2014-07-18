@@ -13,21 +13,14 @@ if ~exist('hopFrac', 'var') || isempty(hopFrac), hopFrac = 0.25; end
 if ~exist('randomness', 'var') || isempty(randomness), randomness = 2; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 
-phaseIter = 3;
+noiseSpec = genMaskedSsn(dur_s, sr, [], window_s, hopFrac, noiseShape);
+[nF nT] = size(noiseSpec);
+
 suppressHolesTo_db = -80;
 
 % Convert from seconds to samples, make sure it's odd
-nF = 1 + 2*round(window_s * sr / 2);
-dur  = round(dur_s * sr);
 nFft = (nF-1)*2;
 hop  = round(hopFrac * nFft);
-
-profile = speechProfile(sr, nFft, hop, noiseShape);
-
-whiteNoise = randn(1, dur + nFft);
-whiteNoise = whiteNoise * 0.99 / max(abs(whiteNoise));
-noiseSpec = stft(whiteNoise, nFft, nFft, hop);
-nT = size(noiseSpec,2);
 nBubbles = round(dur_s * bubblesPerSec);
 
 mask = zeros(nF, nT);
@@ -36,13 +29,6 @@ freqVec_hz = (0:nF-1) * sr / nFft;
 freqVec_erb = hz2erb(freqVec_hz);
 %freqVec_mel = hz2mel(freqVec_hz);
 timeVec_s  = ((1:nT) - 0.5) * hop / sr;
-
-if numel(profile) == 1
-  %profile = 1 ./ freqVec_hz([2 2:end])';
-  %profile = [diff(freqVec_erb) 0]';  
-  %profile = ones(nF,1);
-  profile = (freqVec_hz' < 1000) + 1000./(freqVec_hz+eps)' .* (freqVec_hz' >= 1000);
-end
 
 [times_s freqs_erb] = meshgrid(timeVec_s, freqVec_erb);
 maxMel = max(nonzeros(freqVec_erb));
@@ -62,7 +48,7 @@ if isfinite(nBubbles)
         else
             try
                 rng('shuffle');
-            catch
+            catch ex
                 warning('Could not shuffle RNG')
             end
         end
@@ -85,27 +71,5 @@ end
 if makeHoles
     mask = min(1, (10^(suppressHolesTo_db/20))./mask);
 end
-highPassWin = freqVec_erb' > 0;
 
-mask = bsxfun(@times, profile .* highPassWin, mask);
-[noise noiseSpec] = phaseRecon(mask .* noiseSpec, noiseSpec, phaseIter, nFft, hop);
-noise = noise(1:dur)';
-
-ca = [-120 20];
-doPlot = 0;
-if doPlot
-    if 1
-        subplots(listMap(@(x) max(-120, 20*log10(abs(x))), ...
-            {mask, noiseSpec}), [1 -1])
-    else
-        subplot(2,1,1)
-        semilogx(20*log10(abs(noiseReSpec(:, 1:min(end,200)))))
-        ylim(ca)
-        
-        subplot(2,1,2)
-        semilogx(20*log10(mask(:, 1:min(end,200))))
-        ylim(ca)
-        
-        subplot 111
-    end
-end
+[noiseSpec mask noise] = genMaskedSsn(dur_s, sr, mask, window_s, hopFrac, noiseShape);

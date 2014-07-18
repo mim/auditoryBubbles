@@ -46,7 +46,7 @@ We assume here that you use noiseShape = 5.
 wavInDir = 'D:\Box Sync\data\mrt\shannon\srcOneSpeakerOneUtt';
 dur_s = 1.8;
 normalize = 1;
-noiseShape = 5;
+noiseShape = 0;
 baseSnr_db = -35;
 
 % Mixes with no bubbles
@@ -58,7 +58,7 @@ mixMrtBubbleNoiseDir(wavInDir, noiseDir, nMixes, bubblesPerSecond, baseSnr_db, d
 
 % Actual bubbles files
 mixDir = 'D:\mixes\dev\mix_bps15';
-nMixes = 200;
+nMixes = 5;
 bubblesPerSecond = 15;
 mixMrtBubbleNoiseDir(wavInDir, mixDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 
