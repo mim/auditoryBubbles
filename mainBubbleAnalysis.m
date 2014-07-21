@@ -62,3 +62,7 @@ plotDir = fullfile(baseResultDir, 'plots');
 toDisk = 1;
 startAt = 0;
 plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt);
+
+% Generate mixtures using TFCT as noise mask
+tfctWavOutDir = fullfile(baseResultDir, 'wavOut');
+auralizeTfctSimple(resDir, mixDir, tfctWavOutDir, trimFrames, setLength_s, noiseShape)
