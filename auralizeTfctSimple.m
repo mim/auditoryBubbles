@@ -18,8 +18,9 @@ for target = 1:length(resPaths)
     cleanWavFile = cleanWavFor(mixDir, baseFileName);
     holeOutFile = fullfile(outDir, [baseFileName 'hole.wav']);
     bumpOutFile = fullfile(outDir, [baseFileName 'bump.wav']);
+    importantOnlyOutFile = fullfile(outDir, [baseFileName 'important.wav']);
     
-    [~,clean,fs] = loadSpecgramNested(cleanWavFile, win_s, hopFrac, setLength_s);
+    [cleanSpec,clean,fs,nfft] = loadSpecgramNested(cleanWavFile, win_s, hopFrac, setLength_s);
     
     z = zeros(size(res.mat,1), trimFrames, size(res.mat,3));
     mat = cat(2, z, res.mat, z);
@@ -27,14 +28,17 @@ for target = 1:length(resPaths)
     % Noise only at the important places
     bumpMask = max(10.^(-60/20), mat(:,:,1) .* (mat(:,:,1) > 0));
     [~,~,bumpNoise] = genMaskedSsn(length(clean)/fs, fs, bumpMask, win_s, hopFrac, noiseShape);
-    mix = clean + bumpNoise;
-    wavWriteBetter(mix, fs, bumpOutFile);
+    wavWriteBetter(clean + bumpNoise, fs, bumpOutFile);
     
     % Noise everywhere except the important places
     holeMask = max(10.^(-60/20), 1 - mat(:,:,1) .* (mat(:,:,1) > 0));
     [~,~,holeNoise] = genMaskedSsn(length(clean)/fs, fs, holeMask, win_s, hopFrac, noiseShape);
-    mix = clean + holeNoise;
-    wavWriteBetter(mix, fs, holeOutFile);
+    wavWriteBetter(clean + holeNoise, fs, holeOutFile);
+    
+    % No noise, just important parts of signal, unimportant parts set to
+    % silence
+    importantOnly = istft(bumpMask .* cleanSpec, nfft, nfft, round(nfft*hopFrac));
+    wavWriteBetter(importantOnly, fs, importantOnlyOutFile);
 end
 
 
