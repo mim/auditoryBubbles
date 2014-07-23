@@ -53,7 +53,9 @@ rs1 = sum(s1(1:nSame,:), 1);
 rsNot0 = sum(sNot0(1:nSame,:), 1);
 rsNot1 = sum(sNot1(1:nSame,:), 1);
 
-mat(:,:,w+1) = plotableTfct(rsNot0, rsNot1, rs0, rs1, origShape);
+if w > 1
+    mat(:,:,w+1) = plotableTfct(rsNot0, rsNot1, rs0, rs1, origShape);
+end
 save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1');
 
 function mat = plotableTfct(sNot0, sNot1, s0, s1, origShape)
