@@ -1,4 +1,4 @@
-function processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, unpackFn)
+function processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, equivClassCell, unpackFn)
 
 % Convert listening test files for further analysis
 %
@@ -15,6 +15,7 @@ function processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulu
 if ~exist('unpackFn', 'var') || isempty(unpackFn), unpackFn = @unpackShsCsv; end
 if ~exist('ignoreStimulusDir', 'var') || isempty(ignoreStimulusDir), ignoreStimulusDir = 0; end
 if ~exist('verbose', 'var') || isempty(verbose), verbose = 1; end
+if ~exist('equivClassCell', 'var'), equivClassCell = {}; end
 
 if ~iscell(inCsvFiles), inCsvFiles = {inCsvFiles}; end
 
@@ -24,14 +25,29 @@ for i = 1:length(inCsvFiles)
 end
 
 digested = csvReadCells(digestedFile);
+if isempty(equivClassCell)
+    rightAnswers = unique(digested(:,4));
+    for i = 1:length(rightAnswers)
+        equivClasses.(rightAnswers{i}) = i;
+    end
+else
+    for i = 1:length(equivClassCell)
+        for j = 1:length(equivClassCell{i})
+            equivClasses.(equivClassCell{i}{j}) = i;
+        end
+    end
+end
+
 for i=1:size(digested,1)
-    [~,f] = fileparts(digested{i,3}); 
+    rightAnswer = regexprep(basename(digested{i,3}), '_.*', ''); 
+    digested{i,6} = rightAnswer;
+
     if isempty(digested{i,4})
         digested{i,5} = 0; 
     else
-        digested{i,5} = strncmp(f, digested{i,4}, length(digested{i,4})); 
+        digested{i,5} = equivClasses.(rightAnswer) == equivClasses.(digested{i,4}); 
     end
-    digested{i,6} = regexprep(basename(digested{i,3}), '_.*', ''); 
+    
     if ignoreStimulusDir
         digested{i,3} = basename(digested{i,3});
     end
