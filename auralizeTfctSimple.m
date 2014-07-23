@@ -16,17 +16,25 @@ for target = 1:length(resPaths)
     baseFileName = baseFileNameFor(resFiles{target});
     fprintf('%d: %s\n', target, baseFileName);
     cleanWavFile = cleanWavFor(mixDir, baseFileName);
-    outFile = fullfile(outDir, [baseFileName '.wav']);
+    holeOutFile = fullfile(outDir, [baseFileName 'hole.wav']);
+    bumpOutFile = fullfile(outDir, [baseFileName 'bump.wav']);
     
-    [cleanSpec clean fs] = loadSpecgramNested(cleanWavFile, win_s, hopFrac, setLength_s);
+    [~,clean,fs] = loadSpecgramNested(cleanWavFile, win_s, hopFrac, setLength_s);
     
     z = zeros(size(res.mat,1), trimFrames, size(res.mat,3));
     mat = cat(2, z, res.mat, z);
-    mask = 1 - mat(:,:,1) .* (mat(:,:,1) > 0);
-    [~,~,noise] = genMaskedSsn(length(clean)/fs, fs, mask, win_s, hopFrac, noiseShape);
+
+    % Noise only at the important places
+    bumpMask = max(10.^(-60/20), mat(:,:,1) .* (mat(:,:,1) > 0));
+    [~,~,bumpNoise] = genMaskedSsn(length(clean)/fs, fs, bumpMask, win_s, hopFrac, noiseShape);
+    mix = clean + bumpNoise;
+    wavWriteBetter(mix, fs, bumpOutFile);
     
-    mix = clean + noise;
-    wavWriteBetter(mix, fs, outFile);
+    % Noise everywhere except the important places
+    holeMask = max(10.^(-60/20), 1 - mat(:,:,1) .* (mat(:,:,1) > 0));
+    [~,~,holeNoise] = genMaskedSsn(length(clean)/fs, fs, holeMask, win_s, hopFrac, noiseShape);
+    mix = clean + holeNoise;
+    wavWriteBetter(mix, fs, holeOutFile);
 end
 
 
@@ -61,4 +69,5 @@ baseFile = strrep(fileparts(resFile), 'target=', '');
 function cleanPath = cleanWavFor(wavDir, baseFile)
 % Transform 'acha_w3_05_07_bps15_snr-35_' into 'acha_w3_05_07_bpsInf_snr-35_000'
 cleanWav = [regexprep(baseFile, 'bps\d+', 'bpsInf') '000.wav'];
-cleanPath = fullfile(wavDir, cleanWav);
+cleanDir = regexprep(wavDir, 'bps\d+', 'bpsInf');
+cleanPath = fullfile(cleanDir, cleanWav);
