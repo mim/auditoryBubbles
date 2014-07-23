@@ -1,8 +1,8 @@
-function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, fs, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
 
 % Run several analysis steps together
 %
-% mainBubbleAnalysis(baseFeatDir, pattern, noiseShape, fs, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+% mainBubbleAnalysis(baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
 %
 % Extracts features from bubble mixtures, collects reduced dimension feature
 % vectors for all mixtures involving the same clean speech file, computes
@@ -17,7 +17,6 @@ function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape
 %   patterns     regular expression for finding mixture files to analyze
 %   noiseShape   numerical specifier of noise type used to generate
 %                mixtures, passed to speechProfile 
-%   fs           sample rate in Hz
 %   pcaDims      [dims files] pair, specifying maximum number of PCA
 %                dimensions and number of files to use to compute transformation
 %   usePcaDims   number of PCA dimension to actually use in classification
@@ -32,7 +31,10 @@ if ~exist('hop_s', 'var'), hop_s = ''; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 setLength_s = 0;
 
+% Figure out sampling rate for plots
 resultFileName = basename(resultFile, 0);
+[~,mixFiles] = findFiles(mixDir, pattern);
+[~,fs] = wavread(mixFiles{1});
 
 % Extract features from mixtures
 extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)

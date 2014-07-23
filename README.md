@@ -83,7 +83,8 @@ playListeningTestDir(mixDir, subjectName)
 inCsvFiles = fullfile(mixDir, 'TLA_20140621T114000.csv');  % Can be a cell array of multiple csv files
 resultFile = 'D:\mixes\dev\results1.mat';
 verbose = 1;
-processListeningData(inCsvFiles, resultFile, verbose);
+ignoreStimulusDir = 1;
+processListeningData(inCsvFiles, resultFile, verbose, ignoreStimulusDir);
 
 % Extract features from mixtures
 baseFeatDir = 'D:\mixes\dev\features';
@@ -93,6 +94,5 @@ pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
 trimFrames = 15;
 overwrite = 0;
-fs = 44100;            % whatever your sampling frequency is
 hop_s = 0.016;         % this is the default hop size used in the analysis
-mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, fs, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)

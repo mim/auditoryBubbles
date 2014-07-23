@@ -33,15 +33,14 @@ pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
 trimFrames = 15;
 overwrite = 0;
-fs = 44100;
 hop_s = 0.016;
-mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, fs, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
 
 % Do bubbles processing on each pre2 data separately
 for i = 1:length(inCsvFiles)
     resultFile = fullfile('D:\Box Sync\data\mrt\shannonResults\preExps', sprintf('grouped_pre2sub%d.mat', i));
     processListeningData(inCsvFiles{i}, resultFile, verbose);
-    mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, fs, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+    mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
 end
 
 % Do bubbles processing on pre2 data merged with previous data
