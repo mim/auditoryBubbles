@@ -46,25 +46,24 @@ baseTrimDir = fullfile(baseFeatDir, trimDir);
 basePcaDir = fullfile(baseTrimDir, pcaDir);
 featDir = fullfile(baseTrimDir, 'feat');
 pcaFeatDir = fullfile(basePcaDir, 'feat');
-baseResultDir = fullfile(basePcaDir, resultFileName);
-groupedFeatDir = fullfile(baseResultDir, 'grouped');
+groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
 collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
-cacheDir = fullfile(baseResultDir, 'cache');
+cacheDir = fullfile(basePcaDir, 'cache', resultFileName);
 pcaDataFile = fullfile(basePcaDir, 'data.mat');
 extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite)
 
 % Run SVM cross validation within each file, massage TFCT data
-resDir = fullfile(baseResultDir, 'res');
+resDir = fullfile(basePcaDir, 'res', resultFileName);
 expWarpSimpleFromCache(resDir, cacheDir, usePcaDims);
 
 % Plot pictures
-plotDir = fullfile(baseResultDir, 'plots');
+plotDir = fullfile(basePcaDir, 'plots', resultFileName);
 toDisk = 1;
 startAt = 0;
 plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt);
 
 % Generate mixtures using TFCT as noise mask
-tfctWavOutDir = fullfile(baseResultDir, 'wavOut');
+tfctWavOutDir = fullfile(basePcaDir, 'wavOut', resultFileName);
 auralizeTfctSimple(resDir, mixDir, tfctWavOutDir, trimFrames, setLength_s, noiseShape)
