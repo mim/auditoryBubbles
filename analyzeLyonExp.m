@@ -1,5 +1,11 @@
 function analyzeLyonExp()
 
+oneAnalysis({}, '4way')
+oneAnalysis({{'Alda','Arda'},{'Alga','Arga'}}, 'dg')
+oneAnalysis({{'Alda','Alga'},{'Arda','Arga'}}, 'lr')
+
+
+function oneAnalysis(equivClassCell, name)
 mixDir = 'D:\Box Sync\lyon\mixes\bps12';
 hop_s = 0.016;         % this is the default hop size used in the analysis
 overwrite = 0;
@@ -14,24 +20,12 @@ resultDir = 'D:\Box Sync\lyon\results';
 
 [~,inCsvFiles] = findFiles(resultDir, '.*.csv');
 
-equivClassCell = {};
-resultFile = fullfile(resultDir, 'res_combined_4way.mat');
+resultFile = fullfile(resultDir, ['res_combined_' name '.mat']);
 processListeningData(inCsvFiles, resultFile, verbose, 1, equivClassCell);
 mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite);
 
 for i = 1:length(inCsvFiles)
-    resultFile = fullfile(resultDir, sprintf('res_sub%d_4way.mat',i)); 
-    processListeningData(inCsvFiles{i}, resultFile, verbose, 1, equivClassCell); 
-    mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite); 
-end
-
-equivClassCell = {{'Alda','Arda'},{'Alga','Arga'}};
-resultFile = fullfile(resultDir, 'res_combined_2way.mat');
-processListeningData(inCsvFiles, resultFile, verbose, 1, equivClassCell);
-mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite);
-
-for i = 1:length(inCsvFiles)
-    resultFile = fullfile(resultDir, sprintf('res_sub%d_2way.mat',i)); 
+    resultFile = fullfile(resultDir, sprintf('res_sub%d_%s.mat', i, name)); 
     processListeningData(inCsvFiles{i}, resultFile, verbose, 1, equivClassCell); 
     mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite); 
 end
