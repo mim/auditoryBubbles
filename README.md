@@ -17,8 +17,8 @@ to train a classifier to predict whether mixtures of each original clean
 utterance were intelligible to listeners and then measure its prediction 
 accuracy on held out test data.
 
-This toolbox depends on the mimlib toolbox for certain required supporting 
-functions, so please download that as well.
+This toolbox depends on the [mimlib toolbox](https://github.com/mim/mimlib)
+for certain required supporting functions, so please download that as well.
 
 ### Please cite
 
