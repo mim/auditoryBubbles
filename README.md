@@ -1,4 +1,4 @@
-# Bubble noise generation, presentation, and analysis
+# Auditory bubbles
 Copyright 2013-2014 Michael Mandel <mim@mr-pc.org>, all rights reserved
 Last updated 2014-06-21
 
@@ -17,6 +17,8 @@ to train a classifier to predict whether mixtures of each original clean
 utterance were intelligible to listeners and then measure its prediction 
 accuracy on held out test data.
 
+This toolbox depends on the mimlib toolbox for certain required supporting 
+functions, so please download that as well.
 
 ### Please cite
 
@@ -42,6 +44,7 @@ We assume here that you use noiseShape = 5.
 
 ### Generate mixtures
 
+```matlab
 % Shared parameters
 wavInDir = 'D:\Box Sync\data\mrt\shannon\srcOneSpeakerOneUtt';
 dur_s = 1.8;
@@ -56,10 +59,12 @@ bubblesPerSecond = 0;
 noiseDir = 'D:\mixes\dev\mix_bps0';
 mixMrtBubbleNoiseDir(wavInDir, noiseDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 
-% Actual bubbles files
-mixDir = 'D:\mixes\dev\mix_bps15';
+% Actual bubbles files, experiment with different bubbles-per-seconds values until 
+% subjects get 50% correct. When you've found that, use at least 200 mixtures per 
+% utterance (nMixes)
+mixDir = 'D:\mixes\dev\mix_bps12';
 nMixes = 5;
-bubblesPerSecond = 15;
+bubblesPerSecond = 12;
 mixMrtBubbleNoiseDir(wavInDir, mixDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 
 % Clean files for reference (correct scaling, etc)
@@ -68,17 +73,19 @@ cleanDir = 'D:\mixes\dev\mix_bpsInf';
 nMixes = 1;
 bubblesPerSecond = inf;
 mixMrtBubbleNoiseDir(wavInDir, cleanDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
-
+```
 
 ## Presentation
 
-subjectName = 'TLA';
+```matlab
+subjectName = 'TLA';    % whatever you want
 playListeningTestDir(mixDir, subjectName)
 % file saved in mixDir, named subjectName_timestamp.csv
-
+```
 
 ## Analysis
 
+```matlab
 % Massage and combine listening test data from multiple tests
 inCsvFiles = fullfile(mixDir, 'TLA_20140621T114000.csv');  % Can be a cell array of multiple csv files
 resultFile = 'D:\mixes\dev\results1.mat';
@@ -96,3 +103,4 @@ trimFrames = 15;
 overwrite = 0;
 hop_s = 0.016;         % this is the default hop size used in the analysis
 mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+```
