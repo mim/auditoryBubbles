@@ -25,7 +25,9 @@ processListeningData(inCsvFiles, resultFile, verbose, 1, equivClassCell);
 mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite);
 
 for i = 1:length(inCsvFiles)
-    resultFile = fullfile(resultDir, sprintf('res_sub%d_%s.mat', i, name)); 
+    subjId = regexprep(basename(inCsvFiles{i}), '_\d+T\d+.csv', '');
+    fprintf('\nSubject %s\n', subjId);
+    resultFile = fullfile(resultDir, sprintf('res_sub%s_%s.mat', subjId, name)); 
     processListeningData(inCsvFiles{i}, resultFile, verbose, 1, equivClassCell); 
     mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite); 
 end
