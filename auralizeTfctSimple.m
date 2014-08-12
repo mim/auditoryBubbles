@@ -16,29 +16,33 @@ for target = 1:length(resPaths)
     baseFileName = baseFileNameFor(resFiles{target});
     fprintf('%d: %s\n', target, baseFileName);
     cleanWavFile = cleanWavFor(mixDir, baseFileName);
-    holeOutFile = fullfile(outDir, [baseFileName 'hole.wav']);
-    bumpOutFile = fullfile(outDir, [baseFileName 'bump.wav']);
-    importantOnlyOutFile = fullfile(outDir, [baseFileName 'important.wav']);
+    nuOutFile = fullfile(outDir, [baseFileName 'noiseExceptImportant.wav']);
+    niOutFile = fullfile(outDir, [baseFileName 'noiseOnlyImportant.wav']);
+    suOutFile = fullfile(outDir, [baseFileName 'silenceExceptImportant.wav']);
+    siOutFile = fullfile(outDir, [baseFileName 'silenceOnlyImportant.wav']);
     
     [cleanSpec,clean,fs,nfft] = loadSpecgramNested(cleanWavFile, win_s, hopFrac, setLength_s);
     
     z = zeros(size(res.mat,1), trimFrames, size(res.mat,3));
     mat = cat(2, z, res.mat, z);
 
-    % Noise only at the important places
+    % Noise at the important parts of the signal
     bumpMask = max(10.^(-60/20), mat(:,:,1) .* (mat(:,:,1) > 0));
     [~,~,bumpNoise] = genMaskedSsn(length(clean)/fs, fs, bumpMask, win_s, hopFrac, noiseShape);
-    wavWriteBetter(clean + bumpNoise, fs, bumpOutFile);
+    wavWriteBetter(clean + bumpNoise, fs, niOutFile);
     
-    % Noise everywhere except the important places
+    % Noise at the unimportant parts of the signal
     holeMask = max(10.^(-60/20), 1 - mat(:,:,1) .* (mat(:,:,1) > 0));
     [~,~,holeNoise] = genMaskedSsn(length(clean)/fs, fs, holeMask, win_s, hopFrac, noiseShape);
-    wavWriteBetter(clean + holeNoise, fs, holeOutFile);
+    wavWriteBetter(clean + holeNoise, fs, nuOutFile);
     
-    % No noise, just important parts of signal, unimportant parts set to
-    % silence
+    % No noise, unimportant parts of signal set to silence
     importantOnly = istft(bumpMask .* cleanSpec, nfft, nfft, round(nfft*hopFrac));
-    wavWriteBetter(importantOnly, fs, importantOnlyOutFile);
+    wavWriteBetter(importantOnly, fs, suOutFile);
+
+    % No noise, important parts of signal set to silence
+    importantOnly = istft(holeMask .* cleanSpec, nfft, nfft, round(nfft*hopFrac));
+    wavWriteBetter(importantOnly, fs, siOutFile);
 end
 
 
