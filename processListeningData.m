@@ -62,4 +62,7 @@ if verbose
     for i = 1:size(grouped2,1)
         fprintf('%s:\t%0.1f%% correct\n', grouped2{i,6}, 100*grouped2{i,5});
     end
+    
+    disp('Confusion matrix (one column per true label)')
+    printConfusionMat(digested(:,4), digested(:,6));
 end
