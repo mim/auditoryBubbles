@@ -28,13 +28,12 @@ digested = csvReadCells(digestedFile);
 if isempty(equivClassCell)
     rightAnswers = unique(digested(:,4));
     for i = 1:length(rightAnswers)
-        equivClasses.(rightAnswers{i}) = i;
+        equivClassCell{i} = rightAnswers(i);
     end
-else
-    for i = 1:length(equivClassCell)
-        for j = 1:length(equivClassCell{i})
-            equivClasses.(equivClassCell{i}{j}) = i;
-        end
+end
+for i = 1:length(equivClassCell)
+    for j = 1:length(equivClassCell{i})
+        equivClasses.(equivClassCell{i}{j}) = i;
     end
 end
 
@@ -52,9 +51,19 @@ for i=1:size(digested,1)
         digested{i,3} = basename(digested{i,3});
     end
 end
-    
+
 grouped = groupBy(digested, 3, @(x) basename(x,1), 3, @(x) mean([x{:}]), 5);
-save(outGroupedFile, 'grouped', 'digested');
+
+responses = grouped(:,4);
+responseCounts = zeros(size(responses,1), length(equivClassCell));
+for i = 1:size(responses,1)
+    for j = 1:length(responses{i})
+        eq = equivClasses.(responses{i}{j});
+        responseCounts(i,eq) = responseCounts(i,eq) + 1;
+    end
+end
+    
+save(outGroupedFile, 'grouped', 'digested', 'equivClasses', 'responseCounts');
 
 if verbose
     grouped2 = groupBy(digested, 6, @(x) mean([x{:}]), 5);
