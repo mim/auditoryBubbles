@@ -1,4 +1,4 @@
-function [Xtr ytr Xte yte warped scaled origShape warpedClean warpDist mfccDist startDist] = ...
+function [Xtr ytr Xte yte ytem mNames warped scaled origShape warpedClean warpDist mfccDist startDist] = ...
     crossUtWarp(trPcaFeatFile, cleanTeFile, pcaFile, groupedPath, doWarp)
 
 % Load features after warping test utterance to match training utterance
@@ -36,7 +36,7 @@ Xtr = Xtr(keep,:);
 
 % Load clean files and metadata
 [teFiles teDir] = mixesForClean(cleanTeFile);
-[yte,~,teFiles] = isRightFor(teFiles, groupedPath);
+[yte,~,teFiles,ytem,mNames] = isRightFor(teFiles, groupedPath);
 
 % Load PCA stuff
 pca = load(pcaFile);

@@ -30,11 +30,15 @@ for i = 1:length(inFiles)
     partialOutDir = fullfile(outDir, fileparts(inFiles{i}));
     tfctOutDir = fullfile(partialOutDir, 'fn=plotTfctWrapper');
     ensureDirExists(tfctOutDir, 1);
-    plotTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape)
+    saveTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape)
     
     pbcOutDir = fullfile(partialOutDir, 'fn=plotPbc');
     ensureDirExists(pbcOutDir, 1);
-    plotPbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.origShape)
+    savePbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.clean, d.origShape)
+    
+    respCorrDir = fullfile(partialOutDir, 'fn=plotResponseCorr');
+    ensureDirExists(respCorrDir, 1);
+    saveRespCorrData(respCorrDir, d.ssn, d.ssy1, d.ssy2, d.ssx1, d.ssx2, d.ssyx, d.clean, d.origShape);
     
     svmOutDir = fullfile(partialOutDir, 'fn=xvalSvmOnEachWord');
     ensureDirExists(svmOutDir, 1);
@@ -42,7 +46,7 @@ for i = 1:length(inFiles)
 end
 
 
-function plotTfctWrapper(outDir,s0,s1,sNot0,sNot1,clean,origShape)
+function saveTfctWrapper(outDir,s0,s1,sNot0,sNot1,clean,origShape)
 for w = 1:size(s0,1)
     mat(:,:,w) = plotableTfct(sNot0(w,:), sNot1(w,:), s0(w,:), s1(w,:), origShape);
 end
@@ -62,13 +66,23 @@ function mat = plotableTfct(sNot0, sNot1, s0, s1, origShape)
 [~,p,isHigh] = tfCrossTab(sNot0, sNot1, s0, s1);
 mat = reshape((2*isHigh-1).*exp(-p/0.05), origShape);
 
-function plotPbc(outDir, s0, s1, n0, n1, sig, origShape)
+function savePbc(outDir, s0, s1, n0, n1, sig, clean, origShape)
 [tpbc tpval tvis] = pointBiserialCorr(s0, s1, n0, n1, sig);
 W = size(s0,1);
 pbc  = reshape(tpbc, [origShape W]);
 pval = reshape(tpval, [origShape W]);
-vis  = reshape(tvis, [origShape W]);
-save(fullfile(outDir, 'res'), 'pbc', 'pval', 'vis', 'origShape');
+mat  = reshape(tvis, [origShape W]);
+save(fullfile(outDir, 'res'), 'pbc', 'pval', 'mat', 'clean', 'origShape');
+
+function saveRespCorrData(outDir, ssn, ssy1, ssy2, ssx1, ssx2, ssyx, clean, origShape)
+% Visualize several correlations for a single warping
+[tcorr,~,tpval,tvis] = corrFromSuffStats(ssn, ssy1, ssy2, ssx1, ssx2, ssyx);
+nc = size(tcorr,1);
+corr  = reshape(tcorr', [origShape nc]);
+pval  = reshape(tpval', [origShape nc]);
+mat   = reshape(tvis', [origShape nc]);
+clean = repmat(clean, [1 1 nc]);
+save(fullfile(outDir, 'res'), 'corr', 'pval', 'mat', 'clean', 'origShape');
 
 function xvalSvmOnEachWord(outDir,Xte,yte,pcaDims)
 [mcr data] = svmXVal(Xte, yte, pcaDims);

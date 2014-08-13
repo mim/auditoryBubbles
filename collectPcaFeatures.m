@@ -15,18 +15,21 @@ function collectPcaFeatures(pcaDir, groupedFile, outDir, overwrite)
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
 
-[isRight,fracRight,files] = isRightFor(findFiles(pcaDir, '\d+.mat'), groupedFile);
+[isRight fracRight files responseCounts equivClasses] = ...
+    isRightFor(findFiles(pcaDir, '\d+.mat'), groupedFile);
 
 % Group by word, load PCA features
 word  = regexprep(files, '\d+.mat', '');
 [words,~,wi] = unique(word);
 for w = 1:length(words)
     use = (wi == w);
-    saveWordFile(words{w}, pcaDir, files(use), fracRight(use), isRight(use), outDir, overwrite)
+    saveWordFile(words{w}, pcaDir, files(use), fracRight(use), isRight(use), ...
+        responseCounts(use), equivClasses, outDir, overwrite)
 end
 
 
-function saveWordFile(word, inDir, files, fracRight, isRight, outDir, overwrite)
+function saveWordFile(word, inDir, files, fracRight, isRight, ...
+    responseCounts, equivClasses, outDir, overwrite)
 
 outFile = fullfile(outDir, [word '.mat']);
 if exist(outFile, 'file') && ~overwrite
@@ -42,7 +45,8 @@ for f = 1:length(files)
 end
 
 ensureDirExists(outFile)
-save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', 'cleanFeat', 'origShape')
+save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', ...
+    'responseCounts', 'equivClasses', 'cleanFeat', 'origShape')
 
 
 function cf = cleanFileName(word, pcaDir)

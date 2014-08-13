@@ -47,7 +47,10 @@ for target = 1:length(resFiles)
 end
 
 function fileName = plotFileName(desc, p, target)
-fileName = sprintf('%s%s%d', basename(fileparts(target)), desc, p);
+[d fn] = fileparts(target);
+[~,utt] = fileparts(d);
+%fileName = fullfile(fn, sprintf('%s%s%d', utt, desc, p));
+fileName = sprintf('%s%s%d', utt, desc, p);
 
 function labs = labelsFor(y, x, c, allLabels)
 if allLabels

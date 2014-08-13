@@ -27,7 +27,7 @@ for target = 1:length(pcaFiles)
         continue
     end
     
-    [~,~,Xte,yte,warped,~,origShape,clean,warpDist,mfccDist,startDist] = ...
+    [~,~,Xte,yte,ytem,mNames,warped,~,origShape,clean,warpDist,mfccDist,startDist] = ...
         crossUtWarp(fullfile(groupedFeatDir, pcaFiles{target}), ...
         fullfile(featDir, cleanFiles{target}), pcaDataFile, groupedFile, 0);
     
@@ -37,6 +37,9 @@ for target = 1:length(pcaFiles)
     end
     
     [s0 s1 sNot0 sNot1 n0 n1 sig] = computeTfctStats(yte, warped);
+    
+    nytem = bsxfun(@rdivide, ytem, sum(ytem,2)+1e-9);
+    [ssn ssy1 ssy2 ssx1 ssx2 ssyx] = corrSufficientStats(nytem, warped);
     clear warped
     
     ensureDirExists(outFile);

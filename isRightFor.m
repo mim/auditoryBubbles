@@ -1,9 +1,9 @@
-function [isRight fracRight files] = isRightFor(files, groupedFile)
+function [isRight fracRight files responseCounts equivClasses] = isRightFor(files, groupedFile)
 
 % Return supervision label for each file in files by looking it up in
 % groupedFile, the output of groupBy()
 
-load(groupedFile)  % should contain variable "grouped"
+load(groupedFile, 'grouped', 'equivClasses', 'responseCounts');
 ansFile = strrep(grouped(:,3), '\', filesep);
 ansFile = strrep(ansFile, '.wav', '.mat');
 fracRight = grouped(:,5);
@@ -29,4 +29,4 @@ assert(all(strcmp(files(keep), ansFile(match(keep)))))
 files     = files(keep);
 fracRight = cell2mat(fracRight(match(keep)));
 isRight   = (fracRight >= 0.9) - (fracRight <= 0.6);
-
+responseCounts = responseCounts(keep,:);
