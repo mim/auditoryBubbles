@@ -1,4 +1,4 @@
-function [isRight fracRight files] = isRightFor(files, groupedFile)
+function [isRight fracRight files responseCounts responseVals] = isRightFor(files, groupedFile)
 
 % Return supervision label for each file in files by looking it up in
 % groupedFile, the output of groupBy()
@@ -29,3 +29,11 @@ assert(all(strcmp(files(keep), ansFile(match(keep)))))
 files     = files(keep);
 fracRight = cell2mat(fracRight(match(keep)));
 isRight   = (fracRight >= 0.9) - (fracRight <= 0.6);
+
+responseVals = unique([grouped{:,4}]);
+responses = grouped(keep,4);
+responseCounts = zeros(size(responses,1), length(responseVals));
+for i=1:size(responses,1)
+    responseCounts(i,:) = strHist(responses{i}, responseVals);
+end
+
