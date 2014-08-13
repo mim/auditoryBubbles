@@ -1,4 +1,4 @@
-function mixMrtBubbleNoiseDir(inDir, outDir, nMixes, bubblesPerSec, snr_db, dur_s, normalize, noiseShape, speechFiles)
+function outDir = mixMrtBubbleNoiseDir(inDir, outDir, nMixes, bubblesPerSec, snr_db, dur_s, normalize, noiseShape, speechFiles)
 
 % Generate mixtures of bubble noise with clean files from a directory
 %
@@ -11,7 +11,9 @@ function mixMrtBubbleNoiseDir(inDir, outDir, nMixes, bubblesPerSec, snr_db, dur_
 %
 % Inputs:
 %   inDir         directory in which to find clean input files
-%   outDir        directory in which to write wav file for each mixture
+%   outDir        directory in which to write wav file for each mixture.
+%                 Files will be written in a subdirectory named "bpsNN"
+%                 where NN is the bubbles-per-second value.
 %   nMixes        maximum number of mixes per clean file, if some mixes
 %                 already exist, enough will be added to reach this many
 %   bublesPerSec  number of bubbles in noise per second of mix file
@@ -30,6 +32,8 @@ if ~exist('dur_s', 'var') || isempty(dur_s), dur_s = 2; end
 if ~exist('normalize', 'var') || isempty(normalize), normalize = 1; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 if ~exist('speechFiles', 'var') || isempty(speechFiles), speechFiles = findFiles(inDir, '\.wav'); end
+
+outDir = fullfile(outDir, sprintf('bps%g', bubblesPerSecond));
 
 if ischar(speechFiles)  % Can supply a pattern
     speechFiles = findFiles(inDir, speechFiles, 1);

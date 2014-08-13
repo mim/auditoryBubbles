@@ -46,33 +46,31 @@ We assume here that you use noiseShape = 5.
 
 ```matlab
 % Shared parameters
-wavInDir = 'D:\Box Sync\data\mrt\shannon\srcOneSpeakerOneUtt';
+wavInDir = 'D:\input\cleanUtterances';
+mixOutDir = 'D:\mixes\dev';
 dur_s = 1.8;
 normalize = 1;
-noiseShape = 0;
+noiseShape = 5;
 baseSnr_db = -35;
 
 % Mixes with no bubbles
 % make sure baseSnr_db is set so that these are completely unintelligible
 nMixes = 5;
 bubblesPerSecond = 0;
-noiseDir = 'D:\mixes\dev\mix_bps0';
-mixMrtBubbleNoiseDir(wavInDir, noiseDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
+mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 
 % Actual bubbles files, experiment with different bubbles-per-seconds values until 
 % subjects get 50% correct. When you've found that, use at least 200 mixtures per 
 % utterance (nMixes)
-mixDir = 'D:\mixes\dev\mix_bps12';
 nMixes = 5;
 bubblesPerSecond = 12;
-mixMrtBubbleNoiseDir(wavInDir, mixDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
+mixDir = mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 
 % Clean files for reference (correct scaling, etc)
 % Note that this has to be named something_bpsInf for extractBubbleFeatures to find it
-cleanDir = 'D:\mixes\dev\mix_bpsInf';
 nMixes = 1;
 bubblesPerSecond = inf;
-mixMrtBubbleNoiseDir(wavInDir, cleanDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
+mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
 ```
 
 ## Presentation
