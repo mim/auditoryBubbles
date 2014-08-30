@@ -33,7 +33,7 @@ if ~exist('normalize', 'var') || isempty(normalize), normalize = 1; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 if ~exist('speechFiles', 'var') || isempty(speechFiles), speechFiles = findFiles(inDir, '\.wav'); end
 
-outDir = fullfile(outDir, sprintf('bps%g', bubblesPerSecond));
+outDir = fullfile(outDir, sprintf('bps%g', bubblesPerSec));
 
 if ischar(speechFiles)  % Can supply a pattern
     speechFiles = findFiles(inDir, speechFiles, 1);
