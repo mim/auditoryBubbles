@@ -50,8 +50,8 @@ wavInDir = 'D:\input\cleanUtterances';
 mixOutDir = 'D:\mixes\dev';
 dur_s = 1.8;
 normalize = 1;
-noiseShape = 5;
 baseSnr_db = -35;
+noiseShape = 5;
 
 % Mixes with no bubbles
 % make sure baseSnr_db is set so that these are completely unintelligible

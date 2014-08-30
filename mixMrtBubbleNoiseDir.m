@@ -1,4 +1,4 @@
-function outDir = mixMrtBubbleNoiseDir(inDir, outDir, nMixes, bubblesPerSec, snr_db, dur_s, normalize, noiseShape, speechFiles)
+function outDir = mixMrtBubbleNoiseDir(inDir, outDir, nMixes, bubblesPerSec, snr_db, dur_s, normalize, noiseShape, randomness, speechFiles)
 
 % Generate mixtures of bubble noise with clean files from a directory
 %
@@ -31,6 +31,7 @@ if ~exist('nMixes', 'var') || isempty(nMixes), nMixes = 1; end
 if ~exist('dur_s', 'var') || isempty(dur_s), dur_s = 2; end
 if ~exist('normalize', 'var') || isempty(normalize), normalize = 1; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
+if ~exist('randomness', 'var') || isempty(randomness), randomness = 1; end
 if ~exist('speechFiles', 'var') || isempty(speechFiles), speechFiles = findFiles(inDir, '\.wav'); end
 
 outDir = fullfile(outDir, sprintf('bps%g', bubblesPerSec));
@@ -65,7 +66,12 @@ for i = 1:length(speechFiles)
         end
         fprintf('%d %d: %s\n', i, num, outFile)
         
-        [mix sr] = mixBubbleNoise(cleanFile, sr, useHoles, bubblesPerSec, snr, dur_s, normalize, noiseShape);
+        if randomness > 1
+            randomSeed = randomness + num;
+        else
+            randomSeed = randomness;
+        end
+        [mix sr] = mixBubbleNoise(cleanFile, sr, useHoles, bubblesPerSec, snr, dur_s, normalize, noiseShape, randomSeed);
         
         ensureDirExists(outFile);
         wavwrite(mix, sr, outFile);

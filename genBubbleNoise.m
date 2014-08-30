@@ -10,7 +10,7 @@ if ~exist('sizeF_erb', 'var') || isempty(sizeF_erb), sizeF_erb = 0.4; end
 if ~exist('sizeT_s', 'var') || isempty(sizeT_s), sizeT_s  = 0.04; end
 if ~exist('window_s', 'var') || isempty(window_s), window_s = 0.064; end
 if ~exist('hopFrac', 'var') || isempty(hopFrac), hopFrac = 0.25; end
-if ~exist('randomness', 'var') || isempty(randomness), randomness = 2; end
+if ~exist('randomness', 'var') || isempty(randomness), randomness = 1; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 
 noiseSpec = genMaskedSsn(dur_s, sr, [], window_s, hopFrac, noiseShape);
@@ -43,14 +43,14 @@ if isfinite(nBubbles)
         bubbleT_s   = linspace(0, dur_s, nBubbles+2);
         bubbleT_s   = bubbleT_s(2:end-1);
     else
-        if randomness == 1
-            rng('default');
-        else
-            try
+        try
+            if randomness == 1
                 rng('shuffle');
-            catch ex
-                warning('Could not shuffle RNG')
+            else
+                rng(randomness);
             end
+        catch ex
+            warning('Could not shuffle RNG')
         end
         randomNumbers = rand(2, nBubbles);
         bubbleF_erb = randomNumbers(1,:)*(maxMelPad-minMelPad) + minMelPad;
