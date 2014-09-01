@@ -7,6 +7,7 @@ if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 
 outDir = 'Z:\WWW\stuff\cosiDemo';
 cleanWavDir = 'D:\Box Sync\bubblesShannon\oneSpeakerAllClean';
+noisyWavDir = 'D:\Box Sync\bubblesShannon\listenerReps15bps';
 tfifCacheDir = 'C:\Temp\data\preExp\pre2\trim=15,length=0\pca_100dims_1000files\grouped_pre2\res';
 trimFrames = 15;
 setLength_s = 0;
@@ -17,10 +18,10 @@ prt('ToFile', toDisk, 'StartAt', startAt, ...
     'TargetDir', fullfile(outDir, 'img'), ...
     'SaveTicks', 1, 'Resolution', 72)
 
-cosiDemoInner(tfifCacheDir, cleanWavDir, outDir, trimFrames, setLength_s, noiseShape);
+cosiDemoInner(tfifCacheDir, cleanWavDir, noisyWavDir, outDir, trimFrames, setLength_s, noiseShape);
 
 
-function cosiDemoInner(resDir, cleanWavDir, outDir, trimFrames, setLength_s, noiseShape)
+function cosiDemoInner(resDir, cleanWavDir, noisyWavDir, outDir, trimFrames, setLength_s, noiseShape)
 
 % Make plots from tfct data files from expWarpExtensive.
 
@@ -28,6 +29,9 @@ if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 
 win_s = 0.064;
 hopFrac = 0.25;
+nNoisy = 3;
+cleanGain = 20;
+noisyGain = 2.5;
 
 % Build signals
 [resFiles,resPaths] = findFiles(resDir, 'fn=plotTfctWrapper', 0);
@@ -53,21 +57,30 @@ dither = 10^(-65/20) * (randn(size(bumpMask{s})) + 1i * randn(size(bumpMask{s}))
 % Combine and write out signals
 for s = 1:length(resPaths)
     % Clean speech
-    cleanHtml{s} = outputWavAndPng(clean{s}, fs, win_s, hopFrac, outDir, baseFileName{s}, 'none', 'only');
+    cleanHtml{s} = outputWavAndPng(clean{s}, cleanGain, fs, win_s, hopFrac, outDir, baseFileName{s}, 'none', 'only');
     
     % Noise only
-    noiseHtml{s} = outputWavAndPng(holeNoise{s}, fs, win_s, hopFrac, outDir, 'none', baseFileName{s}, 'only');
+    noiseHtml{s} = outputWavAndPng(holeNoise{s}, noisyGain, fs, win_s, hopFrac, outDir, 'none', baseFileName{s}, 'only');
     
-    for n = 1:length(resPaths)
+    for n = s%1:length(resPaths)
         importantOnly = istft(bumpMask{n} .* cleanSpec{s} + dither, nfft, nfft, round(nfft*hopFrac));
-        snHtml{n,s,1} = outputWavAndPng(importantOnly, fs, win_s, hopFrac, outDir, baseFileName{s}, baseFileName{n}, 'unimpSil');
+        snHtml{n,s,1} = outputWavAndPng(importantOnly, cleanGain, fs, win_s, hopFrac, outDir, baseFileName{s}, baseFileName{n}, 'unimpSil');
 
-        snHtml{n,s,2} = outputWavAndPng(clean{s} + holeNoise{n}, fs, win_s, hopFrac, outDir, baseFileName{s}, baseFileName{n}, 'unimpNoise');
+        snHtml{n,s,2} = outputWavAndPng(clean{s} + holeNoise{n}, noisyGain, fs, win_s, hopFrac, outDir, baseFileName{s}, baseFileName{n}, 'unimpNoise');
     end
     
     pairedSnHtml{1,s} = snHtml{s,s,1};
     pairedSnHtml{2,s} = snHtml{s,s,2};
+
+    for n = 1:nNoisy
+        wavFile = fullfile(noisyWavDir, sprintf('%s%03d.wav', baseFileName{s}, 200+n));
+        [x fs] = wavReadBetter(wavFile);
+        noisyHtml{n,s} = outputWavAndPng(x, noisyGain, fs, win_s, hopFrac, outDir, baseFileName{s}, sprintf('bubbles%03d', 200+n), 'noisy');
+    end
 end
+
+ord1 = randperm(length(wordNames));
+ord2 = randperm(length(wordNames));
 
 % Generate HTML page
 html = {};
@@ -84,15 +97,20 @@ html{end+1} = '<h2>Original speech</h2>';
 html{end+1} = htmlTableFor([wordNames; cleanHtml], 1);
 html{end+1} = '<h2>Cookie cutter speech</h2>';
 html{end+1} = htmlTableFor([wordNames; pairedSnHtml(1,:)], 1);
+html{end+1} = '<h2>Shuffled cookie cutter speech</h2>';
+html{end+1} = htmlTableFor([pairedSnHtml(1,ord1); wordNames(ord1)], 0);
 html{end+1} = '<h2>Noise tailored to each word</h2>';
 html{end+1} = htmlTableFor([wordNames; noiseHtml], 1);
 html{end+1} = '<h2>Speech + tailored noise</h2>';
 html{end+1} = htmlTableFor([wordNames; pairedSnHtml(2,:)], 1);
+html{end+1} = '<h2>Shuffled speech + tailored noise</h2>';
+html{end+1} = htmlTableFor([pairedSnHtml(2,ord2); wordNames(ord2)], 0);
 % html{end+1} = '<h2>Mix-and-match cookie cutter speech</h2>';
 % html{end+1} = htmlTableFor([[{'Noise'} wordNames]; [listMap(@(x) sprintf('<b>%s</b>', x), wordNames)' snHtml(:,:,1)]], 1);
 % html{end+1} = '<h2>Mix-and-match speech + tailored noise</h2>';
 % html{end+1} = htmlTableFor([[{'Noise'} wordNames]; [listMap(@(x) sprintf('<b>%s</b>', x), wordNames)' snHtml(:,:,2)]], 1);
-% html{end+1} = '<h2>Bubble noise mixtures</h2>';
+html{end+1} = '<h2>Bubble noise mixtures</h2>';
+html{end+1} = htmlTableFor([wordNames; noisyHtml], 1);
 html{end+1} = '</body>';
 html{end+1} = '</html>';
 
@@ -116,14 +134,14 @@ html = join(eachRow, '\n');
 html = sprintf('<table>%s</table>', html);
 
 
-function html = outputWavAndPng(x, origFs, win_s, hopFrac, outDir, speechName, noiseName, tag)
+function html = outputWavAndPng(x, wavGain, origFs, win_s, hopFrac, outDir, speechName, noiseName, tag)
 fs = 22050;
 fileName = sprintf('%s_s=%s_n=%s', tag, speechName, noiseName);
 filePath = fullfile(outDir, 'wav', [fileName '.wav']);
 x = resample(x, fs, origFs);
-wavWriteBetter(x, fs, filePath);
+wavWriteBetter(x * wavGain, fs, filePath);
 [spec,~,fs,nfft] = loadSpecgramNested(filePath, win_s, hopFrac, -1);
-plotSpectrogram(db(abs(spec)), fileName, fs, round(nfft*hopFrac)/fs);
+plotSpectrogram(db(abs(spec / wavGain)), fileName, fs, round(nfft*hopFrac)/fs);
 %html = sprintf('<a href="%s"><img src="%s"></a>', ...
 %    ['wav/' fileName '.wav'], ['img/' fileName '.png']);
 html = sprintf('<span id="s%d" onclick="playSound(this, ''%s'');"><img src="%s" /></span>', ...
