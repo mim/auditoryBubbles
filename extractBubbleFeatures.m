@@ -87,8 +87,8 @@ function ef_bubbleFeatures(ip, op, fn, trimFrames, setLength_s, noiseShape, over
 cleanWavFile = regexprep(regexprep(ip, 'bps\d+', 'bpsInf'), '\d+.wav', '000.wav');
 cleanMatFile = regexprep(regexprep(op, 'bps\d+', 'bpsInf'), '\d+.mat', '000.mat');
 
-[clean fs nfft] = loadSpecgram(cleanWavFile, setLength_s);
-[mix   fs nfft] = loadSpecgram(ip, setLength_s);
+[clean fs nfft] = loadSpecgramBubbleFeats(cleanWavFile, setLength_s);
+[mix   fs nfft] = loadSpecgramBubbleFeats(ip, setLength_s);
 [features origShape weights cleanFeat weightVec] = ...
     bubbleFeatures(clean, mix, fs, nfft, noiseShape, trimFrames);
 
@@ -105,26 +105,3 @@ features = bsxfun(@times, bsxfun(@minus, features, mu), weights ./ sig);
 pcaFeat = features * pcs;
 save(op, 'pcaFeat', 'origShape', 'weightVec', 'fs', 'nfft', ...
     'trimFrames', 'noiseShape', 'pcaFile');
-
-
-function [spec fs nfft] = loadSpecgram(fileName, setLength_s)
-% Load a spectrogram of a wav file
-win_s = 0.064;
-
-[x fs] = wavReadBetter(fileName);
-nSamp = round(fs * setLength_s);
-
-if nSamp > 0
-    if length(x) < nSamp
-        toAdd = nSamp - length(x);
-        x = [zeros(ceil(toAdd/2),1); x; zeros(floor(toAdd/2),1)];
-    elseif length(x) > nSamp
-        toCut = length(x) - nSamp;
-        x = x(floor(toCut/2) : end-ceil(toCut/2)+1);
-    end
-    assert(length(x) == nSamp);
-end
-
-nfft = round(win_s * fs);
-hop = round(nfft/4);
-spec = stft(x', nfft, nfft, hop);
