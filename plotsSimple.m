@@ -26,7 +26,7 @@ for target = 1:length(resFiles)
     % Plot all correlations
     for p = 1:size(res.mat,3)
         outName = plotFileName('corr', p, resFiles{target});
-        plotSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
+        prtSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
 end
 
@@ -39,13 +39,13 @@ for target = 1:length(resFiles)
     % Plot all spectrograms
     for p = 1:size(res.clean,3)
         outName = plotFileName('spec', p, resFiles{target});
-        plotSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 0, 0, allLabels), maxFreq);
+        prtSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 0, 0, allLabels), maxFreq);
     end
     
     % Plot all TFIFs
     for p = 1:size(res.mat,3)
         outName = plotFileName('tfif', p, resFiles{target});
-        plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
+        prtSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
     
     %noiseLevel = min(res.clean(:));  % not important -> min(clean) dB
@@ -55,10 +55,10 @@ for target = 1:length(resFiles)
     for p = 1:size(res.clean,3)
         selected = (res.clean(:,:,p) - noiseLevel) .* (res.mat(:,:,p) .* (res.mat(:,:,p) > 0)) + noiseLevel;
         outName = plotFileName('onSpec', p, resFiles{target});
-        plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
+        prtSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
 end
-    
+
 function fileName = plotFileName(desc, p, target)
 [d fn] = fileparts(target);
 [~,utt] = fileparts(d);
@@ -71,51 +71,3 @@ if allLabels
 else
     labs = [y x c];
 end
-
-function plotSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq)
-
-% Labels: [ylabel xlabel colorbar]
-clf  % Need this to make plots the right size for some reason...
-
-f_khz = freqAxis_khz((size(X,1)-1)/2, fs);
-ylab = 'Frequency (kHz)';
-t_ms = (0:size(X,2)-1) * hop_s * 1000;
-
-colormap(cmap)
-imagesc(t_ms, f_khz, X)
-caxis(cax)
-axis xy
-axis tight
-set(gca, 'YTick', [2:2:fs/2000-1]);
-if labels(1)
-    set(gca, 'YTickLabel', [2:2:fs/2000-1]);
-    ylabel(ylab)
-else
-    set(gca, 'YTickLabel', {});
-end
-if maxFreq/1000 < max(f_khz),
-    ylim([0 maxFreq/1000])
-end
-
-xticks = 200:200:200*floor(max(t_ms)/200);
-set(gca, 'XTick', xticks);
-if labels(2)
-    xlabel('Time (ms)')
-    set(gca, 'XTickLabel', xticks);
-else
-    set(gca, 'XTickLabel', {});
-end
-
-if labels(3)
-    hcb = colorbar;
-    ticks = get(hcb, 'YTick');
-    if ticks(1) == -1  % Only for masks, which are -1:1
-        set(hcb, 'YTick', [-0.8 -0.4 0 0.4 0.8]);
-    end
-end
-
-prt(prtName)
-
-
-function f = freqAxis_khz(nFft, fs)
-f = (0:nFft/2) / nFft * fs / 1000;
