@@ -15,7 +15,7 @@ for i=1:size(grouped,1),
     grouped{i,7} = [grouped{i,1}{1} '_' regexprep(grouped{i,3}, '_\d+.wav', '')]; 
 end
 grouped2 = groupBy(grouped, 7, @(x) mean([x{:}]), 5);
-labelHist([grouped2{:,5}], 11, 'withinUserConsistency', analysisDir);
+labelHist([grouped2{:,5}], 0.2:.1:1, 'withinUserConsistency', analysisDir);
 
 % Inter-subject agreement
 resultFile = 'D:\Box Sync\data\mrt\shannonResults\preExps\grouped_pre2.mat';
@@ -23,7 +23,7 @@ verbose = 1;
 [~,inCsvFiles] = findFiles('D:\Box Sync\data\mrt\shannonResults\preExps\', 'pre2.*.csv');
 processListeningData(inCsvFiles, resultFile, verbose);
 load(resultFile)
-labelHist([grouped{:,5}], 6, 'acrossUserConsistency', analysisDir);
+labelHist([grouped{:,5}], 0.2:0.2:1, 'acrossUserConsistency', analysisDir);
 
 % Do bubbles processing on combined pre2 data
 mixDir = 'D:\mixes\shannon\oneSpeaker15bps';

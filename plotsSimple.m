@@ -17,6 +17,18 @@ tfifCax = [-.99 .99];
 specCmap = easymap('bcyr', 255);
 specCax = [-100 5];
 
+[~,resFiles] = findFiles(inDir, 'fn=plotPbc', 0);
+for target = 1:length(resFiles)
+    res = load(fullfile(resFiles{target}, 'res.mat'));
+    res.pbc(isnan(res.pbc)) = 0;
+    
+    % Plot all correlations
+    for p = 1:size(res.mat,3)
+        outName = plotFileName('corr', p, resFiles{target});
+        plotSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels));
+    end
+end
+
 [~,resFiles] = findFiles(inDir, 'fn=plotTfctWrapper', 0);
 for target = 1:length(resFiles)
     res = load(fullfile(resFiles{target}, 'res.mat'));
@@ -45,7 +57,7 @@ for target = 1:length(resFiles)
         plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels));
     end
 end
-
+    
 function fileName = plotFileName(desc, p, target)
 [d fn] = fileparts(target);
 [~,utt] = fileparts(d);
