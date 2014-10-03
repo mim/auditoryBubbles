@@ -16,12 +16,14 @@ pcaDims = [100 1000];
 usePcaDims = 40;
 trimFrames = 15;
 overwrite = 0;
-hop_s = 0.016;         
+hop_s = 0.016;
+setLength_s = 0;
+maxFreq = 11050;
 
-mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq)
 
 for c = 1:length(inCsvFiles)
     resultFile = fullfile(resDir, sprintf('res_sub%d.mat', c));
     processListeningData(inCsvFiles{c}, resultFile, verbose, ignoreStimulusDir);
-    mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+    mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq)
 end

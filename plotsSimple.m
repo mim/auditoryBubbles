@@ -1,10 +1,11 @@
-function plotsSimple(inDir, outDir, fs, hop_s, toDisk, startAt)
+function plotsSimple(inDir, outDir, fs, hop_s, toDisk, startAt, maxFreq)
 
 % Make plots from tfct data files from expWarpExtensive.
 
 if ~exist('hop_s', 'var') || isempty(hop_s), hop_s = 0.016; end
 if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
 if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
+if ~exist('maxFreq', 'var') || isempty(maxFreq), maxFreq = inf; end
 allLabels = true;
 
 prt('ToFile', toDisk, 'StartAt', startAt, ...
@@ -25,7 +26,7 @@ for target = 1:length(resFiles)
     % Plot all correlations
     for p = 1:size(res.mat,3)
         outName = plotFileName('corr', p, resFiles{target});
-        plotSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels));
+        plotSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
 end
 
@@ -38,13 +39,13 @@ for target = 1:length(resFiles)
     % Plot all spectrograms
     for p = 1:size(res.clean,3)
         outName = plotFileName('spec', p, resFiles{target});
-        plotSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 0, 0, allLabels));
+        plotSpectrogram(res.clean(:,:,p), outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 0, 0, allLabels), maxFreq);
     end
     
     % Plot all TFIFs
     for p = 1:size(res.mat,3)
         outName = plotFileName('tfif', p, resFiles{target});
-        plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels));
+        plotSpectrogram(res.mat(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
     
     %noiseLevel = min(res.clean(:));  % not important -> min(clean) dB
@@ -54,7 +55,7 @@ for target = 1:length(resFiles)
     for p = 1:size(res.clean,3)
         selected = (res.clean(:,:,p) - noiseLevel) .* (res.mat(:,:,p) .* (res.mat(:,:,p) > 0)) + noiseLevel;
         outName = plotFileName('onSpec', p, resFiles{target});
-        plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels));
+        plotSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
 end
     
@@ -71,7 +72,7 @@ else
     labs = [y x c];
 end
 
-function plotSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels)
+function plotSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq)
 
 % Labels: [ylabel xlabel colorbar]
 clf  % Need this to make plots the right size for some reason...
@@ -91,6 +92,9 @@ if labels(1)
     ylabel(ylab)
 else
     set(gca, 'YTickLabel', {});
+end
+if maxFreq/1000 < max(f_khz),
+    ylim([0 maxFreq/1000])
 end
 
 xticks = 200:200:200*floor(max(t_ms)/200);

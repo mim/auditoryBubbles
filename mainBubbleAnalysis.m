@@ -1,4 +1,4 @@
-function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s)
+function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxPlotFreq)
 
 % Run several analysis steps together
 %
@@ -30,6 +30,7 @@ if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 0; end
 if ~exist('hop_s', 'var'), hop_s = ''; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
+if ~exist('maxPlotFreq', 'var') || isempty(maxPlotFreq), maxPlotFreq = inf; end
 
 % Figure out sampling rate for plots
 resultFileName = basename(resultFile, 0);
@@ -62,7 +63,7 @@ expWarpSimpleFromCache(resDir, cacheDir, usePcaDims);
 plotDir = fullfile(basePcaDir, 'plots', resultFileName);
 toDisk = 1;
 startAt = 0;
-plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt);
+plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt, maxPlotFreq);
 
 % Generate mixtures using TFCT as noise mask
 tfctWavOutDir = fullfile(basePcaDir, 'wavOut', resultFileName);
