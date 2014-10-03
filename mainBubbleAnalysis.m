@@ -1,4 +1,4 @@
-function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s)
 
 % Run several analysis steps together
 %
@@ -29,7 +29,7 @@ if ~exist('usePcaDims', 'var') || isempty(usePcaDims), usePcaDims = 40; end
 if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 0; end
 if ~exist('hop_s', 'var'), hop_s = ''; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
-setLength_s = 0;
+if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 
 % Figure out sampling rate for plots
 resultFileName = basename(resultFile, 0);
@@ -40,7 +40,7 @@ resultFileName = basename(resultFile, 0);
 extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
 
 % Collect PCA features for mixes of the same clean file
-trimDir = sprintf('trim=%d,length=%d', trimFrames, setLength_s);
+trimDir = sprintf('trim=%d,length=%g', trimFrames, setLength_s);
 pcaDir  = sprintf('pca_%ddims_%dfiles', pcaDims);
 baseTrimDir = fullfile(baseFeatDir, trimDir);
 basePcaDir = fullfile(baseTrimDir, pcaDir);

@@ -16,6 +16,11 @@ for target = 1:length(resPaths)
     baseFileName = baseFileNameFor(resFiles{target});
     fprintf('%d: %s\n', target, baseFileName);
     cleanWavFile = cleanWavFor(mixDir, baseFileName);
+    if ~exist('cleanWavFile', 'file')
+        fprintf('^^^ Skipping, clean file not found ^^^\n');
+        continue
+    end
+    
     nuOutFile = fullfile(outDir, [baseFileName 'noiseExceptImportant.wav']);
     niOutFile = fullfile(outDir, [baseFileName 'noiseOnlyImportant.wav']);
     suOutFile = fullfile(outDir, [baseFileName 'silenceExceptImportant.wav']);
