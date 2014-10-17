@@ -17,6 +17,14 @@ end
 grouped2 = groupBy(grouped, 7, @(x) mean([x{:}]), 5);
 labelHist([grouped2{:,5}], 0.2:.1:1, 'withinUserConsistency', analysisDir);
 
+% Inter-subject agreement of accuracies of repeated listenings
+nSubj = length(files);
+for j=1:nSubj
+    subjAcc(:,j) = [grouped2{j:nSubj:end,5}]';
+end
+plotmatrix(lim(subjAcc - 0.05*rand(size(subjAcc)), 0, 1), 'o');
+print('-dpng', fullfile(analysisDir, 'acrossUserAccCorr'))
+
 % Inter-subject agreement
 resultFile = 'D:\Box Sync\data\mrt\shannonResults\preExps\grouped_pre2.mat';
 verbose = 1;
@@ -24,6 +32,7 @@ verbose = 1;
 processListeningData(inCsvFiles, resultFile, verbose);
 load(resultFile)
 labelHist([grouped{:,5}], 0.2:0.2:1, 'acrossUserConsistency', analysisDir);
+
 
 % Do bubbles processing on combined pre2 data
 mixDir = 'D:\mixes\shannon\oneSpeaker15bps';
@@ -40,8 +49,28 @@ mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims
 for i = 1:length(inCsvFiles)
     resultFile = fullfile('D:\Box Sync\data\mrt\shannonResults\preExps', sprintf('grouped_pre2sub%d.mat', i));
     processListeningData(inCsvFiles{i}, resultFile, verbose);
+    load(resultFile);
+    listenerCorrect(:,i) = [grouped{:,5}]';
+    listenerResponse(:,i) = grouped(:,4);
     mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
 end
+listenerResponse = cellfun(@(x) x{1}, listenerResponse, 'UniformOutput', false);
+
+% Inter-subject Cohen's kappa
+kr = zeros(size(listenerResponse,2));
+kc = zeros(size(listenerResponse,2));
+for i = 1:size(listenerResponse,2)
+    for j = i+1:size(listenerResponse,2)
+        kr(i,j) = kappa(confusionmat(listenerResponse(:,i), listenerResponse(:,j)));
+        kc(i,j) = kappa(confusionmat(listenerCorrect(:,i), listenerCorrect(:,j)));
+    end
+end
+disp('Kappa for listener correctness')
+kc
+
+disp('Kappa for listener responses')
+kr
+
 
 % Do bubbles processing on pre2 data merged with previous data
 % TODO: do this
