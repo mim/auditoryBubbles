@@ -1,5 +1,8 @@
 function chopShannonFile(continuousFile, outDir, minDur_s, noiseFloor_db, maxPause_s)
 
+% Chop individual words out of a single long recording of words separated
+% by pauses.  Sort resulting files by duration.
+
 if ~exist('noiseFloor_db', 'var') || isempty(noiseFloor_db), noiseFloor_db = -30; end
 if ~exist('maxPause_s', 'var') || isempty(maxPause_s), maxPause_s = 0.5; end
 if ~exist('minDur_s', 'var') || isempty(minDur_s), minDur_s = 0.2; end
@@ -44,6 +47,6 @@ for i = 1:length(keep)
 end
 
 for i = 1:length(keep)
-    outFile = fullfile(outDir, sprintf('%s_%02d_%02d.wav', basename(continuousFile, 0), i, keep(i)));
+    outFile = fullfile(outDir, sprintf('%s_%03d_%03d.wav', basename(continuousFile, 0), i, keep(i)));
     wavWriteBetter(x(starts(keep(i)):stops(keep(i)),:), fs, outFile);
 end
