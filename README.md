@@ -100,5 +100,7 @@ usePcaDims = 40;
 trimFrames = 15;
 overwrite = 0;
 hop_s = 0.016;         % this is the default hop size used in the analysis
-mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+setLength_s = 0;
+maxFreq_hz = 10000;
+mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq_hz)
 ```

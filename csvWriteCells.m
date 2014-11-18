@@ -12,7 +12,10 @@ function csvWriteCells(fileName, lines, writeMode)
 if ~exist('writeMode', 'var') || isempty(writeMode), writeMode = 'w'; end
 
 ensureDirExists(fileName)
-f = fopen(fileName, writeMode);
+[f message] = fopen(fileName, writeMode);
+if f < 0
+    error('Error opening "%s": %s', fileName, message)
+end
 for i = 1:length(lines)
     fprintf(f, '"%s"\n', join(strrep(lines{i}, '"', '\"'), '","'));
 end
