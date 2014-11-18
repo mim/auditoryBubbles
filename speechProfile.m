@@ -24,6 +24,10 @@ elseif noiseShape == 3
     refFile = fullfile(bubbleDataRoot, 'mrt/instrumentsSingle/calibration/all.wav');
     refQuantile = 0.98;
     smoothCoef = 0.995;
+elseif noiseShape == 4;
+    refFile = fullfile(bubbleDataRoot, 'mrt/mimWithPitt/combined.wav');
+    refQuantile = 0.97;
+    smoothCoef = 0.97;
 else
     refFile = fullfile(bubbleDataRoot, 'mrt/shannon/speechRef.wav');
     refQuantile = 0.97;
