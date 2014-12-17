@@ -18,26 +18,22 @@ noiseSpec = genMaskedSsn(dur_s, sr, [], window_s, hopFrac, noiseShape);
 
 suppressHolesTo_db = -80;
 
-% Convert from seconds to samples, make sure it's odd
-nFft = (nF-1)*2;
-hop  = round(hopFrac * nFft);
-nBubbles = round(dur_s * bubblesPerSec);
+if isfinite(bubblesPerSec)
+    % Convert from seconds to samples, make sure it's odd
+    nFft = (nF-1)*2;
+    hop  = round(hopFrac * nFft);
+    nBubbles = round(dur_s * bubblesPerSec);
 
-mask = zeros(nF, nT);
+    freqVec_hz = (0:nF-1) * sr / nFft;
+    freqVec_erb = hz2erb(freqVec_hz);
+    %freqVec_mel = hz2mel(freqVec_hz);
 
-freqVec_hz = (0:nF-1) * sr / nFft;
-freqVec_erb = hz2erb(freqVec_hz);
-%freqVec_mel = hz2mel(freqVec_hz);
-timeVec_s  = ((1:nT) - 0.5) * hop / sr;
+    maxMel = max(nonzeros(freqVec_erb));
+    minMel = min(nonzeros(freqVec_erb));
 
-[times_s freqs_erb] = meshgrid(timeVec_s, freqVec_erb);
-maxMel = max(nonzeros(freqVec_erb));
-minMel = min(nonzeros(freqVec_erb));
+    maxMelPad = max(0.5*(maxMel+minMel), maxMel - sizeF_erb*2);
+    minMelPad = min(0.5*(maxMel+minMel), minMel + sizeF_erb*2);
 
-maxMelPad = max(0.5*(maxMel+minMel), maxMel - sizeF_erb*2);
-minMelPad = min(0.5*(maxMel+minMel), minMel + sizeF_erb*2);
-
-if isfinite(nBubbles)
     if randomness == 0
         bubbleF_erb = linspace(minMelPad, maxMelPad, nBubbles);
         bubbleT_s   = linspace(0, dur_s, nBubbles+2);
@@ -56,7 +52,10 @@ if isfinite(nBubbles)
         bubbleF_erb = randomNumbers(1,:)*(maxMelPad-minMelPad) + minMelPad;
         bubbleT_s   = randomNumbers(2,:)*dur_s;
     end
-
+    
+    timeVec_s  = ((1:nT) - 0.5) * hop / sr;
+    [times_s freqs_erb] = meshgrid(timeVec_s, freqVec_erb);
+    mask = zeros(nF, nT);
     for i = 1:nBubbles
         bumpDb = -(times_s - bubbleT_s(i)).^2 / sizeT_s.^2 ...
                  - (freqs_erb - bubbleF_erb(i)).^2 / sizeF_erb.^2;
@@ -65,7 +64,7 @@ if isfinite(nBubbles)
     end
 else
     % Infinite bubbles
-    mask = 10.^(60/20) * ones(size(mask));
+    mask = 10.^(60/20) * ones(nF, nT);
 end
 
 if makeHoles
