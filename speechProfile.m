@@ -25,7 +25,7 @@ elseif noiseShape == 3
     refQuantile = 0.98;
     smoothCoef = 0.995;
 elseif noiseShape == 4;
-    refFile = fullfile(bubbleDataRoot, 'mrt/mimWithPitt/combined.wav');
+    refFile = fullfile(bubbleDataRoot, 'mrt/pitt/combined.wav');
     refQuantile = 0.97;
     smoothCoef = 0.97;
 else
@@ -43,7 +43,7 @@ p = profiles.(fieldName);
 
 
 function q = profileFromWav(refFile, sr, nFft, nHop, refQuantile, smoothCoef)
-[x srRef] = wavread(refFile);
+[x srRef] = wavReadBetter(refFile);
 x = mean(x,2);
 x = resample(x, sr, srRef);
 X = stft(x', nFft, nFft, nHop);
