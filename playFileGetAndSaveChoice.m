@@ -1,6 +1,9 @@
-function [correct incorrect] = playFileGetAndSaveChoice(file, rightAnswer, ...
+function [correct incorrect picked] = playFileGetAndSaveChoice(file, rightAnswer, ...
     outCsvFile, subjectName, words, choiceNums, allowRepeats, ...
     giveFeedback, correct, incorrect, curIter, totalIters)
+
+% Play a wav file and get the listener's guess as to which of a set of
+% words they heard.  Saves results in csv file using csvWriteCells.
 
 % Print prompt
 fprintf('\n')

@@ -1,6 +1,6 @@
-function [mix clean fs response bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, choices, noiseShape, maxFreq_hz, window_s, hopFrac)
+function [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, noiseShape, maxFreq_hz, window_s, hopFrac)
 
-% Play an interactive bubble game with a single wav file
+% Generate bubble mixture from GUI interaction with user
 
 if ~exist('window_s', 'var') || isempty(window_s), window_s = 0.064; end
 if ~exist('hopFrac', 'var') || isempty(hopFrac), hopFrac = 0.25; end
@@ -45,13 +45,6 @@ end
 [~,~,noise] = genMaskedSsn(dur_s, fs, mask, window_s, hopFrac, noiseShape);
 mix = 10^(scale_dB/20) * (10^(snr_db/20) * x + noise);
 clean = 10^(scale_dB/20) * 10^(snr_db/20) * x;
-
-% Get response
-response = '';
-while isempty(response)
-    sound(mix, fs);
-    response = input('Which word did you hear? ', 's');
-end
 
 
 function showMaskedSpecSep(X, mask, timeVec_s, freqVec_hz, maxFreq_hz, cx)
