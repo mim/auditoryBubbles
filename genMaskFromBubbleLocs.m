@@ -3,7 +3,7 @@ function mask = genMaskFromBubbleLocs(nF, nT, freqVec_erb, ...
 
 if ~exist('makeHoles', 'var') || isempty(makeHoles), makeHoles = false; end
 if ~exist('sizeF_erb', 'var') || isempty(sizeF_erb), sizeF_erb = 0.4; end
-if ~exist('sizeT_s', 'var') || isempty(sizeT_s), sizeT_s  = 0.04; end
+if ~exist('sizeT_s', 'var') || isempty(sizeT_s), sizeT_s  = 0.02; end
 
 suppressHolesTo_db = -80;
 
