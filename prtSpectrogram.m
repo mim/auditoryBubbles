@@ -1,4 +1,4 @@
-function prtSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq)
+function prtSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq_hz)
 
 % Labels: [ylabel xlabel colorbar]
 clf  % Need this to make plots the right size for some reason...
@@ -12,16 +12,25 @@ imagesc(t_ms, f_khz, X)
 caxis(cax)
 axis xy
 axis tight
-set(gca, 'YTick', [2:2:fs/2000-1]);
+
+maxFreq_khz = min(maxFreq_hz/1000, max(f_khz));
+
+if maxFreq_khz > 10
+    yt = 2:2:maxFreq_khz-1e-3;
+elseif maxFreq_khz > 5
+    yt = 0.5:0.5:maxFreq_khz-1e-3;
+else
+    yt = 0.2:0.2:maxFreq_khz-1e-3;
+end
+
+set(gca, 'YTick', yt);
 if labels(1)
-    set(gca, 'YTickLabel', [2:2:fs/2000-1]);
+    set(gca, 'YTickLabel', yt);
     ylabel(ylab)
 else
     set(gca, 'YTickLabel', {});
 end
-if maxFreq/1000 < max(f_khz),
-    ylim([0 maxFreq/1000])
-end
+ylim([0 maxFreq_khz])
 
 xticks = 200:200:200*floor(max(t_ms)/200);
 set(gca, 'XTick', xticks);
