@@ -1,4 +1,4 @@
-function [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, noiseShape, maxFreq_hz, window_s, hopFrac)
+function [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, playAll, noiseShape, maxFreq_hz, window_s, hopFrac)
 
 % Generate bubble mixture from GUI interaction with user
 
@@ -6,13 +6,14 @@ if ~exist('window_s', 'var') || isempty(window_s), window_s = 0.064; end
 if ~exist('hopFrac', 'var') || isempty(hopFrac), hopFrac = 0.25; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 if ~exist('maxFreq_hz', 'var'), maxFreq_hz = []; end
+if ~exist('playAll', 'var') || isempty(playAll), playAll = false; end
 
 sizeF_erb = [];
 sizeT_s   = [];
 makeHoles = true;
 normalizeClean = true;
 cx = [-80 30];
-scale_dB = 6;
+scale_db = 6;
 
 [x fs] = loadCleanWav(wavFile, dur_s, normalizeClean, -1);
 
@@ -39,12 +40,16 @@ while true
   mask = genMaskFromBubbleLocs(nF, nT, freqVec_erb, timeVec_s, bubbleF_erb, ...
       bubbleT_s, sizeT_s, sizeF_erb, makeHoles);
   showMaskedSpec(X, mask, timeVec_s, freqVec_hz, maxFreq_hz, cx)
+  
+  if playAll
+      % Play sounds as you go
+      mix = generateSound(x, dur_s, fs, mask, snr_db, scale_db, window_s, hopFrac, noiseShape);
+      sound(mix, fs)
+  end
 end
 
 % Generate sound
-[~,~,noise] = genMaskedSsn(dur_s, fs, mask, window_s, hopFrac, noiseShape);
-mix = 10^(scale_dB/20) * (10^(snr_db/20) * x + noise);
-clean = 10^(scale_dB/20) * 10^(snr_db/20) * x;
+[mix clean] = generateSound(x, dur_s, fs, mask, snr_db, scale_db, window_s, hopFrac, noiseShape);
 
 
 function showMaskedSpecSep(X, mask, timeVec_s, freqVec_hz, maxFreq_hz, cx)
@@ -69,3 +74,9 @@ v = 1 - 0.5 * rescaledMask;
 rgb = hsv2rgb(cat(3,h,s,v));
 image(timeVec_s, freqVec_hz, rgb);
 axis xy; ylim([0 maxFreq_hz]);
+
+
+function [mix clean noise] = generateSound(x, dur_s, fs, mask, snr_db, scale_db, window_s, hopFrac, noiseShape)
+[~,~,noise] = genMaskedSsn(dur_s, fs, mask, window_s, hopFrac, noiseShape);
+mix = 10^(scale_db/20) * (10^(snr_db/20) * x + noise);
+clean = 10^(scale_db/20) * 10^(snr_db/20) * x;
