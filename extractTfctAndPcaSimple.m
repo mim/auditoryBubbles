@@ -15,9 +15,7 @@ function extractTfctAndPcaSimple(outDir, featDir, groupedFeatDir, pcaDataFile, g
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 
-cleanFiles  = findFiles(featDir, 'bpsInf');
-pcaFiles    = findFiles(groupedFeatDir, 'snr-\d+_.mat');
-cleanFiles  = matchCleanToPcaFiles(pcaFiles, cleanFiles);
+pcaFiles = findFiles(groupedFeatDir, '\.mat');
 
 for target = 1:length(pcaFiles)
     outFile = fullfile(outDir, sprintf('target=%s',basename(pcaFiles{target},0,0)), ...
@@ -26,10 +24,25 @@ for target = 1:length(pcaFiles)
         fprintf('Skipping %s\n', outFile)
         continue
     end
+
+    pcaFileInfo = load(fullfile(groupedFeatDir, pcaFiles{target}));
+    Xte = pcaFileInfo.pcaFeat;
+    yte = pcaFileInfo.isRight;
+    origShape = pcaFileInfo.origShape;
+    clean = reshape(pcaFileInfo.cleanFeat.cleanFeat, pcaFileInfo.cleanFeat.origShape);
+    warped = zeros(length(yte), prod(origShape));
+    for f = 1:length(pcaFileInfo.files)
+        wTmp = load(fullfile(featDir, pcaFileInfo.files{f}));
+        warped(f,:) = wTmp.features;
+    end
     
-    [~,~,Xte,yte,ytem,mNames,warped,~,origShape,clean,warpDist,mfccDist,startDist] = ...
-        crossUtWarp(fullfile(groupedFeatDir, pcaFiles{target}), ...
-        fullfile(featDir, cleanFiles{target}), pcaDataFile, groupedFile, 0);
+    % These are not right, just temporarily set to something...
+    ytem = pcaFileInfo.fracRight;  % should be the listener's selections
+    mNames = {'1'};                % should be equivalence classes of selections
+    
+    %[~,~,Xte,yte,ytem,mNames,warped,~,origShape,clean,warpDist,mfccDist,startDist] = ...
+    %    crossUtWarp(fullfile(groupedFeatDir, pcaFiles{target}), ...
+    %    fullfile(featDir, cleanFiles{target}), pcaDataFile, groupedFile, 0);
     
     if size(Xte,1) == 0
         fprintf('Skipping %s\n', outFile);
