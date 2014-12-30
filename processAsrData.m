@@ -45,6 +45,7 @@ for lmwti = 1:length(transFiles)
         printStatus('.');
         cleanId = cleanIdList{c};
         groupIdx = find(cleanGroup == c);
+        %printStatus(sprintf('%g ', mean([correctness{groupIdx}])))
         
         % Get words and make sure they're the same for all files with the
         % same clean id
@@ -54,8 +55,8 @@ for lmwti = 1:length(transFiles)
         end
 
         for w = 1:length(gtWordsNow)
-            resultFile = sprintf('%02d_%s.mat', w, gtWordsNow{w});
-            resultPath = fullfile(outResultDir, model, ['clean=' cleanId], ['lmwt=' lmwts], resultFile);
+            resultFile = sprintf('clean=%s_lmwt=%s_%02d_%s.mat', cleanId, lmwts, w, gtWordsNow{w});
+            resultPath = fullfile(outResultDir, model, resultFile);
             
             grouped = cell(length(groupIdx), 6);
             for n = 1:length(groupIdx)
@@ -71,7 +72,7 @@ for lmwti = 1:length(transFiles)
             end
             digested = grouped;
             equivClasses = [];
-            responseCounts = ones(size(grouped,1),1);
+            responseCounts = nan*ones(size(grouped,1),1);
             
             ensureDirExists(resultPath);
             save(resultPath, 'grouped', 'digested', 'gtWordsNow', 'cleanId', 'equivClasses', 'responseCounts');
