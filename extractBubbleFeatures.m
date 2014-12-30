@@ -1,4 +1,4 @@
-function extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
+function [basePcaDir outFeatDir] = extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
 
 % Extract features from all bubble mixtures
 %
@@ -36,22 +36,24 @@ ignoreErrors = 0;
 trimDir = sprintf('trim=%02d,length=%g', trimFrames, setLength_s);
 pcaDir = sprintf('pca_%ddims_%dfiles', pcaDims);
 outFeatDir = fullfile(outDir, trimDir, 'feat');
-pcaFile    = fullfile(outDir, trimDir, pcaDir, 'data.mat');
-outPcaDir  = fullfile(outDir, trimDir, pcaDir, 'feat');
+basePcaDir = fullfile(outDir, trimDir, pcaDir);
+pcaFile    = fullfile(basePcaDir, 'data.mat');
+outPcaDir  = fullfile(basePcaDir, 'feat');
 
 if iscell(filesOrPattern)
     wavFiles = filesOrPattern;
 else
     wavFiles = findFiles(inDir, filesOrPattern); 
 end
+noisyToCleanFn = findNoisyToCleanFn(inDir, wavFiles{1});
 
 disp('Extracting bubble features for every file')
-effn =  @(ip,op,fn) ef_bubbleFeatures(ip,op,fn, trimFrames, setLength_s, noiseShape, overwrite);
+effn =  @(ip,op,f) ef_bubbleFeatures(ip,op, noisyToCleanFn, trimFrames, setLength_s, noiseShape, overwrite);
 status = extractFeatures(inDir, outFeatDir, 'mat', wavFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
 
-matFiles = strrep(wavFiles, '.wav', '.mat');
-
+matFiles = regexprep(wavFiles, '.wav$', '.mat');
+    
 if ~exist(pcaFile, 'file') || overwrite
     disp('Loading files for PCA')
     for f = 1:min(pcaDims(2), length(wavFiles))
@@ -76,16 +78,16 @@ else
 end
 
 disp('Augmenting computed features with PCA features')
-effn =  @(ip,op,fn) ef_pcaFeatures(ip,op,fn, pcs, mu, sig, pcaFile);
+effn =  @(ip,op,f) ef_pcaFeatures(ip,op, pcs, mu, sig, pcaFile);
 status = extractFeatures(outFeatDir, outPcaDir, 'mat', matFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
 
 
 
-function ef_bubbleFeatures(ip, op, fn, trimFrames, setLength_s, noiseShape, overwrite)
+function ef_bubbleFeatures(ip, op, noisyToCleanFn, trimFrames, setLength_s, noiseShape, overwrite)
 
-cleanWavFile = regexprep(regexprep(ip, 'bps\d+', 'bpsInf'), '\d+.wav', '000.wav');
-cleanMatFile = regexprep(regexprep(op, 'bps\d+', 'bpsInf'), '\d+.mat', '000.mat');
+cleanWavFile = noisyToCleanFn(ip);
+cleanMatFile = noisyToCleanFn(op);
 
 [clean fs nfft] = loadSpecgramBubbleFeats(cleanWavFile, setLength_s);
 [mix   fs nfft] = loadSpecgramBubbleFeats(ip, setLength_s);
@@ -98,10 +100,40 @@ end
 save(op, 'features', 'weightVec', 'origShape', 'fs', 'nfft', 'trimFrames', 'noiseShape')
 
 
-function ef_pcaFeatures(ip, op, fn, pcs, mu, sig, pcaFile)
+function ef_pcaFeatures(ip, op, pcs, mu, sig, pcaFile)
 load(ip)
 weights = reshape(repmat(weightVec, 1, origShape(2)), size(features));
 features = bsxfun(@times, bsxfun(@minus, features, mu), weights ./ sig);
 pcaFeat = features * pcs;
 save(op, 'pcaFeat', 'origShape', 'weightVec', 'fs', 'nfft', ...
     'trimFrames', 'noiseShape', 'pcaFile');
+
+
+% Functions to map noisy paths to clean paths.  The system will try each of
+% these in turn and pick the first one that leads to an existing file. Need
+% to add the function pointer to the cell array tryFns in
+% findNoisyToCleanFn below. 
+function cleanPath = mapBubblePathToCleanPath(bubblePath)
+cleanPath = regexprep(regexprep(bubblePath, 'bps\d+', 'bpsInf'), '\d+\.([a-zA-Z]+)', '000.$1');
+
+function cleanPath = mapNoisyAsrPathToCleanPath(noisyAsrPath)
+cleanPath = regexprep(noisyAsrPath, 'noisy', 'clean');
+
+
+function noisyToCleanFn = findNoisyToCleanFn(inDir, wavFile)
+
+% Add new functions to this cell array:
+tryFns = { @mapBubblePathToCleanPath, @mapNoisyAsrPathToCleanPath };
+
+noisyToCleanFn = [];
+noisyFile = fullfile(inDir, wavFile);
+for n = 1:length(tryFns)
+    cleanFile = tryFns{n}(noisyFile);
+    if exist(cleanFile, 'file')
+        noisyToCleanFn = tryFns{n};
+        break;
+    end
+end
+if isempty(noisyToCleanFn)
+    error('No working noisy-to-clean function found (perhaps you haven''t generated bpsInf files?)');
+end

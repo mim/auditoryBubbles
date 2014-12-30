@@ -38,14 +38,9 @@ resultFileName = basename(resultFile, 0);
 [~,fs] = wavread(mixFiles{1});
 
 % Extract features from mixtures
-extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
+[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite);
 
 % Collect PCA features for mixes of the same clean file
-trimDir = sprintf('trim=%d,length=%g', trimFrames, setLength_s);
-pcaDir  = sprintf('pca_%ddims_%dfiles', pcaDims);
-baseTrimDir = fullfile(baseFeatDir, trimDir);
-basePcaDir = fullfile(baseTrimDir, pcaDir);
-featDir = fullfile(baseTrimDir, 'feat');
 pcaFeatDir = fullfile(basePcaDir, 'feat');
 groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
 collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite);
