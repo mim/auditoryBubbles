@@ -1,10 +1,10 @@
-function processAsrData(inKaldiDir, outResultDir)
+function processAsrData(inKaldiDir, outResultDir, noisyIdChars)
 
 % Like processListeningData, but for ASR results from kaldi.  Outputs a
 % directory of results files (one for each word in each clean file) instead
 % of just one.
 %
-% processAsrData(inKaldiDir, outResultDir)
+% processAsrData(inKaldiDir, outResultDir, [noisyIdChars])
 %
 % inKaldiDir should be the directory in exp of one asr system, e.g.,
 % /data/data8/scratch/mandelm/kaldi/chime-wsj0-s5-bubbles20-avg/exp/tri3b 
@@ -15,6 +15,8 @@ function processAsrData(inKaldiDir, outResultDir)
 %
 % Each result file is an Nx6 cell array with fields: 
 %   model, [blank], noisyFile, guess, isCorrect, rightAnswer
+
+if ~exist('noisyIdChars', 'var') || isempty(noisyIdChars), noisyIdChars = 8; end
 
 scoringDir = fullfile(inKaldiDir, 'decode_tgpr_dev_dt_05_noisy/scoring/');
 [~,transFiles] = findFiles(scoringDir, '\d+.txt');
@@ -34,13 +36,13 @@ for lmwti = 1:length(transFiles)
     assert(length(gtLines) == length(noisyLines))
     
     for i = 1:length(noisyLines)-1
-        [cleanIds{i} noisyIds{i} gtWords{i} correctness{i}] = compareLine(gtLines{i}, noisyLines{i});
+        [cleanIds{i} noisyIds{i} gtWords{i} correctness{i}] = compareLine(gtLines{i}, noisyLines{i}, noisyIdChars);
     end
     
     % Create one results file per cleanId and word (and lwt)
     [cleanIdList,~,cleanGroup] = unique(cleanIds);
     for c = 1:length(cleanIdList)
-        fprintf('.');
+        printStatus('.');
         cleanId = cleanIdList{c};
         groupIdx = find(cleanGroup == c);
         
@@ -68,16 +70,18 @@ for lmwti = 1:length(transFiles)
                 grouped(n,:) = {model, '', noisyFile, guess, isCorrect, gtWordsNow{w}};
             end
             digested = grouped;
+            equivClasses = [];
+            responseCounts = ones(size(grouped,1),1);
             
             ensureDirExists(resultPath);
-            save(resultPath, 'grouped', 'digested', 'gtWordsNow', 'cleanId');
+            save(resultPath, 'grouped', 'digested', 'gtWordsNow', 'cleanId', 'equivClasses', 'responseCounts');
         end
     end
-    fprintf('\n')
+    printStatus('\n')
 end
 
 
-function [cleanId noisyId gtWords correctness] = compareLine(gtLine, noisyLine)
+function [cleanId noisyId gtWords correctness] = compareLine(gtLine, noisyLine, noisyIdChars)
 % Compare a ground truth transcript line with a noisy transcript line.
 % Lines should start with utterance IDs, as used by kaldi, which should be
 % space-separated from the words, which should be all-caps and
@@ -86,25 +90,30 @@ gtWords = split(gtLine, ' ');
 noisyWords = split(noisyLine, ' ');
 
 noisyId = noisyWords{1};
-cleanId = noisyToCleanId(gtWords{1});
+cleanId = noisyToCleanId(gtWords{1}, noisyIdChars);
 
 gtWords = gtWords(2:end);
 noisyWords = noisyWords(2:end);
 
-cost = zeros(length(noisyWords), length(gtWords));
-for i = 1:length(gtWords)
-    cost(:,i) = 1 - strcmp(gtWords{i}, noisyWords);
-end
-
-[p,q] = dp(cost);
-% q is for gtWords, p for noisyWords
-correctness = false(size(gtWords));
-for qv = 1:length(gtWords)
-    % If the alignment of the noisy transcript with the clean includes the
-    % target clean word, then it is classified as correct.  This "any" is
-    % susceptible to over-production of words, so insertions are not
-    % penalized at all.
-    correctness(qv) = any(strcmp(gtWords(q(q ==qv)), noisyWords(p(q == qv))));
+if (length(gtWords) == length(noisyWords)) && all(strcmp(gtWords, noisyWords))
+    % Shortcut: avoid dynamic programming if they are equal
+    correctness = ones(size(gtWords));
+else
+    cost = zeros(length(noisyWords), length(gtWords));
+    for i = 1:length(gtWords)
+        cost(:,i) = 1 - strcmp(gtWords{i}, noisyWords);
+    end
+    
+    [p,q] = dp(cost);
+    % q is for gtWords, p for noisyWords
+    correctness = false(size(gtWords));
+    for qv = 1:length(gtWords)
+        % If the alignment of the noisy transcript with the clean includes the
+        % target clean word, then it is classified as correct.  This "any" is
+        % susceptible to over-production of words, so insertions are not
+        % penalized at all.
+        correctness(qv) = any(strcmp(gtWords(q(q ==qv)), noisyWords(p(q == qv))));
+    end
 end
 1+1;
 
