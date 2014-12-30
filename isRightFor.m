@@ -5,14 +5,14 @@ function [isRight fracRight files responseCounts equivClasses] = isRightFor(file
 
 load(groupedFile, 'grouped', 'equivClasses', 'responseCounts');
 ansFile = strrep(grouped(:,3), '\', filesep);
-ansFile = strrep(ansFile, '.wav', '.mat');
+ansFile = regexprep(ansFile, '.wav$', '.mat');
 fracRight = grouped(:,5);
 
 % Match files to ansFile to get fracRight
 keep  = false(size(files));
 match = zeros(size(files));
 for f = 1:length(files)
-    ind = find(strcmp(files{f}, ansFile));
+    ind = find(reMatch(ansFile, sprintf('(^|%s)%s$', filesep, files{f})));
     if length(ind) == 1
         keep(f)  = true;
         match(f) = ind;
@@ -25,7 +25,8 @@ if ~all(keep)
     warning('Only keeping %d of %d files', sum(keep), length(keep));
     %assert(all(keep))
 end
-assert(all(strcmp(files(keep), ansFile(match(keep)))))
+% % replace with ends-with assertion...
+%assert(all(strcmp(files(keep), ansFile(match(keep)))))
 files     = files(keep);
 fracRight = cell2mat(fracRight(match(keep)));
 isRight   = (fracRight >= 0.9) - (fracRight <= 0.6);

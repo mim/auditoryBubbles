@@ -1,4 +1,4 @@
-function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxPlotHz)
+function mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxPlotHz, condition)
 
 % Run several analysis steps together
 %
@@ -31,6 +31,7 @@ if ~exist('hop_s', 'var'), hop_s = ''; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 if ~exist('maxPlotHz', 'var') || isempty(maxPlotHz), maxPlotHz = inf; end
+if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
 
 % Figure out sampling rate for plots
 resultFileName = basename(resultFile, 0);
@@ -43,7 +44,7 @@ resultFileName = basename(resultFile, 0);
 % Collect PCA features for mixes of the same clean file
 pcaFeatDir = fullfile(basePcaDir, 'feat');
 groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
-collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite);
+collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite, condition);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
 cacheDir = fullfile(basePcaDir, 'cache', resultFileName);

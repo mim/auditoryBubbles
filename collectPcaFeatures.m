@@ -1,4 +1,4 @@
-function collectPcaFeatures(pcaDir, groupedFile, outDir, overwrite)
+function collectPcaFeatures(pcaDir, groupedFile, outDir, overwrite, condition)
 
 % Collect output of extractBubbleFeatures and match up with user results
 %
@@ -12,14 +12,26 @@ function collectPcaFeatures(pcaDir, groupedFile, outDir, overwrite)
 %   groupedFile  mat file with output of processListeningData()
 %   outDir       directory to write PCA .mat file and 
 %   overwrite    if 0, do not overwrite existing files
+%   condition    used to group files with the same clean speech {'bubbles','remix'}
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
+if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
 
 [isRight fracRight files responseCounts equivClasses] = ...
-    isRightFor(findFiles(pcaDir, '\d+.mat'), groupedFile);
+    isRightFor(findFiles(pcaDir, '\.mat$'), groupedFile);
 
 % Group by word, load PCA features
-word  = regexprep(files, '\d+.mat', '');
+switch condition
+    case {'bubbles', 'bubble'}
+        % Noise instance appends a number at the end
+        word = regexprep(files, '\d+.mat', '');
+    case {'remix', 'chime', 'chime2', 'asr'}
+        % Noise instance prepends the file the noise came from as a directory
+        word = listMap(@(x) basename(x, 0, 1), files);
+    otherwise
+        error('Uknown condition: %s', condition)
+end
+
 [words,~,wi] = unique(word);
 for w = 1:length(words)
     use = (wi == w);
@@ -51,5 +63,9 @@ save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', ...
 
 function cf = cleanFileName(word, pcaDir)
 d = fileparts(fileparts(pcaDir(1:end-1)));
-fileName = [regexprep(word, 'bps\d+', 'bpsInf') '000.mat'];
-cf = fullfile(d, 'feat', fileName);
+if reMatch(word, 'bps\d+')
+    fileName = [regexprep(word, 'bps\d+', 'bpsInf') '000'];
+else
+    fileName = word;
+end
+cf = fullfile(d, 'feat', [fileName '.mat']);
