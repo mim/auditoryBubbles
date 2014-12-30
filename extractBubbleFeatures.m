@@ -45,7 +45,7 @@ if iscell(filesOrPattern)
 else
     wavFiles = findFiles(inDir, filesOrPattern); 
 end
-noisyToCleanFn = findNoisyToCleanFn(inDir, wavFiles{1});
+noisyToCleanFn = findNoisyToCleanFn(fullfile(inDir, wavFiles{1}));
 
 disp('Extracting bubble features for every file')
 effn =  @(ip,op,f) ef_bubbleFeatures(ip,op, noisyToCleanFn, trimFrames, setLength_s, noiseShape, overwrite);
@@ -95,6 +95,7 @@ cleanMatFile = noisyToCleanFn(op);
     bubbleFeatures(clean, mix, fs, nfft, noiseShape, trimFrames);
 
 if ~exist(cleanMatFile, 'file') || overwrite
+    ensureDirExists(cleanMatFile)
     save(cleanMatFile, 'cleanFeat', 'origShape', 'fs', 'nfft', 'trimFrames', 'weightVec', 'noiseShape');
 end
 save(op, 'features', 'weightVec', 'origShape', 'fs', 'nfft', 'trimFrames', 'noiseShape')
@@ -107,33 +108,3 @@ features = bsxfun(@times, bsxfun(@minus, features, mu), weights ./ sig);
 pcaFeat = features * pcs;
 save(op, 'pcaFeat', 'origShape', 'weightVec', 'fs', 'nfft', ...
     'trimFrames', 'noiseShape', 'pcaFile');
-
-
-% Functions to map noisy paths to clean paths.  The system will try each of
-% these in turn and pick the first one that leads to an existing file. Need
-% to add the function pointer to the cell array tryFns in
-% findNoisyToCleanFn below. 
-function cleanPath = mapBubblePathToCleanPath(bubblePath)
-cleanPath = regexprep(regexprep(bubblePath, 'bps\d+', 'bpsInf'), '\d+\.([a-zA-Z]+)', '000.$1');
-
-function cleanPath = mapNoisyAsrPathToCleanPath(noisyAsrPath)
-cleanPath = regexprep(noisyAsrPath, 'noisy', 'clean');
-
-
-function noisyToCleanFn = findNoisyToCleanFn(inDir, wavFile)
-
-% Add new functions to this cell array:
-tryFns = { @mapBubblePathToCleanPath, @mapNoisyAsrPathToCleanPath };
-
-noisyToCleanFn = [];
-noisyFile = fullfile(inDir, wavFile);
-for n = 1:length(tryFns)
-    cleanFile = tryFns{n}(noisyFile);
-    if exist(cleanFile, 'file')
-        noisyToCleanFn = tryFns{n};
-        break;
-    end
-end
-if isempty(noisyToCleanFn)
-    error('No working noisy-to-clean function found (perhaps you haven''t generated bpsInf files?)');
-end
