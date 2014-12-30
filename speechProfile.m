@@ -24,9 +24,13 @@ elseif noiseShape == 3
     refFile = fullfile(bubbleDataRoot, 'mrt/instrumentsSingle/calibration/all.wav');
     refQuantile = 0.98;
     smoothCoef = 0.995;
-elseif noiseShape == 4;
+elseif noiseShape == 4
     refFile = fullfile(bubbleDataRoot, 'mrt/pitt/combined.wav');
     refQuantile = 0.97;
+    smoothCoef = 0.97;
+elseif noiseShape == 22
+    refFile = fullfile(bubbleDataRoot, 'mrt/whiteNoise.wav');
+    refQuantile = 0.5;
     smoothCoef = 0.97;
 else
     refFile = fullfile(bubbleDataRoot, 'mrt/shannon/speechRef.wav');
@@ -50,3 +54,4 @@ X = stft(x', nFft, nFft, nHop);
 q = quantile(abs(X), refQuantile, 2);
 q = filtfilt(1-smoothCoef, [1 -smoothCoef], q);
 q = q / max(q);
+1+1;
