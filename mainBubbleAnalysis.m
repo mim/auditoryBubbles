@@ -35,11 +35,11 @@ if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
 
 % Figure out sampling rate for plots
 resultFileName = basename(resultFile, 0);
-[~,mixFiles] = findFiles(mixDir, pattern);
-[~,fs] = wavread(mixFiles{1});
+[mixFiles,mixPaths] = findFiles(mixDir, pattern);
+[~,fs] = wavread(mixPaths{1});
 
 % Extract features from mixtures
-[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, pattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite);
+[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, noiseShape, overwrite);
 
 % Collect PCA features for mixes of the same clean file
 pcaFeatDir = fullfile(basePcaDir, 'feat');

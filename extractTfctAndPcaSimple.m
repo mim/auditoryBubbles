@@ -28,6 +28,7 @@ for target = 1:length(pcaFiles)
     pcaFileInfo = load(fullfile(groupedFeatDir, pcaFiles{target}));
     Xte = pcaFileInfo.pcaFeat;
     yte = pcaFileInfo.isRight;
+    fprintf('%g%% correct\n', 100*mean(yte>0));
     origShape = pcaFileInfo.origShape;
     clean = reshape(pcaFileInfo.cleanFeat.cleanFeat, pcaFileInfo.cleanFeat.origShape);
     warped = zeros(length(yte), prod(origShape));

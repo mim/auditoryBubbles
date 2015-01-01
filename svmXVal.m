@@ -46,11 +46,13 @@ nPts = 0; errors = 0;
 for i = 1:nFold
     teInd = inds{i};
     trInd = cat(1, inds{setdiff(1:nFold, i)});
+    if isempty(teInd), continue; end
     
     teKeep = balanceSets(y(teInd), false, seed);
     teInd = teInd(teKeep);
     trKeep = balanceSets(y(trInd), false, seed+783926);
     trInd = trInd(trKeep);
+    if isempty(teInd), continue; end
     
     tData.nTr = sum([(y(trInd)>0) (y(trInd)<0)],1);
     tData.nTe = sum([(y(teInd)>0) (y(teInd)<0)],1);

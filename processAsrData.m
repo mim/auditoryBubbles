@@ -1,10 +1,10 @@
-function processAsrData(inKaldiDir, outResultDir, noisyIdChars)
+function processAsrData(inKaldiDir, outResultDir, lmwtFilePattern, noisyIdChars)
 
 % Like processListeningData, but for ASR results from kaldi.  Outputs a
 % directory of results files (one for each word in each clean file) instead
 % of just one.
 %
-% processAsrData(inKaldiDir, outResultDir, [noisyIdChars])
+% processAsrData(inKaldiDir, outResultDir, [lmwtFilePattern], [noisyIdChars])
 %
 % inKaldiDir should be the directory in exp of one asr system, e.g.,
 % /data/data8/scratch/mandelm/kaldi/chime-wsj0-s5-bubbles20-avg/exp/tri3b 
@@ -17,9 +17,10 @@ function processAsrData(inKaldiDir, outResultDir, noisyIdChars)
 %   model, [blank], noisyFile, guess, isCorrect, rightAnswer
 
 if ~exist('noisyIdChars', 'var') || isempty(noisyIdChars), noisyIdChars = 8; end
+if ~exist('lmwtFilePattern', 'var') || isempty(lmwtFilePattern), lmwtFilePattern = '\d+.txt'; end
 
 scoringDir = fullfile(inKaldiDir, 'decode_tgpr_dev_dt_05_noisy/scoring/');
-[~,transFiles] = findFiles(scoringDir, '\d+.txt');
+[~,transFiles] = findFiles(scoringDir, lmwtFilePattern);
 gtFile = fullfile(scoringDir, 'test_filt.txt');
 model = getModelNameFromKaldiDir(inKaldiDir);
 
@@ -44,7 +45,7 @@ for lmwti = 1:length(transFiles)
     for c = 1:length(cleanIdList)
         printStatus('.');
         cleanId = cleanIdList{c};
-        groupIdx = find(cleanGroup == c);
+        groupIdx = find(cleanGroup == c);        
         %printStatus(sprintf('%g ', mean([correctness{groupIdx}])))
         
         % Get words and make sure they're the same for all files with the
@@ -53,9 +54,10 @@ for lmwti = 1:length(transFiles)
         for g = 2:length(groupIdx)
             assert(all(strcmp(gtWords{groupIdx(g)}, gtWordsNow)));
         end
+        printScoredWords(gtWordsNow, mean(cat(1, correctness{groupIdx})))
 
         for w = 1:length(gtWordsNow)
-            resultFile = sprintf('clean=%s_lmwt=%s_%02d_%s.mat', cleanId, lmwts, w, gtWordsNow{w});
+            resultFile = sprintf('model=%s_clean=%s_lmwt=%s_%02d_%s.mat', model, cleanId, lmwts, w, gtWordsNow{w});
             resultPath = fullfile(outResultDir, model, resultFile);
             
             grouped = cell(length(groupIdx), 6);
@@ -150,3 +152,9 @@ model = basename(inKaldiDir);
 if isempty(model)
     model = basename(inKaldiDir, 0, 1);
 end
+
+function printScoredWords(words, scores)
+for i = 1:length(words)
+    fprintf('%s:%0.2f ', words{i}, scores(i));
+end
+fprintf('\n');
