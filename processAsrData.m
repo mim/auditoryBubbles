@@ -1,10 +1,10 @@
-function processAsrData(inKaldiDir, outResultDir, lmwtFilePattern, noisyIdChars)
+function processAsrData(inKaldiDir, outResultDir, lmwtFilePattern, iter, noisyIdChars)
 
 % Like processListeningData, but for ASR results from kaldi.  Outputs a
 % directory of results files (one for each word in each clean file) instead
 % of just one.
 %
-% processAsrData(inKaldiDir, outResultDir, [lmwtFilePattern], [noisyIdChars])
+% processAsrData(inKaldiDir, outResultDir, [lmwtFilePattern], [iter], [noisyIdChars])
 %
 % inKaldiDir should be the directory in exp of one asr system, e.g.,
 % /data/data8/scratch/mandelm/kaldi/chime-wsj0-s5-bubbles20-avg/exp/tri3b 
@@ -17,9 +17,14 @@ function processAsrData(inKaldiDir, outResultDir, lmwtFilePattern, noisyIdChars)
 %   model, [blank], noisyFile, guess, isCorrect, rightAnswer
 
 if ~exist('noisyIdChars', 'var') || isempty(noisyIdChars), noisyIdChars = 8; end
+if ~exist('iter', 'var'), iter = ''; end
 if ~exist('lmwtFilePattern', 'var') || isempty(lmwtFilePattern), lmwtFilePattern = '\d+.txt'; end
 
-scoringDir = fullfile(inKaldiDir, 'decode_tgpr_dev_dt_05_noisy/scoring/');
+if isempty(iter)
+    scoringDir = fullfile(inKaldiDir, 'decode_tgpr_dev_dt_05_noisy/scoring/');
+else
+    scoringDir = fullfile(inKaldiDir, sprintf('decode_tgpr_dev_dt_05_noisy_it%d/scoring/', iter));
+end
 [~,transFiles] = findFiles(scoringDir, lmwtFilePattern);
 gtFile = fullfile(scoringDir, 'test_filt.txt');
 model = getModelNameFromKaldiDir(inKaldiDir);
