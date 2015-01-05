@@ -21,10 +21,11 @@ if ~exist('iter', 'var'), iter = ''; end
 if ~exist('lmwtFilePattern', 'var') || isempty(lmwtFilePattern), lmwtFilePattern = '\d+.txt'; end
 
 if isempty(iter)
-    scoringDir = fullfile(inKaldiDir, 'decode_tgpr_dev_dt_05_noisy/scoring/');
+    itStr = '';
 else
-    scoringDir = fullfile(inKaldiDir, sprintf('decode_tgpr_dev_dt_05_noisy_it%d/scoring/', iter));
+    itStr = sprintf('_it%d', iter);
 end
+scoringDir = fullfile(inKaldiDir, sprintf('decode_tgpr_dev_dt_05_noisy%s/scoring/', itStr));
 [~,transFiles] = findFiles(scoringDir, lmwtFilePattern);
 gtFile = fullfile(scoringDir, 'test_filt.txt');
 model = getModelNameFromKaldiDir(inKaldiDir);
@@ -62,7 +63,7 @@ for lmwti = 1:length(transFiles)
         printScoredWords(gtWordsNow, mean(cat(1, correctness{groupIdx})))
 
         for w = 1:length(gtWordsNow)
-            resultFile = sprintf('model=%s_clean=%s_lmwt=%s_%02d_%s.mat', model, cleanId, lmwts, w, gtWordsNow{w});
+            resultFile = sprintf('model=%s%s_clean=%s_lmwt=%s_%02d_%s.mat', model, itStr, cleanId, lmwts, w, gtWordsNow{w});
             resultPath = fullfile(outResultDir, model, resultFile);
             
             grouped = cell(length(groupIdx), 6);
