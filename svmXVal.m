@@ -43,16 +43,17 @@ for i = 1:nFold
 end
 
 nPts = 0; errors = 0;
+data = [];
 for i = 1:nFold
     teInd = inds{i};
     trInd = cat(1, inds{setdiff(1:nFold, i)});
-    if isempty(teInd), continue; end
+    if isempty(teInd) || isempty(trInd), continue; end
     
     teKeep = balanceSets(y(teInd), false, seed);
     teInd = teInd(teKeep);
     trKeep = balanceSets(y(trInd), false, seed+783926);
     trInd = trInd(trKeep);
-    if isempty(teInd), continue; end
+    if isempty(teInd) || isempty(trInd), continue; end
     
     tData.nTr = sum([(y(trInd)>0) (y(trInd)<0)],1);
     tData.nTe = sum([(y(teInd)>0) (y(teInd)<0)],1);
@@ -62,9 +63,9 @@ for i = 1:nFold
     errors = errors + sum(y(teInd) ~= preds);
     nPts = nPts + length(preds);
     
-    data(i) = tData;
+    data = [data tData];
 end
-mcr = errors / nPts;
+mcr = errors / (nPts + 1e-9);
 
 function [preds data] = nestedCrossValCls(fn, paramVec, Xtr, ytr, Xte, nFold)
 % Run a cross-validation inside of another cross-validation.  fn
