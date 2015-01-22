@@ -51,7 +51,7 @@ mixOutDir = 'D:\mixes\dev';
 dur_s = 1.8;
 normalize = 1;
 baseSnr_db = -35;
-noiseShape = 5;
+noiseShape = 5;    % see speechProfile.m
 
 % Mixes with no bubbles
 % make sure baseSnr_db is set so that these are completely unintelligible
