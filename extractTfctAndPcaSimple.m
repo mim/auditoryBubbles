@@ -65,8 +65,8 @@ function [s0 s1 sNot0 sNot1 n0 n1 sig] = computeTfctStats(yte,warped)
 % For TFCT
 feat0 = warped(yte<0,:);
 feat1 = warped(yte>0,:);
-s0 = sum(feat0, 1);
-s1 = sum(feat1, 1);
+s0 = single(sum(feat0, 1));
+s1 = single(sum(feat1, 1));
 sNot0 = size(feat0,1) - s0;
 sNot1 = size(feat1,1) - s1;
 

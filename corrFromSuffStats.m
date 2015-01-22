@@ -15,7 +15,7 @@ stdx = sqrt(x2/n - mux.^2);
 stdy = sqrt(y2/n - muy.^2);
 Sx = spdiags(1./stdx', 0, length(mux), length(mux));
 Sy = spdiags(1./stdy', 0, length(muy), length(muy));
-C = full(Sx * (xy/n - mux' * muy) * Sy);
+C = single(full(Sx * double(xy/n - mux' * muy) * Sy));
 
 tstat = C .* sqrt((n - 2) ./ (1 - C.^2));
 pval  = tcdf(tstat, n - 2);
