@@ -21,9 +21,9 @@ function [pbc pval vis] = pointBiserialCorr(s0, s1, n0, n1, sig)
 % See: http://en.wikipedia.org/wiki/Point-biserial_correlation_coefficient
 
 n = n0 + n1;
-pbc   = zeros(size(s0));
-tstat = zeros(size(s0));
-pval  = zeros(size(s0));
+pbc   = zeros(size(s0), 'single');
+tstat = zeros(size(s0), 'single');
+pval  = zeros(size(s0), 'single');
 
 for w = 1:size(s0,1)
     pbc(w,:)   = (s1(w,:)/n1(w) - s0(w,:)/n0(w)) ./ sig(w,:) .* sqrt(n0(w)*n1(w) / n(w)^2);
