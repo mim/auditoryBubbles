@@ -43,7 +43,8 @@ usePcaDims = 40;
 trimFrames = 15;
 overwrite = 0;
 hop_s = 0.016;
-mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+maxFreq_hz = 8000;
+mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, 0, maxFreq_hz)
 
 % Do bubbles processing on each pre2 data separately
 for i = 1:length(inCsvFiles)
@@ -52,7 +53,7 @@ for i = 1:length(inCsvFiles)
     load(resultFile);
     listenerCorrect(:,i) = [grouped{:,5}]';
     listenerResponse(:,i) = grouped(:,4);
-    mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+    mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, 0, maxFreq_hz)
 end
 listenerResponse = cellfun(@(x) x{1}, listenerResponse, 'UniformOutput', false);
 
