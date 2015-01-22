@@ -12,7 +12,7 @@ fracRight = grouped(:,5);
 keep  = false(size(files));
 match = zeros(size(files));
 for f = 1:length(files)
-    ind = find(reMatch(ansFile, sprintf('(^|%s)%s$', filesep, files{f})));
+    ind = find(reMatch(ansFile, sprintf('(^|/|\\\\)%s$', files{f})));
     if length(ind) == 1
         keep(f)  = true;
         match(f) = ind;
