@@ -1,11 +1,10 @@
 function mask = genMaskFromBubbleLocs(nF, nT, freqVec_erb, ...
-    timeVec_s, bubbleF_erb, bubbleT_s, sizeT_s, sizeF_erb, makeHoles)
+    timeVec_s, bubbleF_erb, bubbleT_s, sizeT_s, sizeF_erb, makeHoles, suppressHolesTo_db)
 
 if ~exist('makeHoles', 'var') || isempty(makeHoles), makeHoles = false; end
 if ~exist('sizeF_erb', 'var') || isempty(sizeF_erb), sizeF_erb = 0.4; end
 if ~exist('sizeT_s', 'var') || isempty(sizeT_s), sizeT_s  = 0.02; end
-
-suppressHolesTo_db = -80;
+if ~exist('suppressHolesTo_db', 'var') || isempty(suppressHolesTo_db), suppressHolesTo_db = -80; end
 
 if all(isfinite(bubbleF_erb))
     [times_s freqs_erb] = meshgrid(timeVec_s, freqVec_erb);

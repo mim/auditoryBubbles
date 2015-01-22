@@ -1,9 +1,10 @@
-function [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, playAll, noiseShape, maxFreq_hz, window_s, hopFrac)
+function [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, playAll, noiseShape, maxFreq_hz, bubbleSpeech, window_s, hopFrac)
 
 % Generate bubble mixture from GUI interaction with user
 
 if ~exist('window_s', 'var') || isempty(window_s), window_s = 0.064; end
 if ~exist('hopFrac', 'var') || isempty(hopFrac), hopFrac = 0.25; end
+if ~exist('bubbleSpeech', 'var') || isempty(bubbleSpeech), bubbleSpeech = false; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 if ~exist('maxFreq_hz', 'var'), maxFreq_hz = []; end
 if ~exist('playAll', 'var') || isempty(playAll), playAll = false; end
@@ -43,13 +44,25 @@ while true
   
   if playAll
       % Play sounds as you go
-      mix = generateSound(x, dur_s, fs, mask, snr_db, scale_db, window_s, hopFrac, noiseShape);
+      if bubbleSpeech
+          mix = real(istft(X .* mask, nFft, nFft, nHop));
+          figure(2)
+          showMaskedSpec(stft(mix, nFft, nFft, nHop), zeros(size(mask)), timeVec_s, freqVec_hz, maxFreq_hz, cx)
+          figure(1)
+      else
+          mix = generateSound(x, dur_s, fs, mask, snr_db, scale_db, window_s, hopFrac, noiseShape);
+      end
       sound(mix, fs)
   end
 end
 
 % Generate sound
-[mix clean] = generateSound(x, dur_s, fs, mask, snr_db, scale_db, window_s, hopFrac, noiseShape);
+if bubbleSpeech
+    mix = real(istft(X .* mask, nFft, nFft, nHop))';
+    clean = x;
+else
+    [mix clean] = generateSound(x, dur_s, fs, mask, snr_db, scale_db, window_s, hopFrac, noiseShape);
+end
 
 
 function showMaskedSpecSep(X, mask, timeVec_s, freqVec_hz, maxFreq_hz, cx)

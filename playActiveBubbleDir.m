@@ -1,8 +1,8 @@
-function playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, snr_db, noiseShape, maxFreq_hz, allowRepeats, giveFeedback, playAll)
+function playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, snr_db, noiseShape, maxFreq_hz, allowRepeats, giveFeedback, playAll, bubbleSpeech)
 
 % Play interactive bubble game, save mixes and results
 %
-% playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, snr_db, noiseShape, maxFreq_hz, allowRepeats, giveFeedback, playAll)
+% playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, snr_db, noiseShape, maxFreq_hz, allowRepeats, giveFeedback, playAll, bubbleSpeech)
 %
 % For each clean file, the player clicks on various points on a spectrogram
 % to reveal their neighborhoods (create a bubble) in a loud noise field.
@@ -27,11 +27,13 @@ function playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, sn
 %   allowRepeats   If 1, listener can play final file multiple times
 %   giveFeedback   If 1, tell listener whether they got each guess correct
 %   playAll        If 1, play mixture after each click for training purposes
+%   bubbleSpeech   If 1, bubbles set speech to silence with no noise, else set noise to silence
 
 if ~exist('maxFreq_hz', 'var') || isempty(maxFreq_hz), maxFreq_hz = 4000; end
 if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = 0; end
 if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = 0; end
 if ~exist('playAll', 'var') || isempty(playAll), playAll = false; end
+if ~exist('bubbleSpeech', 'var') || isempty(bubbleSpeech), bubbleSpeech = false; end
 
 outMixDir = fullfile(outDir, 'mix');
 outCleanDir = fullfile(outDir, 'clean');
@@ -64,7 +66,7 @@ for i = 1:nRound
     outMatFile = strrep(outMixFile, '.wav', '.mat');
     outCleanFile = fullfile(outCleanDir, outFile);
 
-    [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(paths{f}, dur_s, snr_db, playAll, noiseShape, maxFreq_hz);
+    [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(paths{f}, dur_s, snr_db, playAll, noiseShape, maxFreq_hz, bubbleSpeech);
 
     wavWriteBetter(mix, fs, outMixFile);
     wavWriteBetter(clean, fs, outCleanFile);
