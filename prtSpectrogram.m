@@ -1,7 +1,10 @@
-function prtSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq_hz)
+function prtSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq_hz, xrange_s)
 
 % Labels: [ylabel xlabel colorbar]
 clf  % Need this to make plots the right size for some reason...
+
+if ~exist('maxFreq_hz', 'var') || isempty(maxFreq_hz), maxFreq_hz = inf; end
+if ~exist('xrange_s', 'var'), xrange_s = []; end
 
 f_khz = freqAxis_khz((size(X,1)-1)/2, fs);
 ylab = 'Frequency (kHz)';
@@ -18,7 +21,8 @@ maxFreq_khz = min(maxFreq_hz/1000, max(f_khz));
 if maxFreq_khz > 10
     yt = 2:2:maxFreq_khz-1e-3;
 elseif maxFreq_khz > 5
-    yt = 0.5:0.5:maxFreq_khz-1e-3;
+    %yt = 0.5:0.5:maxFreq_khz-1e-3;
+    yt = 1:1:maxFreq_khz-1e-3;
 else
     yt = 0.2:0.2:maxFreq_khz-1e-3;
 end
@@ -32,6 +36,7 @@ else
 end
 ylim([0 maxFreq_khz])
 
+
 xticks = 200:200:200*floor(max(t_ms)/200);
 set(gca, 'XTick', xticks);
 if labels(2)
@@ -39,6 +44,9 @@ if labels(2)
     set(gca, 'XTickLabel', xticks);
 else
     set(gca, 'XTickLabel', {});
+end
+if ~isempty(xrange_s)
+    xlim(xrange_s*1000)
 end
 
 if labels(3)
