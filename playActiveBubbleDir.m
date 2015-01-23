@@ -1,4 +1,4 @@
-function playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, snr_db, noiseShape, maxFreq_hz, allowRepeats, giveFeedback, playAll, bubbleSpeech)
+function playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, snr_db, noiseShape, maxFreq_hz, allowRepeats, giveFeedback, playAll, bubbleSpeech, bubbleWidth_s, bubbleHeight_erb, bubbleDepth_db)
 
 % Play interactive bubble game, save mixes and results
 %
@@ -28,12 +28,18 @@ function playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, sn
 %   giveFeedback   If 1, tell listener whether they got each guess correct
 %   playAll        If 1, play mixture after each click for training purposes
 %   bubbleSpeech   If 1, bubbles set speech to silence with no noise, else set noise to silence
+%   bubbleWidth_s  Proportional to the width of each bubble in seconds (default 0.02)
+%   bubbleHeight_erb  Proportional to the height of each bubble in ERB (default 0.4)
+%   bubbleDepth_db Depth of each bubble in db, should be negative (default -80)
 
 if ~exist('maxFreq_hz', 'var') || isempty(maxFreq_hz), maxFreq_hz = 4000; end
 if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = 0; end
 if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = 0; end
 if ~exist('playAll', 'var') || isempty(playAll), playAll = false; end
 if ~exist('bubbleSpeech', 'var') || isempty(bubbleSpeech), bubbleSpeech = false; end
+if ~exist('bubbleWidth_s', 'var') || isempty(bubbleWidth_s), bubbleWidth_s = 0.02; end
+if ~exist('bubbleHeight_erb', 'var') || isempty(bubbleHeight_erb), bubbleHeight_erb = 0.4; end
+if ~exist('bubbleDepth_db', 'var') || isempty(bubbleDepth_db), bubbleDepth_db = -80; end
 
 outMixDir = fullfile(outDir, 'mix');
 outCleanDir = fullfile(outDir, 'clean');
@@ -66,7 +72,8 @@ for i = 1:nRound
     outMatFile = strrep(outMixFile, '.wav', '.mat');
     outCleanFile = fullfile(outCleanDir, outFile);
 
-    [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(paths{f}, dur_s, snr_db, playAll, noiseShape, maxFreq_hz, bubbleSpeech);
+    [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(paths{f}, dur_s, snr_db, ...
+        playAll, noiseShape, maxFreq_hz, bubbleSpeech, bubbleWidth_s, bubbleHeight_erb, bubbleDepth_db);
 
     wavWriteBetter(mix, fs, outMixFile);
     wavWriteBetter(clean, fs, outCleanFile);

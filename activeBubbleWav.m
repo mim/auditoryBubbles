@@ -1,4 +1,4 @@
-function [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, playAll, noiseShape, maxFreq_hz, bubbleSpeech, window_s, hopFrac)
+function [mix clean fs bubbleF_erb bubbleT_s] = activeBubbleWav(wavFile, dur_s, snr_db, playAll, noiseShape, maxFreq_hz, bubbleSpeech, bubbleWidth_s, bubbleHeight_erb, bubbleDepth_db, window_s, hopFrac)
 
 % Generate bubble mixture from GUI interaction with user
 
@@ -8,9 +8,10 @@ if ~exist('bubbleSpeech', 'var') || isempty(bubbleSpeech), bubbleSpeech = false;
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 if ~exist('maxFreq_hz', 'var'), maxFreq_hz = []; end
 if ~exist('playAll', 'var') || isempty(playAll), playAll = false; end
+if ~exist('bubbleWidth_s', 'var') || isempty(bubbleWidth_s), bubbleWidth_s = []; end
+if ~exist('bubbleHeight_erb', 'var') || isempty(bubbleHeight_erb), bubbleHeight_erb = []; end
+if ~exist('bubbleDepth_db', 'var') || isempty(bubbleDepth_db), bubbleDepth_db = []; end
 
-sizeF_erb = [];
-sizeT_s   = [];
 makeHoles = true;
 normalizeClean = true;
 cx = [-80 30];
@@ -19,7 +20,7 @@ scale_db = 6;
 [x fs] = loadCleanWav(wavFile, dur_s, normalizeClean, -1);
 
 [nF,nT,nFft,nHop,freqVec_hz,freqVec_erb,timeVec_s] = ...
-    specgramDims(dur_s, fs, window_s, hopFrac, sizeF_erb);
+    specgramDims(dur_s, fs, window_s, hopFrac, bubbleHeight_erb);
 if isempty(maxFreq_hz), maxFreq_hz = max(freqVec_hz); end
 
 % Make visualization
@@ -39,7 +40,7 @@ while true
 
   % Update visualization
   mask = genMaskFromBubbleLocs(nF, nT, freqVec_erb, timeVec_s, bubbleF_erb, ...
-      bubbleT_s, sizeT_s, sizeF_erb, makeHoles);
+      bubbleT_s, bubbleWidth_s, bubbleHeight_erb, makeHoles, bubbleDepth_db);
   showMaskedSpec(X, mask, timeVec_s, freqVec_hz, maxFreq_hz, cx)
   
   if playAll
