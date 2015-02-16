@@ -6,8 +6,16 @@ function [isRight fracRight files responseCounts equivClasses] = isRightFor(file
 load(groupedFile, 'grouped', 'equivClasses', 'responseCounts');
 ansFile = strrep(grouped(:,3), '\', filesep);
 ansFile = regexprep(ansFile, '.wav$', '.mat');
-fracRight = grouped(:,5);
-
+if size(grouped,2) >= 7
+    % New way, compute isRight in processListeningTest
+    fracRight = cell2mat(grouped(:,5));
+    isRight = cell2mat(grouped(:,7));
+else
+    % Old way, compute isRight here
+    fracRight = cell2mat(grouped(:,5));
+    isRight = (fracRight >= 0.9) - (fracRight <= 0.6);
+end
+    
 % Match files to ansFile to get fracRight
 keep  = false(size(files));
 match = zeros(size(files));
@@ -28,6 +36,6 @@ end
 % % replace with ends-with assertion...
 %assert(all(strcmp(files(keep), ansFile(match(keep)))))
 files     = files(keep);
-fracRight = cell2mat(fracRight(match(keep)));
-isRight   = (fracRight >= 0.9) - (fracRight <= 0.6);
+fracRight = fracRight(match(keep));
+isRight   = isRight(match(keep));
 responseCounts = responseCounts(match(keep),:);

@@ -16,7 +16,7 @@ function playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, dur_s, sn
 % will add to that file.
 %
 % Input arguments:
-%   cleanWavDir    Directory containing clean wav files to be used
+%   cleanWavDir    Directory containing clean input wav files to be used
 %   outDir         Base directory of output wavs and data
 %   subjectName    Identifier for player, cumulative results saved in corresponding csv file
 %   nRound         Number of rounds to play (clean file repetitions)

@@ -1,4 +1,4 @@
-function processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, equivClassCell, unpackFn)
+function processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, posThresh, negThresh, equivClassCell, unpackFn)
 
 % Convert listening test files for further analysis
 %
@@ -11,9 +11,10 @@ function processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulu
 %   ignoreStimulusDir  Remove directory from names of stimulus files (in case
 %                      different subjects had them in different directories)
 
-
 if ~exist('unpackFn', 'var') || isempty(unpackFn), unpackFn = @unpackShsCsv; end
 if ~exist('ignoreStimulusDir', 'var') || isempty(ignoreStimulusDir), ignoreStimulusDir = 0; end
+if ~exist('posThresh', 'var') || isempty(posThresh), posThresh = 0.9; end
+if ~exist('negThresh', 'var') || isempty(negThresh), negThresh = 0.6; end
 if ~exist('verbose', 'var') || isempty(verbose), verbose = 1; end
 if ~exist('equivClassCell', 'var'), equivClassCell = {}; end
 
@@ -53,6 +54,7 @@ for i=1:size(digested,1)
 end
 
 grouped = groupBy(digested, 3, @(x) basename(x,1), 3, @(x) mean([x{:}]), 5);
+grouped(:,7) = listMap(@(x) (x >= posThresh) - (x < negThresh), grouped(:,5));
 
 responses = grouped(:,4);
 responseCounts = zeros(size(responses,1), length(equivClassCell));
