@@ -42,8 +42,9 @@ end
     
 % Load all files, randomize them
 [~,files] = findFiles(inDir, '.wav$');
-files = setdiff(files, doneFiles);
+files = basenameSetDiff(files, doneFiles);
 files = files(randperm(length(files)));
+fprintf('Using %d files\n', length(files));
 
 % Figure out right answers, possible choices
 rightAnswers = listMap(@figureOutRightAnswerFromFileName, files);
@@ -69,3 +70,13 @@ for f = 1:length(files)
         giveFeedback, correct, incorrect, f, length(files));
 end
 fprintf('Avg %g%% correct\n', 100*correct / (correct + incorrect));
+
+
+function c = basenameSetDiff(a, b)
+% Remove files from a that are in b, only based on basename, not
+% directory.
+
+ab = listMap(@basename, a);
+bb = listMap(@basename, b);
+[cb,i] = setdiff(ab, bb);
+c = a(i);

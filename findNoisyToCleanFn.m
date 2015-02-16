@@ -25,7 +25,7 @@ end
 
 
 function cleanPath = mapBubblePathToCleanPath(bubblePath)
-cleanPath = regexprep(regexprep(bubblePath, 'bps\d+', 'bpsInf'), '\d+\.([a-zA-Z]+)', '000.$1');
+cleanPath = regexprep(regexprep(bubblePath, 'bps\d+', 'bpsInf'), '\d+\.([a-zA-Z]+)$', '000.$1');
 
 function cleanPath = mapNoisyAsrPathToCleanPath(noisyAsrPath)
 cleanPath = regexprep(noisyAsrPath, 'noisy', 'clean');
