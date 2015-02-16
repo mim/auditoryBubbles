@@ -16,7 +16,7 @@ for target = 1:length(resPaths)
     baseFileName = baseFileNameFor(resFiles{target});
     fprintf('%d: %s\n', target, baseFileName);
     cleanWavFile = cleanWavFor(mixDir, baseFileName);
-    if ~exist('cleanWavFile', 'file')
+    if ~exist(cleanWavFile, 'file')
         fprintf('^^^ Skipping, clean file not found ^^^\n');
         continue
     end
@@ -30,14 +30,22 @@ for target = 1:length(resPaths)
     
     z = zeros(size(res.mat,1), trimFrames, size(res.mat,3));
     mat = cat(2, z, res.mat, z);
+    sig = -0.05 * log(mat(:,:,1) .* (mat(:,:,1) > 0));
 
     % Noise at the important parts of the signal
-    bumpMask = max(10.^(-60/20), mat(:,:,1) .* (mat(:,:,1) > 0));
+    %bumpMask = sig2mask(sig, 0.04999, 0.05, -80, 0);
+    %bumpMask = sig2mask(sig, 0.01, 0.05, -80, 0);
+    %bumpMask = sig2mask(sig, 0.02, 0.05, -80, 0);
+    bumpMask = sig2mask(sig, 0.05, 0.10, -80, 0);
     [~,~,bumpNoise] = genMaskedSsn(length(clean)/fs, fs, bumpMask, win_s, hopFrac, noiseShape);
     wavWriteBetter(clean + bumpNoise, fs, niOutFile);
     
     % Noise at the unimportant parts of the signal
-    holeMask = max(10.^(-60/20), 1 - mat(:,:,1) .* (mat(:,:,1) > 0));
+    %holeMask = max(10.^(-60/20), 1 - mat(:,:,1) .* (mat(:,:,1) > 0));  % Not really sure what this is...
+    %holeMask = sig2mask(sig, .05, .05, -80, 0);
+    %holeMask = sig2mask(sig, .05, .01, -80, 0);
+    %holeMask = sig2mask(sig, .05, .02, -80, 0);
+    holeMask = sig2mask(sig, .10, .05, -80, 0);
     [~,~,holeNoise] = genMaskedSsn(length(clean)/fs, fs, holeMask, win_s, hopFrac, noiseShape);
     wavWriteBetter(clean + holeNoise, fs, nuOutFile);
     
@@ -84,3 +92,8 @@ function cleanPath = cleanWavFor(wavDir, baseFile)
 cleanWav = [regexprep(baseFile, 'bps\d+', 'bpsInf') '000.wav'];
 cleanDir = regexprep(wavDir, 'bps\d+', 'bpsInf');
 cleanPath = fullfile(cleanDir, cleanWav);
+
+
+function mask = sig2mask(sig, maxSig, minSig, minMask_db, maxMask_db)
+scaledSig = (maxMask_db - minMask_db) * (sig - minSig) / (maxSig - minSig);
+mask = 10.^(1/20 * lim(scaledSig, minMask_db, maxMask_db));
