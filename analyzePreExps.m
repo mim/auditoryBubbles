@@ -82,8 +82,10 @@ if nargin < 5, toFile = 1; end
 
 [h x] = hist(vals, bins);
 bar(x, h / sum(h), 'hist')
-ylabel('Proportion of mixtures')
-xlabel('Proportion of presentations in which a mixture was correctly identified')
+halfBarWidth = mean(diff(x)) / 2;
+xlim([min(x)-halfBarWidth max(x)+halfBarWidth]);
+ylabel('Fraction of mixtures')
+xlabel('Fraction of presentations correctly identified')
 %title('Proportion correct of each mixture of 10 repeated listenings by the same subject')
 if toFile
     print('-dpng', fullfile(dir, fileName))

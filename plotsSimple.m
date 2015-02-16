@@ -16,7 +16,7 @@ prt('ToFile', toDisk, 'StartAt', startAt, ...
 tfifCmap = easymap('bwr', 255);
 tfifCax = [-.99 .99];
 specCmap = easymap('bcyr', 255);
-specCax = [-100 5];
+specCax = [-99 5];
 
 [~,resFiles] = findFiles(inDir, 'fn=plotPbc', 0);
 for target = 1:length(resFiles)
