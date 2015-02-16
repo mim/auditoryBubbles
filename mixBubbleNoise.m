@@ -8,7 +8,7 @@ if ~exist('randomness', 'var') || isempty(randomness), randomness = 1; end
 
 scale_dB = 6;
 scale = 10^(scale_dB/20);
-speech = loadCleanWav(cleanFile, dur_s, normalize, targetSr);
+[speech targetSr] = loadCleanWav(cleanFile, dur_s, normalize, targetSr);
 
 noise = genBubbleNoise(dur_s, targetSr, bubblesPerSec, useHoles, [], [], [], [], randomness, noiseShape);
 mix = scale * (snr*speech + noise);

@@ -1,6 +1,6 @@
-function [correct incorrect picked] = playFileGetAndSaveChoice(file, rightAnswer, ...
+function [totCorrect totIncorrect picked wasRight] = playFileGetAndSaveChoice(file, rightAnswer, ...
     outCsvFile, subjectName, words, choiceNums, allowRepeats, ...
-    giveFeedback, correct, incorrect, curIter, totalIters)
+    giveFeedback, totCorrect, totIncorrect, curIter, totalIters)
 
 % Play a wav file and get the listener's guess as to which of a set of
 % words they heard.  Saves results in csv file using csvWriteCells.
@@ -40,11 +40,12 @@ outLine = [{file} words {datestr(clock, 30) rightAnswer picked '' subjectName}];
 csvWriteCells(outCsvFile, {outLine}, 'a');
 
 % Give feedback
-if strcmp(picked, rightAnswer)
-    correct = correct + 1;
+wasRight = strcmp(picked, rightAnswer);
+if wasRight
+    totCorrect = totCorrect + 1;
     fbStr = 'Correct';
 else
-    incorrect = incorrect + 1;
+    totIncorrect = totIncorrect + 1;
     fbStr = 'Incorrect';
 end
 if giveFeedback
