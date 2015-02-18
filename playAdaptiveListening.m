@@ -2,18 +2,17 @@ function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initial
 
 % Play adaptive listening test, save mixes and results
 %
-% playActiveBubbleDir(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback)
+% playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback)
 %
-% For each clean file, the player clicks on various points on a spectrogram
-% to reveal their neighborhoods (create a bubble) in a loud noise field.
-% The player then guesses which word it was that they heard.  Guessing with
-% fewer bubbles is more desirable.  Resulting mixtures and clean files are
-% saved in outDir/mix and outDir/clean, respectively, with results saved in
-% outDir/subjectName.csv and extra information saved in a mat file with the
-% same name as the mixture.  Resulting csv file can then be analyzed by
-% processListeningData.  Cumulative results for each subject name are saved
-% in the same file, so using the same name with the same output directory
-% will add to that file.
+% Adapt the bubbles-per-second level per stimulus using a weighted up/down
+% procedure to achieve approximately 0.5*(1 + 1/N) accuracy.  Resulting
+% noisy and clean wav  files are stored in outDir along with mat files
+% containing useful information for analyzing them.  Results are saved in
+% outDir/subjectName.csv.  Presentation of stimuli are blocked so that each
+% round contains one presentation of each in a random order. Resulting csv
+% file can then be analyzed by processListeningData.  Cumulative results
+% for each subject name are saved in the same file, so using the same name
+% with the same output directory will add to that file.
 %
 % Input arguments:
 %   cleanWavDir    Directory containing clean input wav files to be used
@@ -40,6 +39,7 @@ outCleanDir = fullfile(outDir, 'clean');
 outCsvFile = fullfile(outDir, [subjectName '.csv']);
 
 [files,paths] = findFiles(cleanWavDir, '.*.wav');
+nF = length(files);
 
 rightAnswers = listMap(@figureOutRightAnswerFromFileName, files);
 choices = unique(rightAnswers)';
@@ -60,42 +60,44 @@ end
 
 num = zeros(size(files));
 for i = 1:nRound
-    f = randi(length(files));
-    % fprintf('Right answer: %s\n', rightAnswers{f});  % Cheat
-    
-    bn = basename(files{f}, 0);
-    [outMixFile,num(f),outFile] = nextAvailableFile(outMixDir, ...
-        '%s_snr%+d_%03d', {bn, snr_db}, num(f), '.wav');
-    outMatFile = strrep(outMixFile, '.wav', '.mat');
-    outCleanFile = fullfile(outCleanDir, sprintf('%s_snr%+d.wav', bn, snr_db));
-
-    % Create bubble mixture
-    [mix fs clean] = mixBubbleNoise(paths{f}, targetFs, useHoles, perStimBps(f), snr, dur_s, normalize, noiseShape);
-
-    wavWriteBetter(mix, fs, outMixFile);
-    if ~exist('outCleanFile', 'file')
-        wavWriteBetter(clean, fs, outCleanFile);
+    block = randperm(nF);
+    for f = block
+        % fprintf('Right answer: %s\n', rightAnswers{f});  % Cheat
+        
+        bn = basename(files{f}, 0);
+        [outMixFile,num(f),outFile] = nextAvailableFile(outMixDir, ...
+            '%s_snr%+d_%03d', {bn, snr_db}, num(f), '.wav');
+        outMatFile = strrep(outMixFile, '.wav', '.mat');
+        outCleanFile = fullfile(outCleanDir, sprintf('%s_snr%+d.wav', bn, snr_db));
+        
+        % Create bubble mixture
+        [mix fs clean] = mixBubbleNoise(paths{f}, targetFs, useHoles, perStimBps(f), snr, dur_s, normalize, noiseShape);
+        
+        wavWriteBetter(mix, fs, outMixFile);
+        if ~exist('outCleanFile', 'file')
+            wavWriteBetter(clean, fs, outCleanFile);
+        end
+        
+        [totCorrect totIncorrect response wasRight] = playFileGetAndSaveChoice(outMixFile, rightAnswers{f}, ...
+            outCsvFile, subjectName, choices, choiceNums, allowRepeats, ...
+            giveFeedback, totCorrect, totIncorrect, (nRound-1)*nF+i, nRound*nF);
+        
+        % Update perStimPast and perStimBps
+        perStimPast{f}(end+1) = wasRight;
+        perStimBps(f) = updateBps(perStimBps(f), perStimPast{f}, targetCorrectness);
+        
+        save(outMatFile, 'response', 'wasRight', 'bn', 'cleanWavDir', 'subjectName', ...
+            'choices', 'f', 'rightAnswers', 'giveFeedback', 'allowRepeats', ...
+            'perStimPast', 'perStimBps', 'initialBps', 'dur_s', 'snr_db', ...
+            'noiseShape', 'normalize');
     end
-    
-    [totCorrect totIncorrect response wasRight] = playFileGetAndSaveChoice(outMixFile, rightAnswers{f}, ...
-        outCsvFile, subjectName, choices, choiceNums, allowRepeats, ...
-        giveFeedback, totCorrect, totIncorrect, i, nRound);    
-    
-    % Update perStimPast and perStimBps
-    perStimPast{f}(end+1) = wasRight;
-    perStimBps(f) = updateBps(perStimBps(f), perStimPast{f}, targetCorrectness);
-    
-    save(outMatFile, 'response', 'bn', 'cleanWavDir', 'subjectName', ...
-        'choices', 'f', 'rightAnswers', 'giveFeedback', 'allowRepeats', ...
-        'perStimPast', 'perStimBps', 'initialBps', 'dur_s', 'snr_db', ...
-        'noiseShape', 'normalize');
 end
 fprintf('Avg %g%% correct\n', 100*totCorrect / (totCorrect + totIncorrect));
 
 function newBps = updateBps(oldBps, history, targetCorrectness)
 % Use a weighted up-down procedure to adjust BPS
 
-posMultInc = 1.05;
+posMultInc = 1.02;
 negMultInc = posMultInc ^ (targetCorrectness / (1 - targetCorrectness));
 if history(end)
     newBps = oldBps / posMultInc;
