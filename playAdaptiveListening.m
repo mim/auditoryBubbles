@@ -66,7 +66,7 @@ for i = 1:nRound
         
         bn = basename(files{f}, 0);
         [outMixFile,num(f),outFile] = nextAvailableFile(outMixDir, ...
-            '%s_snr%+d_%03d', {bn, snr_db}, num(f), '.wav');
+            '%s_%s_snr%+d_%03d', {bn, subjectName, snr_db}, num(f), '.wav');
         outMatFile = strrep(outMixFile, '.wav', '.mat');
         outCleanFile = fullfile(outCleanDir, sprintf('%s_snr%+d.wav', bn, snr_db));
         
