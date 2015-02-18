@@ -44,7 +44,7 @@ nF = length(files);
 rightAnswers = listMap(@figureOutRightAnswerFromFileName, files);
 choices = unique(rightAnswers)';
 if length(choices) ~= 6
-    warning('Using %d choices instead of 6', length(choices))
+    % warning('Using %d choices instead of 6', length(choices))
 end
 choiceNums = 1:length(choices);
 totCorrect = 0; totIncorrect = 0;
@@ -52,7 +52,7 @@ targetCorrectness = 0.5 * (1 + 1 / length(choices));
 
 %perStimBps = listMap(@(x) initialBps, cell(size(files)));  % Initialize cell array of vectors with initialBps
 perStimBps = initialBps * ones(size(files));
-perStimPast = cell(size(files));
+perStimPast = [];
 
 if ~exist(outCsvFile, 'file')
     writeCsvResultHeader(outCsvFile, choices);
@@ -83,16 +83,22 @@ for i = 1:nRound
             giveFeedback, totCorrect, totIncorrect, (nRound-1)*nF+i, nRound*nF);
         
         % Update perStimPast and perStimBps
-        perStimPast{f}(end+1) = wasRight;
-        perStimBps(f) = updateBps(perStimBps(f), perStimPast{f}, targetCorrectness);
+        perStimPast(f,i) = wasRight;
+        perStimBps(f) = updateBps(perStimBps(f), perStimPast(f,1:i), targetCorrectness);
         
         save(outMatFile, 'response', 'wasRight', 'bn', 'cleanWavDir', 'subjectName', ...
-            'choices', 'f', 'rightAnswers', 'giveFeedback', 'allowRepeats', ...
+            'choices', 'f', 'i', 'rightAnswers', 'giveFeedback', 'allowRepeats', ...
             'perStimPast', 'perStimBps', 'initialBps', 'dur_s', 'snr_db', ...
             'noiseShape', 'normalize');
     end
 end
 fprintf('Avg %g%% correct\n', 100*totCorrect / (totCorrect + totIncorrect));
+nLast = min(size(perStimPast,2), 10);
+lastPctCorr = sum(perStimPast(:,end-nLast+1:end), 2);
+fprintf('Final bubbles-per-second levels and recent answers correct:\n')
+for f = 1:length(files)
+    fprintf('  %s\t\t%g bps\t\t%d/%d correct\n', files{f}, perStimBps(f), lastPctCorr(f), nLast);
+end
 
 function newBps = updateBps(oldBps, history, targetCorrectness)
 % Use a weighted up-down procedure to adjust BPS
@@ -101,8 +107,8 @@ posMultInc = 1.02;
 negMultInc = posMultInc ^ (targetCorrectness / (1 - targetCorrectness));
 if history(end)
     newBps = oldBps / posMultInc;
-    fprintf('Correct, updating bps from %g by %g to %g\n', oldBps, posMultInc, newBps);
+    %fprintf('Correct, updating bps from %g by %g to %g\n', oldBps, posMultInc, newBps);
 else
     newBps = oldBps * negMultInc;
-    fprintf('Incorrect, updating bps from %g by %g to %g\n', oldBps, negMultInc, newBps);
+    %fprintf('Incorrect, updating bps from %g by %g to %g\n', oldBps, negMultInc, newBps);
 end
