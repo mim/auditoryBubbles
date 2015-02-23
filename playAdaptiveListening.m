@@ -61,7 +61,8 @@ end
 num = zeros(size(files));
 for i = 1:nRound
     block = randperm(nF);
-    for f = block
+    for fi = 1:length(block)
+        f = block(fi);
         % fprintf('Right answer: %s\n', rightAnswers{f});  % Cheat
         
         bn = basename(files{f}, 0);
@@ -80,7 +81,7 @@ for i = 1:nRound
         
         [totCorrect totIncorrect response wasRight] = playFileGetAndSaveChoice(outMixFile, rightAnswers{f}, ...
             outCsvFile, subjectName, choices, choiceNums, allowRepeats, ...
-            giveFeedback, totCorrect, totIncorrect, (nRound-1)*nF+i, nRound*nF);
+            giveFeedback, totCorrect, totIncorrect, (i-1)*nF+fi, nRound*nF);
         
         % Update perStimPast and perStimBps
         perStimPast(f,i) = wasRight;
