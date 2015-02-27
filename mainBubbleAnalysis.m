@@ -39,17 +39,17 @@ resultFileName = basename(resultFile, 0);
 [~,fs] = wavread(mixPaths{1});
 
 % Extract features from mixtures
-[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, noiseShape, overwrite);
+[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, noiseShape, overwrite >= 3);
 
 % Collect PCA features for mixes of the same clean file
 pcaFeatDir = fullfile(basePcaDir, 'feat');
 groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
-collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite, condition);
+collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite >= 2, condition);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
 cacheDir = fullfile(basePcaDir, 'cache', resultFileName);
 pcaDataFile = fullfile(basePcaDir, 'data.mat');
-extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite)
+extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite >= 1)
 
 % Run SVM cross validation within each file, massage TFCT data
 resDir = fullfile(basePcaDir, 'res', resultFileName);
