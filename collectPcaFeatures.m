@@ -63,8 +63,8 @@ save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', ...
 
 function cf = cleanFileName(word, pcaDir)
 d = fileparts(fileparts(pcaDir(1:end-1)));
-if reMatch(word, 'bps\d+')
-    fileName = [regexprep(word, 'bps\d+', 'bpsInf') '000'];
+if reMatch(word, 'bps[^_/\\]+')
+    fileName = [regexprep(word, 'bps[^_/\\]+', 'bpsInf') '000'];
 else
     fileName = word;
 end

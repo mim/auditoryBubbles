@@ -75,5 +75,5 @@ origShape = cf.origShape;
 function [files d] = mixesForClean(cleanFile)
 
 [d f] = fileparts(cleanFile);
-p = strrep(strrep(f, 'bpsInf', 'bps\d+'), '000', '\d+');
+p = strrep(strrep(f, 'bpsInf', 'bps[^_/\\]+'), '000', '\d+');
 files = findFiles(d, p);

@@ -89,8 +89,8 @@ baseFile = strrep(fileparts(resFile), 'target=', '');
 
 function cleanPath = cleanWavFor(wavDir, baseFile)
 % Transform 'acha_w3_05_07_bps15_snr-35_' into 'acha_w3_05_07_bpsInf_snr-35_000'
-cleanWav = [regexprep(baseFile, 'bps\d+', 'bpsInf') '000.wav'];
-cleanDir = regexprep(wavDir, 'bps\d+', 'bpsInf');
+cleanWav = [regexprep(baseFile, 'bps[^_/\\]+', 'bpsInf') '000.wav'];
+cleanDir = regexprep(wavDir, 'bps[^_/\\]+', 'bpsInf');
 cleanPath = fullfile(cleanDir, cleanWav);
 
 

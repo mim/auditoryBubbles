@@ -36,7 +36,7 @@ mixPaths = mixPaths(:); fracRight = fracRight(:);
 
 cleanFile = fullfile(path, [word '.wav']);
 if ~exist(cleanFile, 'file')
-    cleanFile = fullfile(path, [regexprep(word, 'bps\d+', 'bpsInf') '000.wav']);
+    cleanFile = fullfile(path, [regexprep(word, 'bps[^_/\\]+', 'bpsInf') '000.wav']);
 end
 [clean fs nFft] = loadSpecgram(cleanFile);
 

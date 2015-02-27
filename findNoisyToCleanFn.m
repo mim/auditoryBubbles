@@ -28,7 +28,7 @@ end
 
 
 function cleanPath = mapBubblePathToCleanPath(bubblePath)
-cleanPath = regexprep(regexprep(bubblePath, 'bps\d+', 'bpsInf'), '\d+\.([a-zA-Z]+)$', '000.$1');
+cleanPath = regexprep(regexprep(bubblePath, 'bps[^_/\\]+', 'bpsInf'), '\d+\.([a-zA-Z]+)$', '000.$1');
 
 function cleanPath = mapAdaptiveBubblePathToCleanPath(bubblePath)
 mixDir = [filesep 'mix' filesep];
