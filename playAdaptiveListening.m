@@ -34,8 +34,8 @@ targetFs = -1;
 useHoles = true;
 snr = 10^(snr_db/20);
 
-outMixDir = fullfile(outDir, 'mix');
-outCleanDir = fullfile(outDir, 'clean');
+outMixDir = fullfile(outDir, ['bps' subjectName]);
+outCleanDir = fullfile(outDir, 'bpsInf');
 outCsvFile = fullfile(outDir, [subjectName '.csv']);
 
 [files,paths] = findFiles(cleanWavDir, '.*.wav');
@@ -67,9 +67,9 @@ for i = 1:nRound
         
         bn = basename(files{f}, 0);
         [outMixFile,num(f),outFile] = nextAvailableFile(outMixDir, ...
-            '%s_%s_snr%+d_%03d', {bn, subjectName, snr_db}, num(f), '.wav');
+            '%s_bps%s_snr%+d_%03d', {bn, subjectName, snr_db}, num(f), '.wav');
         outMatFile = strrep(outMixFile, '.wav', '.mat');
-        outCleanFile = fullfile(outCleanDir, sprintf('%s_snr%+d.wav', bn, snr_db));
+        outCleanFile = fullfile(outCleanDir, sprintf('%s_bpsInf_snr%+d_000.wav', bn, snr_db));
         
         % Create bubble mixture
         [mix fs clean] = mixBubbleNoise(paths{f}, targetFs, useHoles, perStimBps(f), snr, dur_s, normalize, noiseShape);
