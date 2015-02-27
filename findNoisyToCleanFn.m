@@ -7,6 +7,7 @@ function noisyToCleanFn = findNoisyToCleanFn(noisyPath)
 % Add new functions to this cell array:
 tryFns = { 
     @mapBubblePathToCleanPath
+    @mapAdaptiveBubblePathToCleanPath
     @mapNoisyRemixPathToCleanPath
     @mapNoisyAsrPathToCleanPath
     };
@@ -21,11 +22,18 @@ for n = 1:length(tryFns)
 end
 if isempty(noisyToCleanFn)
     error('No working noisy-to-clean function found (perhaps you haven''t generated bpsInf files?)');
+else
+    fprintf('Using noisyToCleanFn: %s\n', func2str(noisyToCleanFn));
 end
 
 
 function cleanPath = mapBubblePathToCleanPath(bubblePath)
 cleanPath = regexprep(regexprep(bubblePath, 'bps\d+', 'bpsInf'), '\d+\.([a-zA-Z]+)$', '000.$1');
+
+function cleanPath = mapAdaptiveBubblePathToCleanPath(bubblePath)
+mixDir = [filesep 'mix' filesep];
+cleanDir = [filesep 'clean' filesep];
+cleanPath = regexprep(regexprep(bubblePath, mixDir, cleanDir), '\d+\.([a-zA-Z]+)$', '.$1');
 
 function cleanPath = mapNoisyAsrPathToCleanPath(noisyAsrPath)
 cleanPath = regexprep(noisyAsrPath, 'noisy', 'clean');
