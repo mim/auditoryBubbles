@@ -1,17 +1,19 @@
-function analyzeTimbre2Exps()
+function analyzeTimbre3Exps()
 
-csvPatterns = {'(mim|tal).*.csv', '.*.csv', 'mim.*.csv', 'shc.*.csv', 'tal.*.csv'};
-resNames = {'s13', 'combined', 's1', 's2', 's3'};
+% Adaptive bps levels experiments
+
+csvPatterns = {'tal_2015.*.csv', 'tal_adap.*.csv', 'tal.*.csv'};
+resNames = {'tal25', 'tala', 'talall'};
+mixDirs = {'D:\mixes\instruments\windC4E4\bps25', 'D:\Box Sync\musicBubblesLyons\timbre\mixes\adaptive\windC4E4\bpstal', 'D:\mixes\instruments\windC4E4\bps25'};
 
 resDir = 'D:\Box Sync\musicBubblesLyons\timbre\results';
-mixDir = 'D:\mixes\instruments\windC4E4\bps25';
 verbose = 1;
 ignoreStimulusDir = 1;
 posThresh = 0.51;
 negThresh = 0.49;
 
 % Extract features from mixtures
-baseFeatDir = 'C:\Temp\data\timbre\windC4E4';
+baseFeatDir = 'C:\Temp\data\timbre\windC4E4adaptive';
 pattern = 'bps.*.wav';
 noiseShape = 3;        
 pcaDims = [100 1000];  
@@ -26,7 +28,7 @@ for c = 1:length(csvPatterns)
     [~,inCsvFiles] = findFiles(resDir, csvPatterns{c});
     resultFile = fullfile(resDir, sprintf('res_%s.mat', resNames{c}));
     processListeningData(inCsvFiles, resultFile, verbose, ignoreStimulusDir, posThresh, negThresh);
-    mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq)
+    mainBubbleAnalysis(mixDirs{c}, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq)
 end
 
 
