@@ -24,7 +24,7 @@ if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
 switch condition
     case {'bubbles', 'bubble'}
         % Noise instance appends a number at the end
-        word = regexprep(files, '\d+.mat', '');
+        word = regexprep(regexprep(files, '\d+.mat', ''), 'bps[^_/\\]*', 'bps');
     case {'remix', 'chime', 'chime2', 'asr'}
         % Noise instance prepends the file the noise came from as a directory
         word = listMap(@(x) basename(x, 0, 1), files);
@@ -63,8 +63,8 @@ save(outFile, 'pcaFeat', 'fracRight', 'files', 'inDir', 'isRight', ...
 
 function cf = cleanFileName(word, pcaDir)
 d = fileparts(fileparts(pcaDir(1:end-1)));
-if reMatch(word, 'bps[^_/\\]+')
-    fileName = [regexprep(word, 'bps[^_/\\]+', 'bpsInf') '000'];
+if reMatch(word, 'bps[^_/\\]*')
+    fileName = [regexprep(word, 'bps[^_/\\]*', 'bpsInf') '000'];
 else
     fileName = word;
 end
