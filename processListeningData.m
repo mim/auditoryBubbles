@@ -1,4 +1,4 @@
-function processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, posThresh, negThresh, equivClassCell, unpackFn)
+function [grouped digested] = processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, posThresh, negThresh, equivClassCell, unpackFn)
 
 % Convert listening test files for further analysis
 %
@@ -74,6 +74,6 @@ if verbose
         fprintf('%s:\t%0.1f%% correct\n', grouped2{i,6}, 100*grouped2{i,5});
     end
     
-    disp('Confusion matrix (one column per true label)')
-    printConfusionMat(digested(:,4), digested(:,6));
+    %disp('Confusion matrix (one column per true label)')
+    %printConfusionMat(digested(:,4), digested(:,6));
 end
