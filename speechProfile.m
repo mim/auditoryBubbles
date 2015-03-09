@@ -28,6 +28,10 @@ elseif noiseShape == 4
     refFile = fullfile(bubbleDataRoot, 'mrt/pitt/combined.wav');
     refQuantile = 0.97;
     smoothCoef = 0.97;
+elseif noiseShape == 5
+    refFile = fullfile(bubbleDataRoot, 'mrt/grid/id16orig.wav');
+    refQuantile = 0.97;
+    smoothCoef = 0.97;
 elseif noiseShape == 22
     refFile = fullfile(bubbleDataRoot, 'mrt/whiteNoise.wav');
     refQuantile = 0.5;
