@@ -1,14 +1,21 @@
 function [totCorrect totIncorrect picked wasRight] = playFileGetAndSaveChoice(file, rightAnswer, ...
     outCsvFile, subjectName, words, choiceNums, allowRepeats, ...
-    giveFeedback, totCorrect, totIncorrect, curIter, totalIters)
+    giveFeedback, totCorrect, totIncorrect, curIter, totalIters, vertical)
 
 % Play a wav file and get the listener's guess as to which of a set of
 % words they heard.  Saves results in csv file using csvWriteCells.
 
+if ~exist('vertical', 'var') || isempty(vertical), vertical = 0; end
+if vertical
+    sep = sprintf('\n');
+else
+    sep = '  ';
+end
+
 % Print prompt
 fprintf('\n')
 for opt = 1:length(words)
-    fprintf('%d: %-7s  ', choiceNums(opt), words{opt});
+    fprintf('%d: %-7s%s', choiceNums(opt), words{opt}, sep);
 end
 if allowRepeats
     fprintf('%d: [replay]', 0);

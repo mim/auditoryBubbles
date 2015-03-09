@@ -1,4 +1,5 @@
-function playListeningTestDir(inDir, subjectName, giveFeedback, allowRepeats)
+function playListeningTestDir(inDir, subjectName, giveFeedback, ...
+                              allowRepeats, vertical)
 
 % playListeningTestDir(inDir, subjectName, [giveFeedback], [allowRepeats])
 % playListeningTestDir(inDir, existingResultFileName, [giveFeedback], [allowRepeats])
@@ -17,6 +18,7 @@ function playListeningTestDir(inDir, subjectName, giveFeedback, allowRepeats)
 
 if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false; end
 if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false; end
+if ~exist('vertical', 'var') || isempty(vertical), vertical = false; end
 
 % If subjectName is actually a file name, then use that directly as the
 % output file (and save a backup of the current version)
@@ -67,7 +69,7 @@ for f = 1:length(files)
     
     [correct incorrect] = playFileGetAndSaveChoice(file, rightAnswers{f}, ...
         outCsvFile, subjectName, words, choiceNums, allowRepeats, ...
-        giveFeedback, correct, incorrect, f, length(files));
+        giveFeedback, correct, incorrect, f, length(files), vertical);
 end
 fprintf('Avg %g%% correct\n', 100*correct / (correct + incorrect));
 
