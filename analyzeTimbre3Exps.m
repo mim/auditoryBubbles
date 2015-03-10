@@ -3,26 +3,26 @@ function analyzeTimbre3Exps()
 % Adaptive bps levels experiments
 
 csvPatterns = {
+    'mim_adap.*.csv'
     'shc_adap.*.csv'
     'tal_adap.*.csv'
-    '(tal|shc)_adap.*.csv'
-    'tal_2015.*.csv'
-    'tal.*.csv'
-    '(tal_2015|tal_adap|shc_adap).*.csv'
+    '(tal|shc|mim)_adap.*.csv'
+    'mim_2015.*.csv'
+    '(tal_2015|tal_adap|shc_adap|mim_adap).*.csv'
     };
 resNames = {
+    'mima'
     'shca'
     'tala'
-    'sta'
-    'tal25'
-    'talall'
-    'sta25'
+    'stma'
+    'mim25'
+    'stma25'
     };
 mixDirs = {
+    'D:\Box Sync\musicBubblesLyons\timbre\mixes\adaptive\windC4E4\bpsmim'
     'D:\Box Sync\musicBubblesLyons\shc_mixtures\bpsshc'
     'D:\Box Sync\musicBubblesLyons\timbre\mixes\adaptive\windC4E4\bpstal'
     'D:\Box Sync\musicBubblesLyons\timbre\mixes\adaptive\windC4E4\bpstal'
-    'D:\mixes\instruments\windC4E4\bps25'
     'D:\mixes\instruments\windC4E4\bps25'
     'D:\mixes\instruments\windC4E4\bps25'
     };
