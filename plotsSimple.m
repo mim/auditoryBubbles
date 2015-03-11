@@ -60,6 +60,9 @@ for target = 1:length(resFiles)
         selected = (res.clean(:,:,p) - noiseLevel) .* (res.mat(:,:,p) .* (res.mat(:,:,p) > 0)) + noiseLevel;
         outName = plotFileName('onSpec', p, resFiles{target});
         prtSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
+
+        outName = plotFileName('onSpecTr', p, resFiles{target});
+        prtSpectrogram(cat(3,res.clean(:,:,p), res.mat(:,:,p)), outName, fs, hop_s, specCmap, specCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
 end
 

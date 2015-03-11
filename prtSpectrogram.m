@@ -10,9 +10,23 @@ f_khz = freqAxis_khz((size(X,1)-1)/2, fs);
 ylab = 'Frequency (kHz)';
 t_ms = (0:size(X,2)-1) * hop_s * 1000;
 
-colormap(cmap)
-imagesc(t_ms, f_khz, X)
-caxis(cax)
+if size(X,3) > 1
+    mask = lim(X(:,:,2), 0, 1);
+    X = X(:,:,1);
+else
+    mask = ones(size(X));
+end
+
+Xn = (X - cax(1)) / (cax(2) - cax(1));
+rgb = ind2rgb(1 + round((size(cmap,1)-1) * Xn), cmap);
+
+% Darken regions that are masked out
+hsv = rgb2hsv(rgb);
+hsv(:,:,3) = hsv(:,:,3) .* (0.5 * mask + 0.5); 
+rgb = hsv2rgb(hsv);
+
+image(t_ms, f_khz, rgb);
+
 axis xy
 axis tight
 
