@@ -1,8 +1,8 @@
-function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback)
+function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback, vertical)
 
 % Play adaptive listening test, save mixes and results
 %
-% playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback)
+% playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback, vertical)
 %
 % Adapt the bubbles-per-second level per stimulus using a weighted up/down
 % procedure to achieve approximately 0.5*(1 + 1/N) accuracy.  Resulting
@@ -27,8 +27,9 @@ function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initial
 %   allowRepeats   If 1, listener can play final file multiple times
 %   giveFeedback   If 1, tell listener whether they got each guess correct
 
-if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = 0; end
-if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = 0; end
+if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false; end
+if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false; end
+if ~exist('vertical', 'var') || isempty(vertical), vertical = false; end
 
 targetFs = -1;
 useHoles = true;
@@ -81,7 +82,7 @@ for i = 1:nRound
         
         [totCorrect totIncorrect response wasRight] = playFileGetAndSaveChoice(outMixFile, rightAnswers{f}, ...
             outCsvFile, subjectName, choices, choiceNums, allowRepeats, ...
-            giveFeedback, totCorrect, totIncorrect, (i-1)*nF+fi, nRound*nF);
+            giveFeedback, totCorrect, totIncorrect, (i-1)*nF+fi, nRound*nF, vertical);
         
         % Update perStimPast and perStimBps
         perStimPast(f,i) = wasRight;
