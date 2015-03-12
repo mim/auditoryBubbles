@@ -25,7 +25,8 @@ hsv = rgb2hsv(rgb);
 hsv(:,:,3) = hsv(:,:,3) .* (0.5 * mask + 0.5); 
 rgb = hsv2rgb(hsv);
 
-image(t_ms, f_khz, rgb);
+colormap(cmap)  % For colorbar later...
+hImg = image(t_ms, f_khz, rgb);
 
 axis xy
 axis tight
@@ -65,10 +66,15 @@ end
 
 if labels(3)
     hcb = colorbar;
-    ticks = get(hcb, 'YTick');
-    if ticks(1) == -1  % Only for masks, which are -1:1
-        set(hcb, 'YTick', [-0.8 -0.4 0 0.4 0.8]);
-    end
+    
+    % Set real colorbar for image()
+    set(hImg, 'CDataMapping', 'scaled')
+    set(gca, 'clim', cax);    
+ 
+%     ticks = get(hcb, 'YTick');
+%     if ticks(1) == -1  % Only for masks, which are -1:1
+%         set(hcb, 'YTick', [-0.8 -0.4 0 0.4 0.8]);
+%     end
 end
 
 prt(prtName)
