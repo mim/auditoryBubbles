@@ -9,7 +9,7 @@ ignoreStimulusDir = 1;
 processListeningData(inCsvFiles, resultFile, verbose, ignoreStimulusDir);
 
 % Extract features from mixtures
-baseFeatDir = 'C:\Temp\data\timbre';
+baseFeatDir = 'C:\Temp\data\timbre\original';
 pattern = 'bps20.*.wav';
 noiseShape = 3;        
 pcaDims = [100 1000];  
@@ -18,7 +18,7 @@ trimFrames = 15;
 overwrite = 0;
 hop_s = 0.016;
 setLength_s = 0;
-maxFreq = 11050;
+maxFreq = 8000;
 
 mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq)
 
