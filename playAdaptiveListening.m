@@ -51,8 +51,20 @@ choiceNums = 1:length(choices);
 totCorrect = 0; totIncorrect = 0;
 targetCorrectness = 0.5 * (1 + 1 / length(choices));
 
-%perStimBps = listMap(@(x) initialBps, cell(size(files)));  % Initialize cell array of vectors with initialBps
-perStimBps = initialBps * ones(size(files));
+% Should be compatible with saved files because files cell array is sorted
+if length(initialBps) == 1
+    perStimBps = initialBps * ones(size(files));
+elseif length(initialBps) == length(files)
+    perStimBps = initialBps;
+    fprintf('Using per-stim bps:\n')
+    for i = 1:length(files)
+        fprintf('%s: %g\n', files{i}, perStimBps(i));
+    end
+    fprintf('\n');
+else
+    error('Incompatible number of initialBps values: %s, expected %s', ...
+        length(initialBps), length(files))
+end
 perStimPast = [];
 
 if ~exist(outCsvFile, 'file')
