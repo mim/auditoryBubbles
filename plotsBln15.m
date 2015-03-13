@@ -31,11 +31,11 @@ for target = 1:length(resFiles)
     % Plot all correlations
     for p = 1:size(res.mat,3)
         outName = plotFileName('corr', p, resFiles{target});
-        prtSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(isLeftCol, 0, isRightCol, allLabels), maxFreq);
+        prtSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(isLeftCol, 1, isRightCol, allLabels), maxFreq);
 
         outName = plotFileName('sigCorr', p, resFiles{target});
         sigMask = exp((2*abs(0.5-res.pval) - 1) / 0.05);
-        prtSpectrogram(res.pbc(:,:,p) .* sigMask(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(isLeftCol, 0, isRightCol, allLabels), maxFreq);
+        prtSpectrogram(res.pbc(:,:,p) .* sigMask(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(isLeftCol, 1, isRightCol, allLabels), maxFreq);
     end
 end
 
@@ -67,7 +67,10 @@ for target = 1:length(resFiles)
     for p = 1:size(res.clean,3)
         selected = (res.clean(:,:,p) - noiseLevel) .* (res.mat(:,:,p) .* (res.mat(:,:,p) > 0)) + noiseLevel;
         outName = plotFileName('onSpec', p, resFiles{target});
-        prtSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(isLeftCol, 1, isRightCol, allLabels), maxFreq);
+        prtSpectrogram(selected, outName, fs, hop_s, specCmap, specCax, labelsFor(isLeftCol, 0, isRightCol, allLabels), maxFreq);
+
+        outName = plotFileName('onSpecTr', p, resFiles{target});
+        prtSpectrogram(cat(3,res.clean(:,:,p), res.mat(:,:,p)), outName, fs, hop_s, specCmap, specCax, labelsFor(isLeftCol, 0, isRightCol, allLabels), maxFreq);
     end
 end
 
