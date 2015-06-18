@@ -18,4 +18,7 @@ overwrite = 0;
 hop_s = 0.016;         % this is the default hop size used in the analysis
 setLength_s = 2.2;
 maxFreq_hz = 8000;
-mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq_hz);
+featDir = mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq_hz);
+
+snrDir = fullfile(fileparts(featDir), 'snr');
+extractSnr(mixDir, snrDir, overwrite);
