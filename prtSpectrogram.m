@@ -1,4 +1,4 @@
-function prtSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq_hz, xrange_s)
+function prtSpectrogram(X, prtName, fs, hop_s, cmap, cax, labels, maxFreq_hz, xrange_s, varargin)
 
 % Labels: [ylabel xlabel colorbar]
 clf  % Need this to make plots the right size for some reason...
@@ -77,7 +77,7 @@ if labels(3)
 %     end
 end
 
-prt(prtName)
+prt(prtName, varargin{:})
 
 
 function f = freqAxis_khz(nFft, fs)
