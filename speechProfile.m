@@ -12,6 +12,7 @@ if nargin < 4, noiseShape = 0; end
 persistent profiles;
 if ~exist('profiles', 'var'), profiles = []; end
 
+gain = 1;
 if noiseShape == 1
     refFile = fullfile(bubbleDataRoot, 'mrt/helen/Helen_side_chunk_1.wav');
     refQuantile = 0.99;
@@ -32,6 +33,11 @@ elseif noiseShape == 5
     refFile = fullfile(bubbleDataRoot, 'mrt/grid/id16orig.wav');
     refQuantile = 0.97;
     smoothCoef = 0.97;
+elseif noiseShape == 6
+    refFile = fullfile(bubbleDataRoot, 'bubbles/preethi/combined.wav');
+    refQuantile = 0.97;
+    smoothCoef = 0.97;
+    gain = 0.5;
 elseif noiseShape == 22
     refFile = fullfile(bubbleDataRoot, 'mrt/whiteNoise.wav');
     refQuantile = 0.5;
@@ -45,17 +51,17 @@ end
 fieldName = sprintf('sr%d_nFft%d_nHop%d_noiseShape%d', sr, nFft, nHop, noiseShape);
 if ~isfield(profiles, fieldName)
     fprintf('cache miss for %s...\n', fieldName)
-    profiles.(fieldName) = profileFromWav(refFile, sr, nFft, nHop, refQuantile, smoothCoef);
+    profiles.(fieldName) = profileFromWav(refFile, sr, nFft, nHop, refQuantile, smoothCoef, gain);
 end
 p = profiles.(fieldName);
 
 
-function q = profileFromWav(refFile, sr, nFft, nHop, refQuantile, smoothCoef)
+function q = profileFromWav(refFile, sr, nFft, nHop, refQuantile, smoothCoef, gain)
 [x srRef] = wavReadBetter(refFile);
 x = mean(x,2);
 x = resample(x, sr, srRef);
 X = stft(x', nFft, nFft, nHop);
 q = quantile(abs(X), refQuantile, 2);
 q = filtfilt(1-smoothCoef, [1 -smoothCoef], q);
-q = q / max(q);
+q = gain * q / max(q);
 1+1;
