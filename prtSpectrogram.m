@@ -51,12 +51,31 @@ else
 end
 ylim([0 maxFreq_khz])
 
+% nXticks = 8;
+% xticks = unique(10 * floor(linspace(0, max(t_ms)/10, nXticks+2)));
+% xticks = xticks(2:end-1);
+if max(t_ms) > 5000
+    xticks = makeXTicks(max(t_ms), 1);
+    xlab = 'Time (s)';
+    tickMult = 0.001;
+elseif max(t_ms) > 2500
+    xticks = makeXTicks(max(t_ms), 0.5);
+    xlab = 'Time (ms)';
+    tickMult = 1;
+elseif max(t_ms) > 1000
+    xticks = makeXTicks(max(t_ms), 0.2);
+    xlab = 'Time (ms)';
+    tickMult = 1;
+else
+    xticks = makeXTicks(max(t_ms), 0.1);
+    xlab = 'Time (ms)';
+    tickMult = 1;
+end
 
-xticks = 200:200:200*floor(max(t_ms)/200);
 set(gca, 'XTick', xticks);
 if labels(2)
-    xlabel('Time (ms)')
-    set(gca, 'XTickLabel', xticks);
+    xlabel(xlab)
+    set(gca, 'XTickLabel', xticks * tickMult);
 else
     set(gca, 'XTickLabel', {});
 end
@@ -82,3 +101,8 @@ prt(prtName, varargin{:})
 
 function f = freqAxis_khz(nFft, fs)
 f = (0:nFft/2) / nFft * fs / 1000;
+
+function xt_ms = makeXTicks(maxT_ms, step)
+maxT_s = maxT_ms / 1000;
+xt_s = step:step:maxT_s-step/2;
+xt_ms = xt_s * 1000;
