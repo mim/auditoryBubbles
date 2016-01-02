@@ -22,7 +22,7 @@ function varargout = bubbleEditor(varargin)
 
 % Edit the above text to modify the response to help bubbleEditor
 
-% Last Modified by GUIDE v2.5 31-Dec-2015 14:05:02
+% Last Modified by GUIDE v2.5 01-Jan-2016 22:36:11
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,6 +52,18 @@ function bubbleEditor_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to bubbleEditor (see VARARGIN)
 
+% Process varargin. From:
+% http://www.mathworks.com/help/matlab/creating_guis/initializing-a-guide-gui.html
+if(nargin > 3)
+    for index = 1:2:(nargin-3),
+        if nargin-3==index, break, end
+        switch lower(varargin{index})
+            case {'wav', 'wavfilein'}
+                handles.wavFileIn = varargin{index+1};
+        end
+    end
+end
+
 % CreateFcns should all have run by now
 if isfield(handles, 'prefs')
     prefs = handles.prefs;
@@ -63,7 +75,7 @@ prefs.noiseShape = 0;
 
 prefs.makeHoles = true;
 prefs.normalizeClean = true;
-prefs.cx = [-80 30];
+%prefs.cx = [-80 30];
 prefs.scale_db = 6;
 
 prefs.maskEffect = 'attenuate';
@@ -71,11 +83,16 @@ prefs.maskEffect = 'attenuate';
 handles.bubbleT_s = []; 
 handles.bubbleF_erb = [];
 
-
 % Choose default command line output for bubbleEditor
 handles.output = hObject;
 
 handles.prefs = prefs;
+
+% If user supplies a wav file, start with it
+if isfield(handles, 'wavFileIn') && ~isempty(handles.wavFileIn)
+    handles = loadWav(handles);
+    handles = plotAndPlay(handles);
+end
 
 % Update handles structure
 guidata(hObject, handles);
@@ -272,12 +289,7 @@ else
     handles.wavFileIn = fullfile(inDir, inFile);
 end
 
-handles.bubbleT_s = [];
-handles.bubbleF_erb = [];
 handles = loadWav(handles);
-
-set(handles.inputFileField, 'String', handles.wavFileIn);
-
 handles = plotAndPlay(handles);
 % mask = ones(size(handles.data.X));
 % showMaskedSpec(handles.data.X, mask, handles.sgInfo.timeVec_s, handles.sgInfo.freqVec_hz, handles.prefs.maxFreq_hz, handles.prefs.cx);
@@ -363,6 +375,63 @@ handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 
+function minLevel_db_field_Callback(hObject, eventdata, handles)
+% hObject    handle to minLevel_db_field (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles.prefs.minLevel_db = str2num(get(hObject, 'String'));
+guidata(hObject, handles);
+
+% Hints: get(hObject,'String') returns contents of minLevel_db_field as text
+%        str2double(get(hObject,'String')) returns contents of minLevel_db_field as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function minLevel_db_field_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to minLevel_db_field (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+handles.prefs.minLevel_db = str2num(get(hObject, 'String'));
+guidata(hObject, handles);
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function maxLevel_db_field_Callback(hObject, eventdata, handles)
+% hObject    handle to maxLevel_db_field (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles.prefs.maxLevel_db = str2num(get(hObject, 'String'));
+guidata(hObject, handles);
+
+% Hints: get(hObject,'String') returns contents of maxLevel_db_field as text
+%        str2double(get(hObject,'String')) returns contents of maxLevel_db_field as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function maxLevel_db_field_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to maxLevel_db_field (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+handles.prefs.maxLevel_db = str2num(get(hObject, 'String'));
+guidata(hObject, handles);
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
 %%%%%%%%% non-gui functions %%%%%%%%%
 
 function handles = loadWav(handles)
@@ -381,6 +450,10 @@ data.X = stft([data.x' zeros(size(data.x,2),sgInfo.nFft)], sgInfo.nFft, sgInfo.n
 % Save structures
 handles.data = data;
 handles.sgInfo = sgInfo;
+handles.bubbleT_s = [];
+handles.bubbleF_erb = [];
+
+set(handles.inputFileField, 'String', handles.wavFileIn);
 
 
 function handles = plotAndPlay(handles)
@@ -406,7 +479,8 @@ else
 end
     
 mixX = stft(d.mix / sqrt(sg.nFft), sg.nFft, sg.nFft, sg.nHop);
-rescaledSpec = 256*lim((db(mixX) - p.cx(1)) /  (p.cx(2) - p.cx(1)), 0, 1);
+%rescaledSpec = 256*lim((db(mixX) - p.cx(1)) /  (p.cx(2) - p.cx(1)), 0, 1);
+rescaledSpec = 256*lim((db(mixX) - p.minLevel_db) /  (p.maxLevel_db - p.minLevel_db), 0, 1);
 imageSaveBdf(sg.timeVec_s, sg.freqVec_hz, rescaledSpec);
 axis xy; ylim([0 p.maxFreq_hz]);
 
@@ -468,3 +542,4 @@ else
     handles.wavFileOut = fullfile(outDir, outFile);
 end
 set(handles.outputFileField, 'String', handles.wavFileOut);
+
