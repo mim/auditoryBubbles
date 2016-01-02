@@ -1,6 +1,8 @@
-function [speech targetSr] = loadCleanWav(cleanFile, dur_s, normalize, targetSr)
+function [speech targetSr dur_s] = loadCleanWav(cleanFile, dur_s, normalize, targetSr)
 
 % SNR is in linear units (not dB)
+
+if ~exist('dur_s','var'), dur_s = []; end
 
 speechRms = 0.1;
 
@@ -15,6 +17,12 @@ if normalize
     speech = speech * speechRms / rmsNonZero(speech, -60);
 end
 
-dur = round(dur_s * targetSr);
+if isempty(dur_s)
+    dur = length(speech);
+else
+    dur = round(dur_s * targetSr);
+end
 pad = dur - length(speech);
 speech = [zeros(ceil(pad/2),1); speech; zeros(floor(pad/2),1)];
+
+dur_s = length(speech) / targetSr;
