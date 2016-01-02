@@ -193,6 +193,7 @@ function bubbleWidth_ms_field_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.prefs.bubbleWidth_ms = str2num(get(hObject, 'String'));
+handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 % Hints: get(hObject,'String') returns contents of bubbleWidth_ms_field as text
@@ -222,6 +223,7 @@ function bubbleHeight_erb_field_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.prefs.bubbleHeight_erb = str2num(get(hObject, 'String'));
+handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 % Hints: get(hObject,'String') returns contents of bubbleHeight_erb_field as text
@@ -251,6 +253,7 @@ function bubbleDepth_db_field_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.prefs.bubbleDepth_db = str2num(get(hObject, 'String'));
+handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 % Hints: get(hObject,'String') returns contents of bubbleDepth_db_field as text
@@ -344,6 +347,7 @@ function amplifySelect_Callback(hObject, eventdata, handles)
 if get(hObject, 'Value')
     handles.prefs.maskEffect = 'amplify';
 end
+handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 % Hint: get(hObject,'Value') returns toggle state of amplifySelect
@@ -358,6 +362,7 @@ function attenuateSelect_Callback(hObject, eventdata, handles)
 if get(hObject, 'Value')
     handles.prefs.maskEffect = 'attenuate';
 end
+handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 % Hint: get(hObject,'Value') returns toggle state of attenuateSelect
@@ -381,6 +386,7 @@ function minLevel_db_field_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.prefs.minLevel_db = str2num(get(hObject, 'String'));
+handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 % Hints: get(hObject,'String') returns contents of minLevel_db_field as text
@@ -409,6 +415,7 @@ function maxLevel_db_field_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.prefs.maxLevel_db = str2num(get(hObject, 'String'));
+handles = plotAndPlay(handles);
 guidata(hObject, handles);
 
 % Hints: get(hObject,'String') returns contents of maxLevel_db_field as text
