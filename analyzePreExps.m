@@ -2,10 +2,16 @@ function analyzePreExps()
 
 % Analyze data from pre experiments 1 and 2
 
-analysisDir = 'C:\Temp\data\preExp\pre2';
+analysisDir = '/home/mim/work/papers/jasa14/pics4/agreement';
+toDisk = 1;
+startAt = 0;
+prt('ToFile', toDisk, 'StartAt', startAt, ...
+    'Width', 2.2, 'Height', 2.2, 'NumberPlots', 0, ...
+    'TargetDir', analysisDir, ...
+    'SaveTicks', 1, 'Resolution', 200)
 
 % Intra-subject agreement
-[~,files] = findFiles('D:\Box Sync\data\mrt\shannonResults\preExps\', 'pre1.*.mat');
+[~,files] = findFiles('/home/data/bubblesResults/shannonResults/preExps/', 'pre1.*.mat');
 grouped={}; 
 for i = 1:length(files), 
     g = load(files{i}); 
@@ -15,7 +21,7 @@ for i=1:size(grouped,1),
     grouped{i,7} = [grouped{i,1}{1} '_' regexprep(grouped{i,3}, '_\d+.wav', '')]; 
 end
 grouped2 = groupBy(grouped, 7, @(x) mean([x{:}]), 5);
-labelHist([grouped2{:,5}], 0.2:.1:1, 'withinUserConsistency', analysisDir);
+labelHist([grouped2{:,5}], 0.2:.1:1, 'withinUserConsistency');
 
 % Inter-subject agreement of accuracies of repeated listenings
 nSubj = length(files);
@@ -23,15 +29,19 @@ for j=1:nSubj
     subjAcc(:,j) = [grouped2{j:nSubj:end,5}]';
 end
 plotmatrix(lim(subjAcc - 0.05*rand(size(subjAcc)), 0, 1), 'o');
-print('-dpng', fullfile(analysisDir, 'acrossUserAccCorr'))
+xlabel('Subject')
+ylabel('Subject')
+prt('acrossUserAccCorr', 'Width', 3, 'Height', 3)
 
 % Inter-subject agreement
-resultFile = 'D:\Box Sync\data\mrt\shannonResults\preExps\grouped_pre2.mat';
+resultFile = '/home/data/bubblesResults/shannonResults/preExps/grouped_pre2.mat';
 verbose = 1;
-[~,inCsvFiles] = findFiles('D:\Box Sync\data\mrt\shannonResults\preExps\', 'pre2.*.csv');
-processListeningData(inCsvFiles, resultFile, verbose);
+[~,inCsvFiles] = findFiles('/home/data/bubblesResults/shannonResults/preExps/', 'pre2.*.csv');
+%processListeningData(inCsvFiles, resultFile, verbose);
 load(resultFile)
-labelHist([grouped{:,5}], 0.2:0.2:1, 'acrossUserConsistency', analysisDir);
+labelHist([grouped{:,5}], 0.2:0.2:1, 'acrossUserConsistency');
+
+return
 
 
 % Do bubbles processing on combined pre2 data
@@ -77,16 +87,13 @@ kr
 % TODO: do this
 
 
-function labelHist(vals, bins, fileName, dir, toFile)
-if nargin < 5, toFile = 1; end
+function labelHist(vals, bins, fileName)
 
 [h x] = hist(vals, bins);
 bar(x, h / sum(h), 'hist')
 halfBarWidth = mean(diff(x)) / 2;
 xlim([min(x)-halfBarWidth max(x)+halfBarWidth]);
-ylabel('Fraction of mixtures')
-xlabel('Fraction of presentations correctly identified')
+ylabel('Proportion of total')
+xlabel('Proportion correct')
 %title('Proportion correct of each mixture of 10 repeated listenings by the same subject')
-if toFile
-    print('-dpng', fullfile(dir, fileName))
-end
+prt(fileName)
