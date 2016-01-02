@@ -22,7 +22,7 @@ function varargout = bubbleEditor(varargin)
 
 % Edit the above text to modify the response to help bubbleEditor
 
-% Last Modified by GUIDE v2.5 01-Jan-2016 22:36:11
+% Last Modified by GUIDE v2.5 02-Jan-2016 18:17:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -549,4 +549,3 @@ else
     handles.wavFileOut = fullfile(outDir, outFile);
 end
 set(handles.outputFileField, 'String', handles.wavFileOut);
-
