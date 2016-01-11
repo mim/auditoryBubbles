@@ -21,8 +21,8 @@ status = extractFeatures(inDir, outDir, 'mat', wavFiles, ...
 function ef_snr(ip, op, noisyToCleanFn)
 cleanWavFile = noisyToCleanFn(ip);
 
-[mix fsm] = wavread(ip);
-[cln fsc] = wavread(cleanWavFile);
+[mix fsm] = audioread(ip);
+[cln fsc] = audioread(cleanWavFile);
 assert(fsm == fsc);
 
 opts = 'Vz';

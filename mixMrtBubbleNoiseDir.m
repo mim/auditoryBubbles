@@ -45,7 +45,7 @@ snr = db2mag(snr_db);
 
 for i = 1:length(speechFiles)
     cleanFile = fullfile(inDir, speechFiles{i});
-    [~,sr] = wavread(cleanFile);
+    [~,sr] = audioread(cleanFile);
     
     num = -1;
     while true
@@ -66,7 +66,6 @@ for i = 1:length(speechFiles)
         end
         [mix sr] = mixBubbleNoise(cleanFile, sr, useHoles, bubblesPerSec, snr, dur_s, normalize, noiseShape, randomSeed);
         
-        ensureDirExists(outFile);
-        wavwrite(mix, sr, outFile);
+        wavWriteBetter(mix, sr, outFile);
     end
 end

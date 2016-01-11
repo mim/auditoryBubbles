@@ -109,7 +109,7 @@ speechRms = 0.1;
 len_s = 0.65;
 snr = db2mag(-30);
 
-[x fs] = wavread(path);
+[x fs] = audioread(path);
 x = setSignalLen(x, fs, len_s);
 
 if doScale

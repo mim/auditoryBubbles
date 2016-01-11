@@ -6,7 +6,7 @@ if ~exist('dur_s','var'), dur_s = []; end
 
 speechRms = 0.1;
 
-[speech sr] = wavread(cleanFile);
+[speech sr] = audioread(cleanFile);
 speech = mean(speech,2);
 if targetSr <= 0
     targetSr = sr;

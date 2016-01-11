@@ -37,7 +37,7 @@ for i = 1:nTrials
     tic;
     
     % Play file
-    [x fs] = wavread(wavFile);
+    [x fs] = audioread(wavFile);
     sound(x, fs);
     setupTime = toc;
     

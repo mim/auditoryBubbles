@@ -36,7 +36,7 @@ if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
 % Figure out sampling rate for plots
 resultFileName = basename(resultFile, 0);
 [mixFiles,mixPaths] = findFiles(mixDir, pattern);
-[~,fs] = wavread(mixPaths{1});
+[~,fs] = audioread(mixPaths{1});
 
 % Extract features from mixtures
 [basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, noiseShape, overwrite >= 3);

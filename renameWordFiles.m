@@ -10,7 +10,7 @@ if ~exist('startAt', 'var') || isempty(startAt), startAt = 1; end
 for i = startAt:length(files)
     choice = '';
     while isempty(choice)
-        [x fs] = wavread(paths{i});
+        [x fs] = audioread(paths{i});
         sound(x, fs);
     
         try
