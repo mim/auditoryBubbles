@@ -13,42 +13,49 @@ persistent profiles;
 if ~exist('profiles', 'var'), profiles = []; end
 
 gain = 1;
-if noiseShape == 1
-    refFile = fullfile(bubbleDataRoot, 'mrt/helen/Helen_side_chunk_1.wav');
-    refQuantile = 0.99;
-    smoothCoef = 0;
-elseif noiseShape == 2
-    refFile = fullfile(bubbleDataRoot, 'mrt/drspeech/speechRef.wav');
+if ischar(noiseShape)
+    refFile = noiseShape;
     refQuantile = 0.97;
-    smoothCoef = 0.97;
-elseif noiseShape == 3
-    refFile = fullfile(bubbleDataRoot, 'mrt/instrumentsSingle/calibration/all.wav');
-    refQuantile = 0.98;
-    smoothCoef = 0.995;
-elseif noiseShape == 4
-    refFile = fullfile(bubbleDataRoot, 'mrt/pitt/combined.wav');
-    refQuantile = 0.97;
-    smoothCoef = 0.97;
-elseif noiseShape == 5
-    refFile = fullfile(bubbleDataRoot, 'mrt/grid/id16orig.wav');
-    refQuantile = 0.97;
-    smoothCoef = 0.97;
-elseif noiseShape == 6
-    refFile = fullfile(bubbleDataRoot, 'bubbles/preethi/combined.wav');
-    refQuantile = 0.97;
-    smoothCoef = 0.97;
-    gain = 0.5;
-elseif noiseShape == 22
-    refFile = fullfile(bubbleDataRoot, 'mrt/whiteNoise.wav');
-    refQuantile = 0.5;
     smoothCoef = 0.97;
 else
-    refFile = fullfile(bubbleDataRoot, 'mrt/shannon/speechRef.wav');
-    refQuantile = 0.97;
-    smoothCoef = 0.97;
+    if noiseShape == 1
+        refFile = fullfile(bubbleDataRoot, 'mrt/helen/Helen_side_chunk_1.wav');
+        refQuantile = 0.99;
+        smoothCoef = 0;
+    elseif noiseShape == 2
+        refFile = fullfile(bubbleDataRoot, 'mrt/drspeech/speechRef.wav');
+        refQuantile = 0.97;
+        smoothCoef = 0.97;
+    elseif noiseShape == 3
+        refFile = fullfile(bubbleDataRoot, 'mrt/instrumentsSingle/calibration/all.wav');
+        refQuantile = 0.98;
+        smoothCoef = 0.995;
+    elseif noiseShape == 4
+        refFile = fullfile(bubbleDataRoot, 'mrt/pitt/combined.wav');
+        refQuantile = 0.97;
+        smoothCoef = 0.97;
+    elseif noiseShape == 5
+        refFile = fullfile(bubbleDataRoot, 'mrt/grid/id16orig.wav');
+        refQuantile = 0.97;
+        smoothCoef = 0.97;
+    elseif noiseShape == 6
+        refFile = fullfile(bubbleDataRoot, 'bubbles/preethi/combined.wav');
+        refQuantile = 0.97;
+        smoothCoef = 0.97;
+        gain = 0.5;
+    elseif noiseShape == 22
+        refFile = fullfile(bubbleDataRoot, 'mrt/whiteNoise.wav');
+        refQuantile = 0.5;
+        smoothCoef = 0.97;
+    else
+        refFile = fullfile(bubbleDataRoot, 'mrt/shannon/speechRef.wav');
+        refQuantile = 0.97;
+        smoothCoef = 0.97;
+    end
 end
 
-fieldName = sprintf('sr%d_nFft%d_nHop%d_noiseShape%d', sr, nFft, nHop, noiseShape);
+h = hashStr(refFile);
+fieldName = sprintf('sr%d_nFft%d_nHop%d_file%s', sr, nFft, nHop, h);
 if ~isfield(profiles, fieldName)
     fprintf('cache miss for %s...\n', fieldName)
     profiles.(fieldName) = profileFromWav(refFile, sr, nFft, nHop, refQuantile, smoothCoef, gain);
