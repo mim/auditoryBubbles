@@ -6,7 +6,7 @@ analysisDir = '/home/mim/work/papers/jasa14/pics4/agreement';
 toDisk = 1;
 startAt = 0;
 prt('ToFile', toDisk, 'StartAt', startAt, ...
-    'Width', 2.2, 'Height', 2.2, 'NumberPlots', 0, ...
+    'Width', 3.5, 'Height', 3.5, 'NumberPlots', 0, ...
     'TargetDir', analysisDir, ...
     'SaveTicks', 1, 'Resolution', 200)
 
@@ -28,9 +28,16 @@ nSubj = length(files);
 for j=1:nSubj
     subjAcc(:,j) = [grouped2{j:nSubj:end,5}]';
 end
-plotmatrix(lim(subjAcc - 0.05*rand(size(subjAcc)), 0, 1), 'o');
-xlabel('Subject')
-ylabel('Subject')
+[~,subAxes] = plotmatrix(lim(subjAcc - 0.05*rand(size(subjAcc)), 0, 1), 'o');
+for i=1:size(subAxes,2)
+    title(subAxes(1,i), sprintf('Subj %d', i), 'fontweight', 'normal'); 
+end
+for i=1:size(subAxes,1)
+    set(subAxes(i,end), 'YAxisLocation', 'right')
+    ylabel(subAxes(i,end), sprintf('Subj %d', i), 'fontweight', 'normal'); 
+end
+xlabel('Proportion correct')
+ylabel('Proportion correct')
 prt('acrossUserAccCorr', 'Width', 3, 'Height', 3)
 
 % Inter-subject agreement
