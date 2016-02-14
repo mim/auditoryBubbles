@@ -3,7 +3,7 @@ function analyzePreExps()
 % Analyze data from pre experiments 1 and 2
 
 analysisDir = '/home/mim/work/papers/jasa14/pics4/agreement';
-toDisk = 1;
+toDisk = 0;
 startAt = 0;
 prt('ToFile', toDisk, 'StartAt', startAt, ...
     'Width', 3.5, 'Height', 3.5, 'NumberPlots', 0, ...
