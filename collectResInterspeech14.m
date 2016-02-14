@@ -5,7 +5,7 @@ function collectResInterspeech14(toDisk, startAt)
 if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
 if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
 
-outFile = 'z:/resInterspeech14Tables.tex';
+outFile = '/home/data/bubblesResults/resInterspeech14/tables.tex';
 sameTalkerInds = 2:6:36;
 diffTalkerInds = 5:6:36;
 diffTalkersOnly = [1 2 4];
@@ -18,9 +18,10 @@ summaryRowNames = {'Same & $-$', 'Same & $+$', 'Diff & $-$', 'Diff & $+$', '\mul
 
 prt('ToFile', toDisk, 'StartAt', startAt, ...
     'Width', 4, 'Height', 3, 'NumberPlots', 0, ...
-    'TargetDir', 'C:\Temp\data\plots\accResults', ...
+    'TargetDir', '/home/data/bubblesResults/resInterspeech14/accResults', ...
     'SaveTicks', 1, 'Resolution', 200)
 
+ensureDirExists(outFile);
 if exist(outFile, 'file'), delete(outFile); end
 
 % cross-validation within each track
@@ -271,7 +272,7 @@ fclose(f);
 
 function path = resFileFor(grouping, doWarp, target, fn)
 
-baseDir = 'C:\Temp\data\results3dwBalTr\exp12\trim=30,length=2.2\';
+baseDir = '/home/data/bubblesResults/results3dwBalTr/exp12/trim=30,length=2.2/';
 path = fullfile(baseDir, ...
     sprintf('grouping=%d', grouping), ...
     sprintf('doWarp=%d', doWarp), ...
