@@ -13,7 +13,7 @@ sameTalkersInTables = 1:3;
 diffTalkersInTables = 3:6;
 talkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W5'};
 longTalkerIds = {'W3 v3', 'W3 v2', 'W3 v1', 'W4', 'W2', 'W3 v1', 'W5'};
-colNames = {'acha', 'ada', 'afa', 'aja', 'ata', 'ava'};
+colNames = {'acha', 'ada', 'afa', 'aja', 'ata', 'ava', 'Avg'};
 summaryRowNames = {'Same & $-$', 'Same & $+$', 'Diff & $-$', 'Diff & $+$', '\multicolumn{2}{c}{Cross-val}'};
 
 prt('ToFile', toDisk, 'StartAt', startAt, ...
@@ -30,6 +30,7 @@ xvalAcc(1:3,:,:) = allRes(1:3,:,:);
 allRes = loadAcc(diffTalkerInds, 'xvalSvmOnEachWord');  % Different talkers
 xvalAcc(4:6,:,:) = allRes(diffTalkersOnly,:,:);
 xvalAcc(7,:,:) = mean(xvalAcc,1);
+xvalAcc(:,7,:) = mean(xvalAcc,2);
 
 % % rows: same talker v1,2,3, different talker 2,3,4, average
 % % cols: acha, ada, afa, aja, ata, ava
@@ -43,9 +44,12 @@ gtClassDist(1:3,:,:) = allGtClassDist(1:3,:,:);
 [allNTe allNTr allGtClassDist] = loadXvalNumTest(diffTalkerInds);  % Different talker
 nTe(4:6,:,:) = allNTe(diffTalkersOnly,:,:);
 nTe(7,:,:) = sum(nTe,1);
+nTe(:,7,:) = sum(nTe,2);
 nTr(4:6,:,:) = allNTr(diffTalkersOnly,:,:);
 nTr(7,:,:) = mean(nTr,1);
+nTr(:,7,:) = mean(nTr,2);
 gtClassDist(4:6,:,:) = allGtClassDist(diffTalkersOnly,:,:);
+gtClassDist(:,7,:) = mean(gtClassDist,2);
 
 % rows: same talker v1,2,3, different talker 2,3,4, total
 % cols: acha, ada, afa, aja, ata, ava
@@ -167,6 +171,8 @@ for target = 1:length(targets)
         end
     end
 end
+allRes = cat(2, allRes, mean(allRes,2));
+allResDiffWord = cat(2, allResDiffWord, mean(allResDiffWord,2));
 
 function [nTe nTr gtClassDist] = loadXvalNumTest(targets)
 grouping = 0;
@@ -195,6 +201,10 @@ for target = 1:length(targets)
         nTeDw(:,target,doWarp+1) = rnTe(:,2);
     end
 end
+nTe = cat(2, nTe, sum(nTe,2));
+nTeDw = cat(2, nTeDw, sum(nTeDw,2));
+nTr = cat(2, nTr, mean(nTr,2));
+
 
 function isSig = significantBinomial(acc, nTe)
 k = acc(:)/100 .* nTe(:);
