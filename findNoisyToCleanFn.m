@@ -15,7 +15,7 @@ tryFns = {
 noisyToCleanFn = [];
 for n = 1:length(tryFns)
     cleanFile = tryFns{n}(noisyPath);
-    if exist(cleanFile, 'file')
+    if ~strcmp(noisyPath, cleanFile) && exist(cleanFile, 'file')
         noisyToCleanFn = tryFns{n};
         break;
     end
