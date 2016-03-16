@@ -1,22 +1,23 @@
-function processAsrDataGrid(baseName, model, dataset, outResultDir)
+function processAsrDataGrid(baseName, model, dataset, resDir)
 
-% Like processListeningData, but for ASR results from kaldi.  Outputs a
-% directory of results files (one for each word in each clean file) instead
-% of just one.
+% Process listening test data for kaldi GRID results.
 %
-% processAsrDataWsj(inKaldiDir, outResultDir, [lmwtFilePattern], [iter], [noisyIdChars])
+%   processAsrDataGrid(baseName, model, dataset, [outResultDir])
 %
-% inKaldiDir should be the directory in exp of one asr system, e.g.,
-% /data/data8/scratch/mandelm/kaldi/chime-wsj0-s5-bubbles20-avg/exp/tri3b 
-% outResultDir is the base directory where results will be written. In that
-% directory they will be in a subdirectory named by the model, then the
-% clean file, then the language model weight, then the file named by the
-% word.
+% Wrapper around processAsrData()
+%
+% Inputs:
+%   baseName: base name of recognizer, e.g., 'chime2-grid-baseline'
+%   model:    name of the model within that recognizer, e.g., 'tri2b' 
+%   dataset:  name of dataset within that recognizer, e.g., 'devel'
+%   resDir:   directory to write output in, results are qualilfied by
+%             baseName, model, and dataset within this directory
 %
 % Each result file is an Nx6 cell array with fields: 
 %   model, [blank], noisyFile, guess, isCorrect, rightAnswer
 
-transFile = sprintf('/data/data14/scratch/mandelm/kaldi/%s/exp/%s/decode_%s/scoring/trans.txt', baseName, model, dataset);
+kaldiDir = sprintf('/data/data14/scratch/mandelm/kaldi/%s/', baseName);
+transFile = fullfile(kaldiDir, sprintf('exp/%s/decode_%s/scoring/trans.txt', model, dataset));
 noisyLines = textArray(transFile);
 if isempty(noisyLines{end})
     noisyLines = noisyLines(1:end-1);  % Remove trailing empty line...
@@ -26,10 +27,10 @@ gtLines = deriveGtLines(noisyLines);
 
 modelName = sprintf('%s_%s_%s', baseName, model, dataset);
 
-noisyIdToFileScp = sprintf('/data/data14/scratch/mandelm/kaldi/%s/data/%s/wav.scp', baseName, dataset);
+noisyIdToFileScp = fullfile(kaldiDir, sprintf('data/%s/wav.scp', dataset));
 noisyIdToFileMap = makeIdToFileMap(noisyIdToFileScp);
 
-processAsrData(noisyLines, gtLines, noisyIdToFileMap, modelName, outResultDir, @noisyToCleanId);
+processAsrData(noisyLines, gtLines, noisyIdToFileMap, modelName, resDir, @noisyToCleanId);
 
 
 
