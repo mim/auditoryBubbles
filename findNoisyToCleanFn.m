@@ -23,7 +23,7 @@ end
 if isempty(noisyToCleanFn)
     error('No working noisy-to-clean function found (perhaps you haven''t generated bpsInf files?)');
 else
-    fprintf('Using noisyToCleanFn: %s\n', func2str(noisyToCleanFn));
+    fprintf('Using noisyToCleanFn %d/%d: %s\n', n, length(tryFns), func2str(noisyToCleanFn));
 end
 
 
