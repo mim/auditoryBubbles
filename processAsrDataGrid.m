@@ -28,7 +28,7 @@ gtLines = deriveGtLines(noisyLines);
 modelName = sprintf('%s_%s_%s', baseName, model, dataset);
 
 noisyIdToFileScp = fullfile(kaldiDir, sprintf('data/%s/wav.scp', dataset));
-noisyIdToFileMap = makeIdToFileMap(noisyIdToFileScp);
+noisyIdToFileMap = makeIdToFileMap(noisyIdToFileScp, true);
 
 processAsrData(noisyLines, gtLines, noisyIdToFileMap, modelName, resDir, @noisyToCleanId);
 
