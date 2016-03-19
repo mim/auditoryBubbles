@@ -44,7 +44,7 @@ resultFileName = basename(resultFile, 0);
 % Collect PCA features for mixes of the same clean file
 pcaFeatDir = fullfile(basePcaDir, 'feat');
 groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
-collectPcaFeatures(pcaFeatDir, resultFile, groupedFeatDir, overwrite >= 2, condition);
+collectPcaFeatures(pcaFeatDir, featDir, resultFile, groupedFeatDir, overwrite >= 2, condition);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
 cacheDir = fullfile(basePcaDir, 'cache', resultFileName);
