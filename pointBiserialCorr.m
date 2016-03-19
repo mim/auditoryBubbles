@@ -27,6 +27,7 @@ pval  = zeros(size(s0), 'single');
 
 for w = 1:size(s0,1)
     pbc(w,:)   = (s1(w,:)/n1(w) - s0(w,:)/n0(w)) ./ sig(w,:) .* sqrt(n0(w)*n1(w) / n(w)^2);
+    pbc(w,:)   = lim(pbc(w,:), -1+1e-9, 1-1e9);
     tstat(w,:) = pbc(w,:) .* sqrt((n(w) - 2) ./ (1 - pbc(w,:).^2));
     pval(w,:)  = tcdf(tstat(w,:), n(w) - 2);
 end
