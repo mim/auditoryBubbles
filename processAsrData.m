@@ -35,31 +35,22 @@ for c = 1:length(cleanIdList)
     gtWordsNow = gtWords{groupIdx(1)};
     for g = 2:length(groupIdx)
         assert(all(strcmp(gtWords{groupIdx(g)}, gtWordsNow)));
-    end
-    printScoredWords(gtWordsNow, mean(cat(1, correctness{groupIdx})))
+    end    
+        
+    % Sentence-level correctness
+    resultFile = sprintf('model=%s_clean=%s.mat', modelName, cleanId);
+    resultPath = fullfile(outResultDir, modelName, resultFile);    
+    tCor = cellfun(@all, correctness(groupIdx));
+    createResultFile(resultPath, noisyIdToFileMap, noisyIds(groupIdx), tCor, modelName, cleanId, cleanIdList, cleanId);
+
+    printScoredWords(gtWordsNow, mean(cat(1, correctness{groupIdx})), mean(tCor))
     
+    % Correctness for each word
     for w = 1:length(gtWordsNow)
         resultFile = sprintf('model=%s_clean=%s_%02d_%s.mat', modelName, cleanId, w, gtWordsNow{w});
         resultPath = fullfile(outResultDir, modelName, resultFile);
-        
-        grouped = cell(length(groupIdx), 6);
-        for n = 1:length(groupIdx)
-            realN = groupIdx(n);
-            noisyFile = noisyIdToFileMap.(['id' noisyIds{realN}]);
-            isCorrect = correctness{realN}(w);
-            if isCorrect
-                guess = gtWordsNow{w};
-            else
-                guess = '';
-            end
-            grouped(n,:) = {modelName, '', noisyFile, guess, isCorrect, gtWordsNow{w}};
-        end
-        digested = grouped;
-        equivClasses = [];
-        responseCounts = nan*ones(size(grouped,1),1);
-        
-        ensureDirExists(resultPath);
-        save(resultPath, 'grouped', 'digested', 'gtWordsNow', 'cleanId', 'equivClasses', 'responseCounts');
+        tCor = cellfun(@(x) x(w), correctness(groupIdx));
+        createResultFile(resultPath, noisyIdToFileMap, noisyIds(groupIdx), tCor, modelName, gtWordsNow{w}, gtWordsNow, cleanId);
     end
 end
 
@@ -101,8 +92,30 @@ end
 1+1;
 
 
-function printScoredWords(words, scores)
+function printScoredWords(words, scores, sentenceScore)
+fprintf('%0.2f  ', sentenceScore);
 for i = 1:length(words)
     fprintf('%s:%0.2f ', words{i}, scores(i));
 end
 fprintf('\n');
+
+
+function createResultFile(resultPath, noisyIdToFileMap, noisyIds, correctness, modelName, gtWord, gtWordsNow, cleanId)
+
+grouped = cell(length(noisyIds), 6);
+for n = 1:length(noisyIds)
+    noisyFile = noisyIdToFileMap.(['id' noisyIds{n}]);
+    isCorrect = correctness(n);
+    if isCorrect
+        guess = gtWord;
+    else
+        guess = '';
+    end
+    grouped(n,:) = {modelName, '', noisyFile, guess, isCorrect, gtWord};
+end
+digested = grouped;
+equivClasses = [];
+responseCounts = nan*ones(size(grouped,1),1);
+
+ensureDirExists(resultPath);
+save(resultPath, 'grouped', 'digested', 'gtWordsNow', 'cleanId', 'equivClasses', 'responseCounts');
