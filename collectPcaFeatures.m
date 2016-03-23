@@ -53,7 +53,7 @@ if exist(outFile, 'file') && ~overwrite
 end
 
 noisyPath = fullfile(featDir, files{1});
-noisyToCleanFn = findNoisyToCleanFn(noisyPath)
+noisyToCleanFn = findNoisyToCleanFn(noisyPath);
 cleanFeat = load(noisyToCleanFn(noisyPath));
 
 for f = 1:length(files)

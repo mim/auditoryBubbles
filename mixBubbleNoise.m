@@ -14,5 +14,8 @@ noise = genBubbleNoise(dur_s, targetSr, bubblesPerSec, useHoles, [], [], [], [],
 mix = scale * (snr*speech + noise);
 clean = scale * snr * speech;
 
-specgram(mix, 1024, targetSr, 1024, 1024-256), colorbar, drawnow
-%plot(mix), drawnow
+try  % Generates an error when matlab was run with -nodisplay
+  specgram(mix, 1024, targetSr, 1024, 1024-256), colorbar, drawnow
+  %plot(mix), drawnow
+catch
+end
