@@ -18,9 +18,17 @@ function processAsrData(noisyLines, gtLines, noisyIdToFileMap, modelName, outRes
 
 assert(length(gtLines) == length(noisyLines))
 
-for i = 1:length(noisyLines)-1
-    [cleanIds{i} noisyIds{i} gtWords{i} correctness{i}] = compareLine(gtLines{i}, noisyLines{i}, noisyToCleanFn);
+if isempty(gtLines{end})
+  % Remove trailing empty line...
+  gtLines = gtLines(1:end-1);
+  noisyLines = noisyLines(1:end-1);
 end
+
+for i = 1:length(noisyLines)
+    [cleanIds{i} noisyIds{i} gtWords{i} correctness{i} noisyWords{i}] = compareLine(gtLines{i}, noisyLines{i}, noisyToCleanFn);
+end
+
+printSentenceConfusions(gtWords, noisyWords);
 
 % Create one results file per cleanId and word (and lwt)
 [cleanIdList,~,cleanGroup] = unique(cleanIds);
@@ -36,7 +44,7 @@ for c = 1:length(cleanIdList)
     for g = 2:length(groupIdx)
         assert(all(strcmp(gtWords{groupIdx(g)}, gtWordsNow)));
     end    
-        
+    
     % Sentence-level correctness
     resultFile = sprintf('model=%s_clean=%s.mat', modelName, cleanId);
     resultPath = fullfile(outResultDir, modelName, resultFile);    
@@ -55,7 +63,7 @@ for c = 1:length(cleanIdList)
 end
 
 
-function [cleanId noisyId gtWords correctness] = compareLine(gtLine, noisyLine, noisyToCleanFn)
+function [cleanId noisyId gtWords correctness noisyWords] = compareLine(gtLine, noisyLine, noisyToCleanFn)
 % Compare a ground truth transcript line with a noisy transcript line.
 % Lines should start with utterance IDs, as used by kaldi, which should be
 % space-separated from the words, which should be all-caps and
@@ -93,9 +101,9 @@ end
 
 
 function printScoredWords(words, scores, sentenceScore)
-fprintf('%0.2f  ', sentenceScore);
+fprintf('%0.3f  ', sentenceScore);
 for i = 1:length(words)
-    fprintf('%s:%0.2f ', words{i}, scores(i));
+    fprintf('%s:%0.3f ', words{i}, scores(i));
 end
 fprintf('\n');
 
@@ -119,3 +127,17 @@ responseCounts = nan*ones(size(grouped,1),1);
 
 ensureDirExists(resultPath);
 save(resultPath, 'grouped', 'digested', 'gtWordsNow', 'cleanId', 'equivClasses', 'responseCounts');
+
+
+function printSentenceConfusions(gtWords, noisyWords)
+
+gtSents = listMap(@(x) chop(join(x, ' ')), gtWords);
+noisySents = listMap(@(x) chop(join(x, ' ')), noisyWords);
+[C labels] = confusionmat(gtSents, noisySents);
+C = [C sum(C,2); sum(C,1) sum(C(:))];
+labels{end+1} = 'Sum';
+for i = 1:size(C,1)
+    fprintf('%s\t', labels{i});
+    fprintf('% 4d ', C(i,:));
+    fprintf('\n');
+end
