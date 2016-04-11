@@ -1,4 +1,4 @@
-function processListeningDataGrid(inCsvFiles, outGroupedFileBase, verbose, ignoreStimulusDir, posThresh, negThresh, unpackFn)
+function processListeningDataGrid(inCsvFiles, outGroupedFileBase, verbose, ignoreStimulusDir, posThresh, negThresh, unpackFn, printConfMat)
 
 % Convert listening test files from GRID utterances for further analysis
 %
@@ -14,13 +14,14 @@ if ~exist('ignoreStimulusDir', 'var') || isempty(ignoreStimulusDir), ignoreStimu
 if ~exist('posThresh', 'var') || isempty(posThresh), posThresh = 0.9; end
 if ~exist('negThresh', 'var') || isempty(negThresh), negThresh = 0.6; end
 if ~exist('verbose', 'var') || isempty(verbose), verbose = 1; end
+if ~exist('printConfMat', 'var') || isempty(printConfMat), printConfMat = false; end
 
 outGroupedFileBase = regexprep(outGroupedFileBase, '.mat$', '');
 
 fprintf('Overall\n');
 [grouped digested] = processListeningData(inCsvFiles, outGroupedFileBase, verbose, ...
                      ignoreStimulusDir, posThresh, negThresh, ...
-                     {}, unpackFn);
+                     {}, unpackFn, printConfMat);
 
 rightAnswers = digested(:,6);
 choices = unique(rightAnswers);

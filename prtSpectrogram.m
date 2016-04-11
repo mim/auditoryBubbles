@@ -62,6 +62,10 @@ elseif max(t_ms) > 2500
     xticks = makeXTicks(max(t_ms), 0.5);
     xlab = 'Time (ms)';
     tickMult = 1;
+elseif max(t_ms) > 1900
+    xticks = makeXTicks(max(t_ms), 0.4);
+    xlab = 'Time (ms)';
+    tickMult = 1;
 elseif max(t_ms) > 1000
     xticks = makeXTicks(max(t_ms), 0.2);
     xlab = 'Time (ms)';

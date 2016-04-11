@@ -1,4 +1,4 @@
-function [grouped digested] = processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, posThresh, negThresh, equivClassCell, unpackFn)
+function [grouped digested] = processListeningData(inCsvFiles, outGroupedFile, verbose, ignoreStimulusDir, posThresh, negThresh, equivClassCell, unpackFn, printConfMat)
 
 % Convert listening test files for further analysis
 %
@@ -17,6 +17,7 @@ if ~exist('posThresh', 'var') || isempty(posThresh), posThresh = 0.9; end
 if ~exist('negThresh', 'var') || isempty(negThresh), negThresh = 0.6; end
 if ~exist('verbose', 'var') || isempty(verbose), verbose = 1; end
 if ~exist('equivClassCell', 'var'), equivClassCell = {}; end
+if ~exist('printConfMat', 'var') || isempty(printConfMat), printConfMat = false; end
 
 if ~iscell(inCsvFiles), inCsvFiles = {inCsvFiles}; end
 
@@ -38,6 +39,7 @@ for i = 1:length(equivClassCell)
     end
 end
 
+confMat = zeros(length(equivClassCell));
 for i=1:size(digested,1)
     rightAnswer = regexprep(basename(digested{i,3}), '_.*', ''); 
     digested{i,6} = rightAnswer;
@@ -45,11 +47,25 @@ for i=1:size(digested,1)
     if isempty(digested{i,4})
         digested{i,5} = 0; 
     else
-        digested{i,5} = equivClasses.(rightAnswer) == equivClasses.(digested{i,4}); 
+        eqGt = equivClasses.(rightAnswer);
+        eqRe = equivClasses.(digested{i,4});
+        digested{i,5} = eqGt == eqRe;
+        confMat(eqGt,eqRe) = confMat(eqGt,eqRe) + 1;
     end
     
     if ignoreStimulusDir
         digested{i,3} = basename(digested{i,3});
+    end
+end
+
+if printConfMat
+    confMatNames = listMap(@(x) x{1}, equivClassCell);
+    confMatNames{end+1} = 'Avg';
+    confMat = [confMat sum(confMat,2); sum(confMat,1) sum(confMat(:))];
+    for i = 1:size(confMat,1)
+        fprintf('%s\t', confMatNames{i});
+        fprintf('% 4d ', confMat(i,:));
+        fprintf('\n');
     end
 end
 
@@ -65,11 +81,11 @@ for i = 1:size(responses,1)
     end
 end
     
-save(outGroupedFile, 'grouped', 'digested', 'equivClasses', 'responseCounts');
+save(outGroupedFile, 'grouped', 'digested', 'equivClasses', 'responseCounts', 'confMat');
 
 if verbose
     grouped2 = groupBy(digested, 6, @(x) mean([x{:}]), 5);
-    fprintf('Avg:\t%0.1f%% correct\n', 100*mean([grouped{:,5}]));
+    fprintf('Sum:\t%0.1f%% correct\n', 100*mean([grouped{:,5}]));
     for i = 1:size(grouped2,1)
         fprintf('%s:\t%0.1f%% correct\n', grouped2{i,6}, 100*grouped2{i,5});
     end

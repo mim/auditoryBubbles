@@ -9,7 +9,7 @@ ignoreStimulusDir = 1;
 
 [~,inCsvFiles] = findFiles('/home/data/bubbles/grid/id16mix/', '(Felix|RENEE|jcdVer1|mim).csv')
 resultFileBase = '/home/data/bubblesResults/gridAdaptAll';
-processListeningDataGrid(inCsvFiles, resultFileBase, verbose, ignoreStimulusDir);
+processListeningDataGrid(inCsvFiles, resultFileBase, verbose, ignoreStimulusDir, [], [], [], 1);
 
 [~,inCsvFiles] = findFiles('/home/data/bubbles/grid/id16mix/', '(Felix|RENEE|jcdVer1).csv')
 resultFileBase = '/home/data/bubblesResults/gridAdaptNonMim';
