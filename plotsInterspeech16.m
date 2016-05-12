@@ -1,9 +1,10 @@
-function plotsInterspeech16(toDisk, startAt)
+function plotsInterspeech16(toDisk, startAt, allLabels)
 
 if ~exist('toDisk', 'var') || isempty(toDisk), toDisk = false; end
 if ~exist('startAt', 'var') || isempty(startAt), startAt = 0; end
+if ~exist('allLabels', 'var') || isempty(allLabels), allLabels = false; end
 
-outDir = '~/work/papers/interspeech16/pics2/';
+outDir = '~/work/papers/interspeech16/pics3/';
 prt('ToFile', toDisk, 'StartAt', startAt, ...
     'Width', 2, 'Height', 2, 'NumberPlots', 0, ...
     'TargetDir', outDir, ...
@@ -13,32 +14,32 @@ inDir = '/home/data/bubblesFeat/gridAllAdapt/trim=00,length=0/pca_100dims_1000fi
 plotOnSpecs(inDir, 'gridAdaptAll', 'human', [-99 4], ...
     @(x) reMatch(x, 'bwir6a'), ...
     @(x) reMatch(x, 'bbikza'), ...
-    @(x) reMatch(x, '_p5'));
+    @(x) reMatch(x, '_p5'), allLabels);
 
 inDir = '/home/data/bubblesFeat/asrGrid400/trim=00,length=2/pca_100dims_1000files/res';
 plotOnSpecs(inDir, '', 'asr', [-99 4]+15, ...
     @(x) reMatch(x, 'bwir6a'), ...
     @(x) reMatch(x, 'bbikza'), ...
-    @(x) reMatch(x, '_05'));
+    @(x) reMatch(x, '_05'), allLabels);
 
 inDir = '/home/data/bubblesFeat/asrGrid400/trim=00,length=2/pca_100dims_1000files/res';
 plotTfifs(inDir, 'bwi(r6|e8)a.*_04', 'asr', [-99 4]+15, ...
     @(x) false, ...
     @(x) reMatch(x, 'spec'), ...
-    @(x) reMatch(x, 'bwie8a'));
+    @(x) reMatch(x, 'bwie8a'), allLabels);
 
 inDir = '/home/data/bubblesFeat/gridAllAdapt/trim=00,length=0/pca_100dims_1000files/res/';
 plotTfifs(inDir, 'gridAdaptAll_p4.*bwi(r6|e8)a', 'human', [-99 4], ...
     @(x) true, ...
     @(x) false, ...
-    @(x) reMatch(x, 'bwie8a'));
+    @(x) reMatch(x, 'bwie8a'), allLabels);
 
 
-function plotOnSpecs(inDir, pattern, nameExt, specCax, isRightCol, isLeftCol, isBottomRow)
+function plotOnSpecs(inDir, pattern, nameExt, specCax, isRightCol, isLeftCol, isBottomRow, allLabels)
+
 hop_s = 0.016;
 fs = 16000;
 maxFreq = 8000;
-allLabels = false;
 
 specCmap = easymap('bcyr', 255);
 
@@ -57,11 +58,10 @@ for target = 1:length(resFiles)
     end
 end
 
-function plotTfifs(inDir, pattern, nameExt, specCax, isRightCol, isLeftCol, isBottomRow)
+function plotTfifs(inDir, pattern, nameExt, specCax, isRightCol, isLeftCol, isBottomRow, allLabels)
 hop_s = 0.016;
 fs = 16000;
 maxFreq = 8000;
-allLabels = false;
 
 specCmap = easymap('bcyr', 255);
 tfifCmap = easymap('bwr', 254);
