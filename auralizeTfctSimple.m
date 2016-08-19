@@ -23,6 +23,8 @@ for target = 1:length(resPaths)
     
     nuOutFile = fullfile(outDir, [baseFileName 'noiseExceptImportant.wav']);
     niOutFile = fullfile(outDir, [baseFileName 'noiseOnlyImportant.wav']);
+    nbOutFile = fullfile(outDir, [baseFileName 'bubbleImportant.wav']);
+    nobOutFile = fullfile(outDir, [baseFileName 'bubbleImportantNoise.wav']);
     suOutFile = fullfile(outDir, [baseFileName 'silenceExceptImportant.wav']);
     siOutFile = fullfile(outDir, [baseFileName 'silenceOnlyImportant.wav']);
     
@@ -48,6 +50,19 @@ for target = 1:length(resPaths)
     holeMask = sig2mask(sig, .10, .05, -80, 0);
     [~,~,holeNoise] = genMaskedSsn(length(clean)/fs, fs, holeMask, win_s, hopFrac, noiseShape);
     wavWriteBetter(clean + holeNoise, fs, nuOutFile);
+
+    % Bubbles at important parts of the signal
+    nBubbles = 2;
+    peaks = pickPeaks2D(mat(:,:,1), nBubbles, 300, 10)
+    bubbleF_erb = hz2erb(peaks(:,2) * fs / nfft);
+    % bubbleT_s = (trimFrames + peaks(:,1)) * win_s * hopFrac;
+    bubbleT_s = peaks(:,1) * win_s * hopFrac;
+    [~,~,~,~,~,freqVec_erb,timeVec_s] = specgramDims(size(clean,1)/fs, fs, win_s, hopFrac);
+    importantBubbleMask = genMaskFromBubbleLocs(size(mat,1), size(mat,2), ...
+        freqVec_erb, timeVec_s(1:size(mat,2)), bubbleF_erb, bubbleT_s, [], [], 1);
+    [~,~,importantBubbleNoise] = genMaskedSsn(length(clean)/fs, fs, importantBubbleMask, win_s, hopFrac, noiseShape);
+    wavWriteBetter(clean + importantBubbleNoise, fs, nbOutFile);    
+    wavWriteBetter(importantBubbleNoise, fs, nobOutFile);
     
     % No noise, unimportant parts of signal set to silence
     importantOnly = istft(bumpMask .* cleanSpec, nfft, nfft, round(nfft*hopFrac));
