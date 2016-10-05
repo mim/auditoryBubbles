@@ -1,6 +1,6 @@
 # Auditory bubbles
-Copyright 2013-2014 Michael Mandel <mim@mr-pc.org>, all rights reserved
-Last updated 2014-06-21
+Copyright 2013-2016 Michael Mandel <mim@mr-pc.org>, all rights reserved
+Last updated 2016-10-04
 
 ## Overview
 
@@ -33,10 +33,7 @@ Michael I. Mandel. Learning an intelligibility map of individual
   Audio and Acoustics (WASPAA), 2013.
 
 
-## Stimulus Generation
-
-
-### Setup and tuning
+## Setup and tuning
 
 ```matlab
 % Shared parameters
@@ -62,7 +59,7 @@ bubblesPerSecond = 0;
 mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseRefFile);
 ```
 
-### Run adaptive experiment
+## Run adaptive experiment
 
 ```matlab
 nMixes = 5;
@@ -73,7 +70,7 @@ playAdaptiveListening(wavInDir, mixOutDir, subjectName, nMixes, initialBps, dur_
 % data file saved in mixOutDir, named subjectName_timestamp.csv
 ```
 
-### OR Run non-adaptive experiment
+## OR Run non-adaptive experiment
 
 ```matlab
 % Actual bubbles files, experiment with different bubbles-per-seconds values until 
