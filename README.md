@@ -26,7 +26,7 @@ Please cite one of the following paper if you use this toolbox:
 
 Michael I Mandel, Sarah E Yoho, and Eric W Healy. Generalizing 
   time-frequency importance functions across noises, talkers, and phonemes. 
-  In Proceedings of Interspeech, 2014. To appear.
+  In Proceedings of Interspeech, 2014.
 
 Michael I. Mandel. Learning an intelligibility map of individual 
   utterances. In IEEE Workshop on Applications of Signal Processing to 
@@ -35,51 +35,60 @@ Michael I. Mandel. Learning an intelligibility map of individual
 
 ## Stimulus Generation
 
-### Set speech profile for speech shaped noise
 
-Edit speechProfile.m to add your own noiseShape value using your own file 
-as the source material and appropriate quantile and smoothing parameters.  
-We assume here that you use noiseShape = 5.
-
-
-### Generate mixtures
+### Setup and tuning
 
 ```matlab
 % Shared parameters
 wavInDir = 'D:\input\cleanUtterances';
 mixOutDir = 'D:\mixes\dev';
+noiseRefFile = 'D:\input\noiseRef.wav';
 dur_s = 1.8;
 normalize = 1;
 baseSnr_db = -35;
-noiseShape = 5;    % see speechProfile.m
+
+% Make noise reference file
+combineWavsIntoNoiseRef(wavInDir, noiseRefFile);
+
+% Clean files for reference (correct scaling, etc)
+nMixes = 1;
+bubblesPerSecond = inf;
+mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseRefFile);
 
 % Mixes with no bubbles
 % make sure baseSnr_db is set so that these are completely unintelligible
 nMixes = 5;
 bubblesPerSecond = 0;
-mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
+mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseRefFile);
+```
 
+### Run adaptive experiment
+
+```matlab
+nMixes = 5;
+initialBps = 15;        % whatever you want
+subjectName = 'TLA';    % whatever you want
+playAdaptiveListening(wavInDir, mixOutDir, subjectName, nMixes, initialBps, dur_s, baseSnr_db, noiseRefFile, normalize, 1, 0);
+% wavs saved in mixOutDir/bps[subjectName]
+% data file saved in mixOutDir, named subjectName_timestamp.csv
+```
+
+### OR Run non-adaptive experiment
+
+```matlab
 % Actual bubbles files, experiment with different bubbles-per-seconds values until 
 % subjects get 50% correct. When you've found that, use at least 200 mixtures per 
 % utterance (nMixes)
 nMixes = 5;
 bubblesPerSecond = 12;
-mixDir = mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
+mixDir = mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseRefFile);
 
-% Clean files for reference (correct scaling, etc)
-% Note that this has to be named something_bpsInf for extractBubbleFeatures to find it
-nMixes = 1;
-bubblesPerSecond = inf;
-mixMrtBubbleNoiseDir(wavInDir, mixOutDir, nMixes, bubblesPerSecond, baseSnr_db, dur_s, normalize, noiseShape);
-```
-
-## Presentation
-
-```matlab
+% Run experiment
 subjectName = 'TLA';    % whatever you want
 playListeningTestDir(mixDir, subjectName)
 % file saved in mixDir, named subjectName_timestamp.csv
 ```
+
 
 ## Analysis
 
@@ -92,9 +101,9 @@ ignoreStimulusDir = 1;
 processListeningData(inCsvFiles, resultFile, verbose, ignoreStimulusDir);
 
 % Extract features from mixtures
+noiseRefFile = 'D:\input\noiseRef.wav';
 baseFeatDir = 'D:\mixes\dev\features';
 pattern = 'bps15.*.wav';
-noiseShape = 5;        % whatever you use for your noise shape
 pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
 trimFrames = 15;
@@ -102,5 +111,5 @@ overwrite = 0;
 hop_s = 0.016;         % this is the default hop size used in the analysis
 setLength_s = 0;
 maxFreq_hz = 10000;
-mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq_hz)
+mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseRefFile, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq_hz)
 ```
