@@ -24,6 +24,10 @@ for certain required supporting functions, so please download that as well.
 
 Please cite one of the following paper if you use this toolbox:
 
+Michael I Mandel, Sarah E Yoho, and Eric W Healy. Measuring time-frequency 
+  importance functions of speech with bubble noise. Journal of the 
+  Acoustical Society of America, 140:2542-2553, 2016.
+
 Michael I Mandel, Sarah E Yoho, and Eric W Healy. Generalizing 
   time-frequency importance functions across noises, talkers, and phonemes. 
   In Proceedings of Interspeech, 2014.
