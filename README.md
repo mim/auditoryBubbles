@@ -102,12 +102,11 @@ ignoreStimulusDir = 1;
 processListeningData(inCsvFiles, resultFile, verbose, ignoreStimulusDir);
 
 % Extract features from mixtures
-noiseRefFile = 'D:\input\noiseRef.wav';
 baseFeatDir = 'D:\mixes\dev\features';
-pattern = 'bps15.*.wav';
+pattern = 'bps.*.wav';
 pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
-trimFrames = 15;
+trimFrames = 0;
 overwrite = 0;
 hop_s = 0.016;         % this is the default hop size used in the analysis
 setLength_s = 0;
