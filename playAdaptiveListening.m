@@ -1,8 +1,10 @@
-function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback, vertical)
+function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, ...
+    initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, ...
+    giveFeedback, vertical, globalBps)
 
 % Play adaptive listening test, save mixes and results
 %
-% playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback, vertical)
+% playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, giveFeedback, vertical, globalBps)
 %
 % Adapt the bubbles-per-second level per stimulus using a weighted up/down
 % procedure to achieve approximately 0.5*(1 + 1/N) accuracy.  Resulting
@@ -26,10 +28,14 @@ function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, initial
 %   normalize      If 1, normalize all stimuli to have the same RMS
 %   allowRepeats   If 1, listener can play final file multiple times
 %   giveFeedback   If 1, tell listener whether they got each guess correct
+%   vertical       If 1, show choices vertically, otherwise tab-separated
+%   globalBps      If 1, use the same BPS for all stimuli, otherwise use separate bps for each stimulus
+
 
 if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false; end
 if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false; end
 if ~exist('vertical', 'var') || isempty(vertical), vertical = false; end
+if ~exist('globalBps', 'var') || isempty(globalBps), globalBps = false; end
 
 targetFs = -1;
 useHoles = true;
@@ -98,12 +104,19 @@ for i = 1:nRound
         
         % Update perStimPast and perStimBps
         perStimPast(f,i) = wasRight;
-        perStimBps(f) = updateBps(perStimBps(f), perStimPast(f,1:i), targetCorrectness);
-        
+        if globalBps
+            % Adjust all BPS's the same, should keep them in sync assuming
+            % they start in sync
+            perStimBps = updateBps(perStimBps, perStimPast(f,1:i), targetCorrectness, nF);
+        else
+            % Adjust only the current BPS
+            perStimBps(f) = updateBps(perStimBps(f), perStimPast(f,1:i), targetCorrectness, 1);
+        end
+            
         save(outMatFile, 'response', 'wasRight', 'bn', 'cleanWavDir', 'subjectName', ...
             'choices', 'f', 'i', 'rightAnswers', 'giveFeedback', 'allowRepeats', ...
             'perStimPast', 'perStimBps', 'initialBps', 'dur_s', 'snr_db', ...
-            'noiseShape', 'normalize');
+            'noiseShape', 'normalize', 'globalBps');
     end
 end
 fprintf('Avg %g%% correct\n', 100*totCorrect / (totCorrect + totIncorrect));
@@ -114,10 +127,10 @@ for f = 1:length(files)
     fprintf('  %s\t\t%g bps\t\t%d/%d correct\n', files{f}, perStimBps(f), lastPctCorr(f), nLast);
 end
 
-function newBps = updateBps(oldBps, history, targetCorrectness)
+function newBps = updateBps(oldBps, history, targetCorrectness, slowDown)
 % Use a weighted up-down procedure to adjust BPS
 
-posMultInc = 1.02;
+posMultInc = 1.02 .^ (1/slowDown);
 negMultInc = posMultInc ^ (targetCorrectness / (1 - targetCorrectness));
 if history(end)
     newBps = oldBps / posMultInc;
