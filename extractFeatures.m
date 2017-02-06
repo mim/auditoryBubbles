@@ -47,12 +47,12 @@ for fi=1:length(filesInds)
 end
 if allDone && ~overwrite, return, end
 
-if nJobs > 1
-    matlabpool('open', nJobs)
-end
+% if nJobs > 1
+%     matlabpool('open', nJobs)
+% end
 
-parfor fi = 1:length(inds)
-%for fi = 1:length(inds)
+%parfor fi = 1:length(inds)
+for fi = 1:length(inds)
     file     = filesInds{fi};
     inPath   = fullfile(inDir, file);
     outPath  = outPaths{fi};
@@ -60,7 +60,7 @@ parfor fi = 1:length(inds)
     fprintf('FE %d: %s\n', inds(fi), file)
 
     if exist(outPath, 'file') && ~overwrite
-        fprintf('  ^^^ Skipping ^^^\n');
+        fprintf('\b <--- Skipping\n');
         continue;
     end
 
@@ -90,6 +90,6 @@ parfor fi = 1:length(inds)
 end
 status(inds) = statusInds;
 
-if nJobs > 1
-    matlabpool('close')
-end
+% if nJobs > 1
+%     matlabpool('close')
+% end
