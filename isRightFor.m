@@ -15,7 +15,20 @@ else
     fracRight = cell2mat(grouped(:,5));
     isRight = (fracRight >= 0.9) - (fracRight <= 0.6);
 end
-    
+
+bnFiles = listMap(@basename, files);
+ansFile = listMap(@basename, ansFile);
+[~,ai,bi] = intersect(ansFile, bnFiles);
+fprintf('Kept %d of %d files\n', length(ai), length(files));
+
+files = files(bi);
+fracRight = fracRight(ai);
+isRight = isRight(ai);
+responseCounts = responseCounts(ai,:);
+
+return
+
+
 % Match files to ansFile to get fracRight
 keep  = false(size(files));
 match = zeros(size(files));
