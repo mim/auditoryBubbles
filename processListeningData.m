@@ -81,6 +81,7 @@ for i = 1:size(responses,1)
     end
 end
     
+ensureDirExists(outGroupedFile);
 save(outGroupedFile, 'grouped', 'digested', 'equivClasses', 'responseCounts', 'confMat');
 
 if verbose
