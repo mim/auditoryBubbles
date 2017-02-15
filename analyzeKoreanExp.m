@@ -41,7 +41,7 @@ for s=1:length(subNames)
 end
 
 pattern = 'bps.*.wav';
-noiseShape = 0;
+noiseShape = '/home/data/bubbles/koreanS/jiyoungNoiseRef.wav';
 pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
 trimFrames = 15;
@@ -53,11 +53,11 @@ maxFreq_hz = 10000;
 for i = 1:length(subNames)
     resultFile = fullfile(resultDir, subNames{i});
     load(resultFile);
-    listenerCorrect(:,i) = [grouped{:,5}]';
-    listenerResponse(:,i) = grouped(:,4);
+    %listenerCorrect(:,i) = [grouped{:,5}]';
+    %listenerResponse(:,i) = grouped(:,4);
     
     mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, 0, maxFreq_hz)
 end
-listenerResponse = cellfun(@(x) x{1}, listenerResponse, 'UniformOutput', false);
+%listenerResponse = cellfun(@(x) x{1}, listenerResponse, 'UniformOutput', false);
 
 mainBubbleAnalysis(mixDir, resultFile, analysisDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, 0, maxFreq_hz)
