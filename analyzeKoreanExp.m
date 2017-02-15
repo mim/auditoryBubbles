@@ -51,7 +51,7 @@ maxFreq_hz = 10000;
 
 % Do bubbles processing on each subject separately
 for i = 1:length(subNames)
-    resultFile = fullfile(resultDir, subNames{s});
+    resultFile = fullfile(resultDir, subNames{i});
     load(resultFile);
     listenerCorrect(:,i) = [grouped{:,5}]';
     listenerResponse(:,i) = grouped(:,4);
