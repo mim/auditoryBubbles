@@ -30,7 +30,7 @@ for target = 1:length(pcaFiles)
     yte = pcaFileInfo.isRight;
     fprintf('%g%% correct\n', 100*mean(yte>0));
     origShape = pcaFileInfo.origShape;
-    clean = reshape(pcaFileInfo.cleanFeat.cleanFeat, pcaFileInfo.cleanFeat.origShape);
+    clean = reshape(pcaFileInfo.cleanFeat.features, pcaFileInfo.cleanFeat.origShape);
     warped = zeros(length(yte), prod(origShape));
     for f = 1:length(pcaFileInfo.files)
         wTmp = load(fullfile(featDir, pcaFileInfo.files{f}));

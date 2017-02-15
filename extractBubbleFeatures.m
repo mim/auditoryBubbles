@@ -94,11 +94,19 @@ cleanMatFile = noisyToCleanFn(op);
 [features origShape weights cleanFeat weightVec] = ...
     bubbleFeatures(clean, mix, fs, nfft, noiseShape, trimFrames);
 
+outStruct = struct('features', features, 'weightVec', weightVec, ...
+    'origShape', origShape, 'fs', fs, 'nfft', nfft, ...
+    'trimFrames', trimFrames, 'noiseShape', noiseShape);
+
 if ~exist(cleanMatFile, 'file') || overwrite
     ensureDirExists(cleanMatFile)
-    save(cleanMatFile, 'cleanFeat', 'origShape', 'fs', 'nfft', 'trimFrames', 'weightVec', 'noiseShape');
+    
+    outStruct.features = cleanFeat;
+    save(cleanMatFile, '-struct', 'outStruct');
+    outStruct.features = features;
 end
-save(op, 'features', 'weightVec', 'origShape', 'fs', 'nfft', 'trimFrames', 'noiseShape')
+
+save(op, '-struct', 'outStruct');
 
 
 function ef_pcaFeatures(ip, op, pcs, mu, sig, pcaFile)
