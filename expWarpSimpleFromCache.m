@@ -40,9 +40,9 @@ for i = 1:length(inFiles)
     ensureDirExists(respCorrDir, 1);
     saveRespCorrData(respCorrDir, d.ssn, d.ssy1, d.ssy2, d.ssx1, d.ssx2, d.ssyx, d.clean, d.origShape);
     
-    svmOutDir = fullfile(partialOutDir, 'fn=xvalSvmOnEachWord');
-    ensureDirExists(svmOutDir, 1);
-    xvalSvmOnEachWord(svmOutDir, d.Xte, d.yte, pcaDims);
+    %svmOutDir = fullfile(partialOutDir, 'fn=xvalSvmOnEachWord');
+    %ensureDirExists(svmOutDir, 1);
+    %xvalSvmOnEachWord(svmOutDir, d.Xte, d.yte, pcaDims);
 end
 
 
