@@ -9,6 +9,7 @@ if ~exist('maxApprox', 'var') || isempty(maxApprox), maxApprox = 1; end
 
 if all(isfinite(bubbleF_erb))
     [times_s freqs_erb] = meshgrid(timeVec_s, freqVec_erb);
+    
     if maxApprox
         mask = -200 * ones(nF, nT);
     else
@@ -16,14 +17,18 @@ if all(isfinite(bubbleF_erb))
     end
     
     for i = 1:length(bubbleF_erb)
-        bumpDb = -(times_s - bubbleT_s(i)).^2 / sizeT_s.^2 ...
-            - (freqs_erb - bubbleF_erb(i)).^2 / sizeF_erb.^2;
+        rows = -(freqVec_erb - bubbleF_erb(i)).^2 / sizeF_erb.^2 > suppressHolesTo_db-40;
+        cols = -(timeVec_s - bubbleT_s(i)).^2 / sizeT_s.^2 > suppressHolesTo_db-40;
+        
+        bumpDb = -(times_s(rows,cols) - bubbleT_s(i)).^2 / sizeT_s.^2 ...
+            - (freqs_erb(rows,cols) - bubbleF_erb(i)).^2 / sizeF_erb.^2;
+        %subplots(bumpDb); pause(.01);
         
         if maxApprox
-            mask = max(mask, bumpDb);
+            mask(rows,cols) = max(mask(rows,cols), bumpDb);
         else
             bumpLin = 10.^(bumpDb / 20);
-            mask = mask + bumpLin;
+            mask(rows,cols) = mask(rows,cols) + bumpLin;
         end
     end
     if maxApprox
