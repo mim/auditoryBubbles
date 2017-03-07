@@ -8,7 +8,7 @@ function mixBubbleNoiseAmi(inFile, outDir, shortName, nRep, bps, snr_dB, transcr
 % Put the bubbles_..._orig directory in egs/ami/s5b/data/ihm/
 
 sep_s = 0.3;
-scale_dB = 6;
+scale_dB = 0;
 scale = 10^(scale_dB/20);
 snr = 10^(snr_dB/20);
 
