@@ -28,9 +28,11 @@ end
 
 digested = csvReadCells(digestedFile);
 if isempty(equivClassCell)
-    rightAnswers = unique(digested(:,4));
-    for i = 1:length(rightAnswers)
-        equivClassCell{i} = rightAnswers(i);
+    rightAnswers = listMap(@(x) regexprep(basename(x), '_.*', ''), digested(:,3));
+    responses = digested(:,4);
+    allAnswers = unique([rightAnswers responses]);
+    for i = 1:length(allAnswers)
+        equivClassCell{i} = allAnswers(i);
     end
 end
 for i = 1:length(equivClassCell)
