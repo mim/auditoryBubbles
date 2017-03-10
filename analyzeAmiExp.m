@@ -1,4 +1,4 @@
-function analyzeAmiExp(overwrite)
+function analyzeAmiExp(overwrite, pattern)
 
 % Analysis for AMI experiment
 
@@ -11,11 +11,12 @@ function analyzeAmiExp(overwrite)
 % amiResultsForBubbles.py '/home/data/kaldi/ami/exp/ihm/tri3/decode_bubbles__bps40_snr-10_ami_fsh.o3g.kn.pr1-7/ascore_7/bubbles_bps40_snr-10.ctm.filt.sgml' 'tri3_7' '/home/data/kaldi/ami/csv'
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
+if ~exist('pattern', 'var') || isempty(pattern), pattern = '.*'; end
 
 csvDir = '/home/data/kaldi/ami/csv/';
 resultDir = '/home/data/kaldi/ami/results/';
 
-csvFiles = findFiles(csvDir, '.*.csv');
+csvFiles = findFiles(csvDir, [pattern '.*.csv']);
 for f = 1:length(csvFiles)
     resultFile = convertCsvFileToResult(resultDir, csvFiles{f});
     fprintf('%d: %s\n', f, resultFile);
@@ -29,7 +30,7 @@ end
 analysisDir = '/home/data/bubblesFeat/ami/notice';
 mixDir = '/home/data/bubbles/ami/notice/mixes';
 
-[~,resultFiles] = findFiles(resultDir);
+[~,resultFiles] = findFiles(resultDir, pattern);
 
 pattern = 'bps\d.*.wav';
 noiseShape = '/home/data/bubbles/ami/orig/AMI_IB4010_H00_FIE038_0022314_0022648.wav';
