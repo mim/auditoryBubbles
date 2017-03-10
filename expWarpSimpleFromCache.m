@@ -1,4 +1,4 @@
-function expWarpSimpleFromCache(outDir, inDir, pcaDims)
+function expWarpSimpleFromCache(outDir, inDir, pcaDims, overwrite)
 
 % Run SVM cross-validation on PCA data and plot TFCT pictures of it.
 %
@@ -22,21 +22,27 @@ function expWarpSimpleFromCache(outDir, inDir, pcaDims)
 %   pcaDims  Vector of numbers of PCA dimensions to use in SVM experiment,
 %            must be no more than that extracted from them 
 
+if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
+
 [inFiles,inPaths] = findFiles(inDir, 'tfctAndPca.mat');
 for i = 1:length(inFiles)
-    fprintf('Loading %s\n', inFiles{i});
-    d = load(inPaths{i});
-    
     partialOutDir = fullfile(outDir, fileparts(inFiles{i}));
     tfctOutDir = fullfile(partialOutDir, 'fn=plotTfctWrapper');
+    pbcOutDir = fullfile(partialOutDir, 'fn=plotPbc');
+    respCorrDir = fullfile(partialOutDir, 'fn=plotResponseCorr');
+
+    if exist(respCorrDir, 'dir') && ~overwrite
+        continue
+    end
+    
+    fprintf('Loading %s\n', inFiles{i});
+    d = load(inPaths{i});
     ensureDirExists(tfctOutDir, 1);
     saveTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape)
     
-    pbcOutDir = fullfile(partialOutDir, 'fn=plotPbc');
     ensureDirExists(pbcOutDir, 1);
     savePbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.clean, d.origShape)
     
-    respCorrDir = fullfile(partialOutDir, 'fn=plotResponseCorr');
     ensureDirExists(respCorrDir, 1);
     saveRespCorrData(respCorrDir, d.ssn, d.ssy1, d.ssy2, d.ssx1, d.ssx2, d.ssyx, d.clean, d.origShape);
     

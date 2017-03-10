@@ -39,21 +39,21 @@ resultFileName = basename(resultFile, 0);
 [~,fs] = audioread(mixPaths{1});
 
 % Extract features from mixtures
-[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, noiseShape, overwrite >= 3);
+[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, noiseShape, overwrite >= 4);
 
 % Collect PCA features for mixes of the same clean file
 pcaFeatDir = fullfile(basePcaDir, 'feat');
 groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
-collectPcaFeatures(pcaFeatDir, featDir, resultFile, groupedFeatDir, overwrite >= 2, condition);
+collectPcaFeatures(pcaFeatDir, featDir, resultFile, groupedFeatDir, overwrite >= 3, condition);
 
 % Compute statistics necessary for plotting pictures, running SVM experiments
 cacheDir = fullfile(basePcaDir, 'cache', resultFileName);
 pcaDataFile = fullfile(basePcaDir, 'data.mat');
-extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite >= 1)
+extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite >= 2)
 
 % Run SVM cross validation within each file, massage TFCT data
 resDir = fullfile(basePcaDir, 'res', resultFileName);
-expWarpSimpleFromCache(resDir, cacheDir, usePcaDims);
+expWarpSimpleFromCache(resDir, cacheDir, usePcaDims, overwrite >= 1);
 
 % Plot pictures
 plotDir = fullfile(basePcaDir, 'plots', resultFileName);
