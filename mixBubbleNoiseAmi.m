@@ -13,8 +13,9 @@ scale = 10^(scale_dB/20);
 snr = 10^(snr_dB/20);
 
 [x fs] = audioread(inFile);
-sep = round(sep_s * fs);
-x = [x; zeros(sep,size(x,2))];
+padHundredths = ceil(size(x,1) * 100/fs)* fs/100 - size(x,1); % Pad to the next 0.01 second
+pad = padHundredths + round(sep_s * fs);
+x = [x; zeros(pad,size(x,2))];
 len = size(x,1);
 len_s = size(x,1) / fs;
 % len_s includes sep_s
