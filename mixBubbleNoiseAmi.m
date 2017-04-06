@@ -60,7 +60,7 @@ side = nameFor(shortName, bps, snr_dB, 0);
 wav = nameFor(shortName, bps, snr_dB, 0);
 speaker = nameFor(shortName, bps, snr_dB, 0);
 [utts start_s end_s] = uttNames(shortName, bps, snr_dB, speechLen_s, sep_s, nRep);
-outMdDir = fullfile(outDir, [nameFor('bubbles', bps, snr_dB, 0) '_orig']);
+outMdDir = fullfile(outDir, [nameFor(['bubbles_' shortName], bps, snr_dB, 0) '_orig']);
 
 write_reco2file_and_channel(outMdDir, side, wav);
 write_segments(outMdDir, utts, speaker, start_s, end_s);
