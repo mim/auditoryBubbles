@@ -45,7 +45,14 @@ if iscell(filesOrPattern)
 else
     wavFiles = findFiles(inDir, filesOrPattern); 
 end
-noisyToCleanFn = findNoisyToCleanFn(fullfile(inDir, wavFiles{1}));
+for tries = 1:5
+    testFile = randi(length(wavFiles));
+    try
+        noisyToCleanFn = findNoisyToCleanFn(fullfile(inDir, wavFiles{testFile}));
+        break
+    catch
+    end
+end
 
 disp('Extracting bubble features for every file')
 effn =  @(ip,op,f) ef_bubbleFeatures(ip,op, noisyToCleanFn, trimFrames, setLength_s, noiseShape, overwrite);

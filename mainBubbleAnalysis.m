@@ -33,9 +33,11 @@ if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 if ~exist('maxPlotHz', 'var') || isempty(maxPlotHz), maxPlotHz = inf; end
 if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
 
+excludePattern = 'bpsInf';
+
 % Figure out sampling rate for plots
 resultFileName = basename(resultFile, 0);
-[mixFiles,mixPaths] = findFiles(mixDir, pattern);
+[mixFiles,mixPaths] = findFiles(mixDir, pattern, 1, excludePattern);
 [~,fs] = audioread(mixPaths{1});
 
 % Extract features from mixtures

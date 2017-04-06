@@ -16,6 +16,6 @@ if nSamp > 0
     assert(length(x) == nSamp);
 end
 
-nfft = round(win_s * fs);
+nfft = round(win_s * fs / 2) * 2;
 hop = round(nfft/4);
 spec = stft(x', nfft, nfft, hop);
