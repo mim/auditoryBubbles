@@ -37,6 +37,8 @@ if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false;
 if ~exist('vertical', 'var') || isempty(vertical), vertical = false; end
 if ~exist('globalBps', 'var') || isempty(globalBps), globalBps = false; end
 
+roundsPerBlock = 4;
+
 targetFs = -1;
 useHoles = true;
 snr = 10^(snr_db/20);
@@ -77,11 +79,23 @@ if ~exist(outCsvFile, 'file')
     writeCsvResultHeader(outCsvFile, choices);
 end
 
+% Add more rounds to make a whole number of blocks
+nBlock = ceil(nRound / roundsPerBlock);
+nRound = roundsPerBlock * nBlock;
+
 num = zeros(size(files));
-for i = 1:nRound
-    block = randperm(nF);
+for b = 1:nBlock
+    block = randperm(nF * roundsPerBlock);
+    for f = 1:nF
+        oldInds = mod(block, nF) == mod(f, nF);
+        newInds = f : nF : nF * roundsPerBlock;
+        block(oldInds) = newInds;
+    end
+    
     for fi = 1:length(block)
-        f = block(fi);
+        f = mod(block(fi) - 1, nF) + 1;
+        i = (b-1)*roundsPerBlock + floor((block(fi)-1) / nF) + 1;
+
         % fprintf('Right answer: %s\n', rightAnswers{f});  % Cheat
         
         bn = basename(files{f}, 0);
@@ -100,7 +114,7 @@ for i = 1:nRound
         
         [totCorrect totIncorrect response wasRight] = playFileGetAndSaveChoice(outMixFile, rightAnswers{f}, ...
             outCsvFile, subjectName, choices, choiceNums, allowRepeats, ...
-            giveFeedback, totCorrect, totIncorrect, (i-1)*nF+fi, nRound*nF, vertical);
+            giveFeedback, totCorrect, totIncorrect, (b-1)*nF*roundsPerBlock+fi, nRound*nF, vertical);
         
         % Update perStimPast and perStimBps
         perStimPast(f,i) = wasRight;
@@ -126,6 +140,9 @@ fprintf('Final bubbles-per-second levels and recent answers correct:\n')
 for f = 1:length(files)
     fprintf('  %s\t\t%g bps\t\t%d/%d correct\n', files{f}, perStimBps(f), lastPctCorr(f), nLast);
 end
+
+showAdaptiveInfo(outMixDir)
+
 
 function newBps = updateBps(oldBps, history, targetCorrectness, slowDown)
 % Use a weighted up-down procedure to adjust BPS
