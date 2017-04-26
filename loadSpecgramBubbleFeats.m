@@ -1,6 +1,5 @@
-function [spec fs nfft] = loadSpecgramBubbleFeats(fileName, setLength_s)
+function [spec fs nfft] = loadSpecgramBubbleFeats(fileName, setLength_s, win_s)
 % Load a spectrogram of a wav file
-win_s = 0.064;
 
 [x fs] = wavReadBetter(fileName);
 nSamp = round(fs * setLength_s);

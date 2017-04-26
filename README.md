@@ -108,8 +108,8 @@ pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
 trimFrames = 0;
 overwrite = 0;
-hop_s = 0.016;         % this is the default hop size used in the analysis
+win_s = 0.064;         % analysis FFT window size in seconds
 setLength_s = 0;
 maxFreq_hz = 10000;
-mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseRefFile, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxFreq_hz)
+mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseRefFile, pcaDims, usePcaDims, trimFrames, win_s, overwrite, setLength_s, maxFreq_hz)
 ```

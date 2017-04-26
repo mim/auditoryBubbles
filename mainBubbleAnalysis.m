@@ -1,8 +1,8 @@
-function [featDir] = mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite, setLength_s, maxPlotHz, condition)
+function [featDir] = mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, win_s, overwrite, setLength_s, maxPlotHz, condition)
 
 % Run several analysis steps together
 %
-% mainBubbleAnalysis(baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, hop_s, overwrite)
+% mainBubbleAnalysis(baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, win_s, overwrite)
 %
 % Extracts features from bubble mixtures, collects reduced dimension feature
 % vectors for all mixtures involving the same clean speech file, computes
@@ -21,13 +21,13 @@ function [featDir] = mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern
 %                dimensions and number of files to use to compute transformation
 %   usePcaDims   number of PCA dimension to actually use in classification
 %   trimFrames   number of frames to trim from each spectrogram before PCA
-%   hop_s        hop in seconds used in analysis between frames
+%   win_s        window size in seconds used in analysis between frames (hop size is 1/4 of this)
 %   overwrite    if 0, do not overwrite existing files
 
 if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = [100 1000]; end
 if ~exist('usePcaDims', 'var') || isempty(usePcaDims), usePcaDims = 40; end
 if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 0; end
-if ~exist('hop_s', 'var'), hop_s = ''; end
+if ~exist('win_s', 'var') || isempty(win_s), win_s = 0.064; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 if ~exist('maxPlotHz', 'var') || isempty(maxPlotHz), maxPlotHz = inf; end
@@ -41,7 +41,7 @@ resultFileName = basename(resultFile, 0);
 [~,fs] = audioread(mixPaths{1});
 
 % Extract features from mixtures
-[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, noiseShape, overwrite >= 4);
+[basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, win_s, noiseShape, overwrite >= 4);
 
 % Collect PCA features for mixes of the same clean file
 pcaFeatDir = fullfile(basePcaDir, 'feat');
@@ -61,7 +61,7 @@ expWarpSimpleFromCache(resDir, cacheDir, usePcaDims, overwrite >= 1);
 plotDir = fullfile(basePcaDir, 'plots', resultFileName);
 toDisk = 1;
 startAt = 0;
-plotsSimple(resDir, plotDir, fs, hop_s, toDisk, startAt, maxPlotHz);
+plotsSimple(resDir, plotDir, fs, win_s/4, toDisk, startAt, maxPlotHz);
 
 %nExamples = 5;
 %plotExamples(mixDir, plotDir, fs, hop_s, toDisk, startAt, maxPlotFreq, nExamples);

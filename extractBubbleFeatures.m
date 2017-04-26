@@ -1,4 +1,4 @@
-function [basePcaDir outFeatDir] = extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, noiseShape, overwrite)
+function [basePcaDir outFeatDir] = extractBubbleFeatures(inDir, outDir, filesOrPattern, pcaDims, trimFrames, setLength_s, win_s, noiseShape, overwrite)
 
 % Extract features from all bubble mixtures
 %
@@ -18,6 +18,7 @@ function [basePcaDir outFeatDir] = extractBubbleFeatures(inDir, outDir, filesOrP
 %                   spectrograms before performing PCA
 %   setLength_s     zero-pad wav files to this length before computing
 %                   spectrogram. Set to 0 to leave the length as-is.
+%   win_s           duration of FFT window in seconds
 %   noiseShape      numeric specifier of noise shape that was passed to
 %                   speechProfile() to generate the mixtures
 %   overwrite       if 0, do not overwrite existing files, including PCA matrix file  
@@ -26,6 +27,7 @@ if ~exist('filesOrPattern', 'var') || isempty(filesOrPattern), filesOrPattern = 
 if ~exist('pcaDims', 'var') || isempty(pcaDims), pcaDims = [50 200]; end
 if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 if ~exist('trimFrames', 'var') || isempty(trimFrames), trimFrames = 0; end
+if ~exist('win_s', 'var') || isempty(win_s), win_s = 0.064; end
 if ~exist('noiseShape', 'var') || isempty(noiseShape), noiseShape = 0; end
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 
@@ -33,7 +35,7 @@ nJobs = 1;
 part = [1 1];
 ignoreErrors = 0;
 
-trimDir = sprintf('trim=%02d,length=%g', trimFrames, setLength_s);
+trimDir = sprintf('trim=%02d,length=%g,win_ms=%03d', trimFrames, setLength_s, round(win_s*1000));
 pcaDir = sprintf('pca_%ddims_%dfiles', pcaDims);
 outFeatDir = fullfile(outDir, trimDir, 'feat');
 basePcaDir = fullfile(outDir, trimDir, pcaDir);
@@ -55,7 +57,7 @@ for tries = 1:5
 end
 
 disp('Extracting bubble features for every file')
-effn =  @(ip,op,f) ef_bubbleFeatures(ip,op, noisyToCleanFn, trimFrames, setLength_s, noiseShape, overwrite);
+effn =  @(ip,op,f) ef_bubbleFeatures(ip,op, noisyToCleanFn, trimFrames, setLength_s, win_s, noiseShape, overwrite);
 status = extractFeatures(inDir, outFeatDir, 'mat', wavFiles, ...
     effn, nJobs, part, ignoreErrors, overwrite);
 
@@ -91,19 +93,19 @@ status = extractFeatures(outFeatDir, outPcaDir, 'mat', matFiles, ...
 
 
 
-function ef_bubbleFeatures(ip, op, noisyToCleanFn, trimFrames, setLength_s, noiseShape, overwrite)
+function ef_bubbleFeatures(ip, op, noisyToCleanFn, trimFrames, setLength_s, win_s, noiseShape, overwrite)
 
 cleanWavFile = noisyToCleanFn(ip);
 cleanMatFile = noisyToCleanFn(op);
 
-[clean fs nfft] = loadSpecgramBubbleFeats(cleanWavFile, setLength_s);
-[mix   fs nfft] = loadSpecgramBubbleFeats(ip, setLength_s);
+[clean fs nfft] = loadSpecgramBubbleFeats(cleanWavFile, setLength_s, win_s);
+[mix   fs nfft] = loadSpecgramBubbleFeats(ip, setLength_s, win_s);
 [features origShape weights cleanFeat weightVec] = ...
     bubbleFeatures(clean, mix, fs, nfft, noiseShape, trimFrames);
 
 outStruct = struct('features', features, 'weightVec', weightVec, ...
     'origShape', origShape, 'fs', fs, 'nfft', nfft, ...
-    'trimFrames', trimFrames, 'noiseShape', noiseShape);
+    'trimFrames', trimFrames, 'noiseShape', noiseShape, 'win_s', win_s);
 
 if ~exist(cleanMatFile, 'file') || overwrite
     ensureDirExists(cleanMatFile)
@@ -122,4 +124,4 @@ weights = reshape(repmat(weightVec, 1, origShape(2)), size(features));
 features = bsxfun(@times, bsxfun(@minus, features, mu), weights ./ sig);
 pcaFeat = features * pcs;
 save(op, 'pcaFeat', 'origShape', 'weightVec', 'fs', 'nfft', ...
-    'trimFrames', 'noiseShape', 'pcaFile');
+    'trimFrames', 'noiseShape', 'pcaFile', 'win_s');
