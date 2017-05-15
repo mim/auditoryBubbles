@@ -35,4 +35,6 @@ ylim([0 1])
 xlabel('Mixtures')
 ylabel(sprintf('Moving-average accuracy, N=%s', nAvg))
 
+% Would be nice to plot moving average of frequency of each response...
+
 1+1;
