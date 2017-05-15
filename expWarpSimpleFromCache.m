@@ -1,4 +1,4 @@
-function expWarpSimpleFromCache(outDir, inDir, pcaDims, overwrite)
+function expWarpSimpleFromCache(outDir, inDir, pcaDims, overwrite, useFdr)
 
 % Run SVM cross-validation on PCA data and plot TFCT pictures of it.
 %
@@ -23,6 +23,7 @@ function expWarpSimpleFromCache(outDir, inDir, pcaDims, overwrite)
 %            must be no more than that extracted from them 
 
 if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = false; end
+if ~exist('useFdr', 'var') || isempty(useFdr), useFdr = false; end
 
 [inFiles,inPaths] = findFiles(inDir, 'tfctAndPca.mat');
 for i = 1:length(inFiles)
@@ -38,10 +39,10 @@ for i = 1:length(inFiles)
     fprintf('Loading %s\n', inFiles{i});
     d = load(inPaths{i});
     ensureDirExists(tfctOutDir, 1);
-    saveTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape)
+    saveTfctWrapper(tfctOutDir, d.s0, d.s1, d.sNot0, d.sNot1, d.clean, d.origShape, useFdr)
     
     ensureDirExists(pbcOutDir, 1);
-    savePbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.clean, d.origShape)
+    savePbc(pbcOutDir, d.s0, d.s1, d.n0, d.n1, d.sig, d.clean, d.origShape, useFdr)
     
     ensureDirExists(respCorrDir, 1);
     saveRespCorrData(respCorrDir, d.ssn, d.ssy1, d.ssy2, d.ssx1, d.ssx2, d.ssyx, d.clean, d.origShape);
@@ -52,9 +53,9 @@ for i = 1:length(inFiles)
 end
 
 
-function saveTfctWrapper(outDir,s0,s1,sNot0,sNot1,clean,origShape)
+function saveTfctWrapper(outDir,s0,s1,sNot0,sNot1,clean,origShape, useFdr)
 for w = 1:size(s0,1)
-    mat(:,:,w) = plotableTfct(sNot0(w,:), sNot1(w,:), s0(w,:), s1(w,:), origShape);
+    mat(:,:,w) = plotableTfct(sNot0(w,:), sNot1(w,:), s0(w,:), s1(w,:), origShape, useFdr);
 end
 
 nSame = size(s0,1);
@@ -64,21 +65,33 @@ rsNot0 = sum(sNot0(1:nSame,:), 1);
 rsNot1 = sum(sNot1(1:nSame,:), 1);
 
 if w > 1
-    mat(:,:,w+1) = plotableTfct(rsNot0, rsNot1, rs0, rs1, origShape);
+    mat(:,:,w+1) = plotableTfct(rsNot0, rsNot1, rs0, rs1, origShape, useFdr);
 end
 save(fullfile(outDir, 'res'), 'mat', 'clean', 'rs0', 'rs1', 'rsNot0', 'rsNot1');
 
-function mat = plotableTfct(sNot0, sNot1, s0, s1, origShape)
+function mat = plotableTfct(sNot0, sNot1, s0, s1, origShape, useFdr)
 [~,p,isHigh] = tfCrossTab(sNot0, sNot1, s0, s1);
-mat = reshape((2*isHigh-1).*exp(-p/0.05), origShape);
+if useFdr
+    [~,crit_p] = fdr_bh(p)
+else
+    crit_p = 0.0125;
+end
+mat = reshape((2*isHigh-1).*exp(-p/(4*crit_p)), origShape);
 
-function savePbc(outDir, s0, s1, n0, n1, sig, clean, origShape)
+function savePbc(outDir, s0, s1, n0, n1, sig, clean, origShape, useFdr)
 [tpbc tpval tvis] = pointBiserialCorr(s0, s1, n0, n1, sig);
 W = size(s0,1);
 pbc  = reshape(tpbc, [origShape W]);
 pval = reshape(tpval, [origShape W]);
 mat  = reshape(tvis, [origShape W]);
-save(fullfile(outDir, 'res'), 'pbc', 'pval', 'mat', 'clean', 'origShape');
+for w = 1:W
+    if useFdr
+        [~,crit_p(w)] = fdr_bh(pval(:,:,w))
+    else
+        crit_p(w) = 0.0125;
+    end
+end
+save(fullfile(outDir, 'res'), 'pbc', 'pval', 'mat', 'clean', 'origShape', 'crit_p');
 
 function saveRespCorrData(outDir, ssn, ssy1, ssy2, ssx1, ssx2, ssyx, clean, origShape)
 % Visualize several correlations for a single warping

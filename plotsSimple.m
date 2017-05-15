@@ -29,7 +29,7 @@ for target = 1:length(resFiles)
         prtSpectrogram(res.pbc(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
 
         outName = plotFileName('sigCorr', p, resFiles{target});
-        sigMask = exp((2*abs(0.5-res.pval) - 1) / 0.05);
+        sigMask = exp((2*abs(0.5-res.pval) - 1) / (4*res.crit_p(p)));
         prtSpectrogram(res.pbc(:,:,p) .* sigMask(:,:,p), outName, fs, hop_s, tfifCmap, tfifCax, labelsFor(p==3, 1, 0, allLabels), maxFreq);
     end
 end

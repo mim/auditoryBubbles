@@ -1,4 +1,4 @@
-function [featDir] = mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, win_s, overwrite, setLength_s, maxPlotHz, condition)
+function [featDir] = mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseShape, pcaDims, usePcaDims, trimFrames, win_s, overwrite, setLength_s, maxPlotHz, condition, useFdr)
 
 % Run several analysis steps together
 %
@@ -32,6 +32,7 @@ if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 if ~exist('setLength_s', 'var') || isempty(setLength_s), setLength_s = 0; end
 if ~exist('maxPlotHz', 'var') || isempty(maxPlotHz), maxPlotHz = inf; end
 if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
+if ~exist('useFdr', 'var') || isempty(useFdr), useFdr = false; end
 
 excludePattern = 'bpsInf';
 
@@ -55,7 +56,7 @@ extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFi
 
 % Run SVM cross validation within each file, massage TFCT data
 resDir = fullfile(basePcaDir, 'res', resultFileName);
-expWarpSimpleFromCache(resDir, cacheDir, usePcaDims, overwrite >= 1);
+expWarpSimpleFromCache(resDir, cacheDir, usePcaDims, overwrite >= 1, useFdr);
 
 % Plot pictures
 plotDir = fullfile(basePcaDir, 'plots', resultFileName);
