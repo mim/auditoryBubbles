@@ -1,6 +1,8 @@
-function analyzeKoreanExp()
+function analyzeKoreanExp(overwrite)
 
 % Analyze data from korean sibilant experiments
+
+if ~exist('overwrite', 'var') || isempty(overwrite), overwrite = 0; end
 
 analysisDir = '/home/data/bubblesFeat/koreanSAdapt2/';
 resultDir   = '/home/data/bubblesResults/koreanSAdapt/';
@@ -8,26 +10,26 @@ csvDir      = '/home/data/bubbles/koreanS/mix/jiyoung/';
 baseMixDir  = '/home/data/bubbles/koreanS/mix/jiyoung/';
 mixDir = baseMixDir;
 
-subjects.aaron = {'Aaron'};
-subjects.alix  = {'Alix', 'Alix2'};
-subjects.jaekoo = {'Jaekoo'};
-subjects.jiyoung = {'Jiyoung', 'Jiyoung2'};
-subjects.nicole = {'Nicole'};
-subjects.scotty = {'Scotty'};
-subjects.vanessa = {'Vanessa'};
-subjects.yeonju = {'Yeonju'};
+% subjects.aaron = {'Aaron'};
+% subjects.alix  = {'Alix', 'Alix2'};
+% subjects.jaekoo = {'Jaekoo'};
+% subjects.jiyoung = {'Jiyoung', 'Jiyoung2'};
+% subjects.nicole = {'Nicole'};
+% subjects.scotty = {'Scotty'};
+% subjects.vanessa = {'Vanessa'};
+% subjects.yeonju = {'Yeonju'};
 subjects.mim = {'mim', 'mimg'};
-subjects.native = {'Jaekoo','Jiyoung', 'Jiyoung2', 'Yeonju'};
-subjects.nonnative = {'Aaron', 'Alix', 'Alix2', 'Nicole', 'Scotty', 'Vanessa', 'mim', 'mimg'};
-% subjects.all = {'Jaekoo','Jiyoung', 'Jiyoung2', 'Yeonju', ...
-%     'Aaron', 'Alix', 'Alix2', 'Nicole', 'Scotty', 'Vanessa', 'mim', 'mimg'};
+% subjects.native = {'Jaekoo','Jiyoung', 'Jiyoung2', 'Yeonju'};
+% subjects.nonnative = {'Aaron', 'Alix', 'Alix2', 'Nicole', 'Scotty', 'Vanessa', 'mim', 'mimg'};
+% % subjects.all = {'Jaekoo','Jiyoung', 'Jiyoung2', 'Yeonju', ...
+% %     'Aaron', 'Alix', 'Alix2', 'Nicole', 'Scotty', 'Vanessa', 'mim', 'mimg'};
 
 verbose = 1;
 subNames = fieldnames(subjects);
 for s=1:length(subNames)
     resultFile = fullfile(resultDir, [subNames{s} '.mat']);
     fprintf('%d: %s\n', s, resultFile);
-    if exist(resultFile, 'file')
+    if exist(resultFile, 'file') && ~overwrite
         fprintf('\b <--- Skipping\n');
         continue;
     end
@@ -45,7 +47,6 @@ noiseShape = '/home/data/bubbles/koreanS/jiyoungNoiseRef.wav';
 pcaDims = [100 1000];  % 100 dimensions from 1000 files
 usePcaDims = 40;
 trimFrames = 15;
-overwrite = 0;
 hop_s = 0.016;
 maxFreq_hz = 10000;
 
