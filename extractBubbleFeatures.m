@@ -54,6 +54,9 @@ for tries = 1:5
         break
     catch
     end
+    if tries == 5
+        error('Could not find noisyToCleanFn')
+    end
 end
 
 disp('Extracting bubble features for every file')
