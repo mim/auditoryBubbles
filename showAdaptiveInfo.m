@@ -14,7 +14,7 @@ for f = 1:length(files)
     bn = basename(files{f}, 0);
     fn = ['f_' regexprep(bn(1:end-3), '[^a-zA-Z0-9_]', '')];
     num = str2double(bn(end-2:end));
-    data.(fn)(num) = load(files{f});    
+    data.(fn)(num) = orderfields(load(files{f}));
 end
 
 fns = fieldnames(data);

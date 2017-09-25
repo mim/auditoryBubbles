@@ -58,10 +58,47 @@ end
 choiceNums = 1:length(choices);
 totCorrect = 0; totIncorrect = 0;
 targetCorrectness = 0.5 * (1 + 1 / length(choices));
+num = ones(size(files));
 
 % Should be compatible with saved files because files cell array is sorted
-if length(initialBps) == 1
+if isempty(initialBps)
+    % Load initialBps from most recently saved mat file from last
+    % experiment
+    for f = 1:length(files)
+        bn = basename(files{f}, 0);
+        [~,num(f),~,lastFile{f}] = nextAvailableFile(outMixDir, ...
+            '%s_bps%s_snr%+d_%03d', {bn, subjectName, snr_db}, num(f), '.wav');
+    end
+    for f = 1:length(lastFile)
+        d = dir(strrep(lastFile{f}, '.wav', '.mat'));
+        if isempty(d)
+            dates(f) = -inf;
+        else
+            dates(f) = d.datenum;
+        end
+    end
+    if ~any(isfinite(dates))
+        error('No existing data found in %s, please specify an initialBps value', outMixDir)
+    end
+    [~,latest] = max(dates);
+    d = load(strrep(lastFile{latest}, '.wav', '.mat'));
+    perStimBps = d.perStimBps;
+    
+    fprintf('Resuming experiment using per-stim bps:\n')
+    for i = 1:length(files)
+        fprintf('%s: %g\n', files{i}, perStimBps(i));
+    end
+    fprintf('\n');
+
+    trialsDone = sum(num-1);
+    roundsDone = floor(trialsDone / length(files));
+    nRound = nRound - roundsDone;
+    fprintf('Already completed %d trials = %d rounds, doing %d more rounds\n', ...
+        trialsDone, roundsDone, nRound)
+    
+elseif length(initialBps) == 1
     perStimBps = initialBps * ones(size(files));
+
 elseif length(initialBps) == length(files)
     perStimBps = initialBps;
     fprintf('Using per-stim bps:\n')
@@ -69,6 +106,7 @@ elseif length(initialBps) == length(files)
         fprintf('%s: %g\n', files{i}, perStimBps(i));
     end
     fprintf('\n');
+
 else
     error('Incompatible number of initialBps values: %s, expected %s', ...
         length(initialBps), length(files))
@@ -83,7 +121,6 @@ end
 nBlock = ceil(nRound / roundsPerBlock);
 nRound = roundsPerBlock * nBlock;
 
-num = zeros(size(files));
 for b = 1:nBlock
     block = randperm(nF * roundsPerBlock);
     for f = 1:nF
