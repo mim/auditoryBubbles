@@ -7,7 +7,7 @@ if ~exist('noiseFloor_db', 'var') || isempty(noiseFloor_db), noiseFloor_db = -30
 if ~exist('maxPause_s', 'var') || isempty(maxPause_s), maxPause_s = 0.5; end
 if ~exist('minDur_s', 'var') || isempty(minDur_s), minDur_s = 0.2; end
 
-[x fs] = wavread(continuousFile);
+[x fs] = audioread(continuousFile);
 x_db = max(-100, db(x));
 [b a] = butter(4, 5 / fs);
 xlp = filtfilt(b, a, x_db);

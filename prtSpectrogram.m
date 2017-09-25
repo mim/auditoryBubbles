@@ -54,7 +54,7 @@ ylim([0 maxFreq_khz])
 % nXticks = 8;
 % xticks = unique(10 * floor(linspace(0, max(t_ms)/10, nXticks+2)));
 % xticks = xticks(2:end-1);
-if max(t_ms) > 5000
+if max(t_ms) > 4000
     xticks = makeXTicks(max(t_ms), 1);
     xlab = 'Time (s)';
     tickMult = 0.001;
