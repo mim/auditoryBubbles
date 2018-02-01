@@ -56,7 +56,7 @@ else
     fbStr = 'Incorrect';
 end
 if giveFeedback
-    fprintf('%s (finished %d of %d)\n', fbStr, curIter, totalIters)
+    fprintf('\n\n%s (finished %d of %d)\n\n', fbStr, curIter, totalIters)
 else
     fprintf('Finished %d of %d\n', curIter, totalIters)
 end
