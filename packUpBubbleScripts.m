@@ -1,4 +1,4 @@
-function files = packUpBubbleNoise()
+function files = packUpBubbleScripts()
 
 % Copy necessary files into a dist directory and test that everything works
 % with the path cleared.
