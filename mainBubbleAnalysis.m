@@ -12,7 +12,7 @@ function [featDir] = mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern
 %
 % Inputs:
 %   mixDir       base directory of tree containing mixtures
-%   resultFile   mat file containing digested listening test results
+%   resultFile   mat file containing digested listening test results (or cell array of several for the same features)
 %   baseFeatDir  base directory of tree in which to write analysis
 %   patterns     regular expression for finding mixture files to analyze
 %   noiseShape   numerical specifier of noise type used to generate
@@ -35,38 +35,43 @@ if ~exist('condition', 'var') || isempty(condition), condition = 'bubbles'; end
 if ~exist('useFdr', 'var') || isempty(useFdr), useFdr = false; end
 
 excludePattern = 'bpsInf';
+if ~iscell(resultFile), resultFile = {resultFile}; end
 
 % Figure out sampling rate for plots
-resultFileName = basename(resultFile, 0);
 [mixFiles,mixPaths] = findFiles(mixDir, pattern, 1, excludePattern);
 [~,fs] = audioread(mixPaths{1});
 
-% Extract features from mixtures
+% Extract features from mixtures once
 [basePcaDir featDir] = extractBubbleFeatures(mixDir, baseFeatDir, mixFiles, pcaDims, trimFrames, setLength_s, win_s, noiseShape, overwrite >= 4);
 
-% Collect PCA features for mixes of the same clean file
-pcaFeatDir = fullfile(basePcaDir, 'feat');
-groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
-collectPcaFeatures(pcaFeatDir, featDir, resultFile, groupedFeatDir, overwrite >= 3, condition);
+% Run analyses for several results files
+for r = 1:length(resultFile)
+    resultFileName = basename(resultFile{r}, 0);
 
-% Compute statistics necessary for plotting pictures, running SVM experiments
-cacheDir = fullfile(basePcaDir, 'cache', resultFileName);
-pcaDataFile = fullfile(basePcaDir, 'data.mat');
-extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile, overwrite >= 2)
+    % Collect PCA features for mixes of the same clean file
+    pcaFeatDir = fullfile(basePcaDir, 'feat');
+    groupedFeatDir = fullfile(basePcaDir, 'grouped', resultFileName);
+    collectPcaFeatures(pcaFeatDir, featDir, resultFile{r}, groupedFeatDir, overwrite >= 3, condition);
 
-% Run SVM cross validation within each file, massage TFCT data
-resDir = fullfile(basePcaDir, 'res', resultFileName);
-expWarpSimpleFromCache(resDir, cacheDir, usePcaDims, overwrite >= 1, useFdr);
+    % Compute statistics necessary for plotting pictures, running SVM experiments
+    cacheDir = fullfile(basePcaDir, 'cache', resultFileName);
+    pcaDataFile = fullfile(basePcaDir, 'data.mat');
+    extractTfctAndPcaSimple(cacheDir, featDir, groupedFeatDir, pcaDataFile, resultFile{r}, overwrite >= 2)
 
-% Plot pictures
-plotDir = fullfile(basePcaDir, 'plots', resultFileName);
-toDisk = 1;
-startAt = 0;
-plotsSimple(resDir, plotDir, fs, win_s/4, toDisk, startAt, maxPlotHz);
+    % Run SVM cross validation within each file, massage TFCT data
+    resDir = fullfile(basePcaDir, 'res', resultFileName);
+    expWarpSimpleFromCache(resDir, cacheDir, usePcaDims, overwrite >= 1, useFdr);
 
-%nExamples = 5;
-%plotExamples(mixDir, plotDir, fs, hop_s, toDisk, startAt, maxPlotFreq, nExamples);
+    % Plot pictures
+    plotDir = fullfile(basePcaDir, 'plots', resultFileName);
+    toDisk = 1;
+    startAt = 0;
+    plotsSimple(resDir, plotDir, fs, win_s/4, toDisk, startAt, maxPlotHz);
 
-% Generate mixtures using TFCT as noise mask
-tfctWavOutDir = fullfile(basePcaDir, 'wavOut', resultFileName);
-auralizeTfctSimple(resDir, mixDir, tfctWavOutDir, trimFrames, setLength_s, noiseShape)
+    %nExamples = 5;
+    %plotExamples(mixDir, plotDir, fs, hop_s, toDisk, startAt, maxPlotFreq, nExamples);
+
+    % Generate mixtures using TFCT as noise mask
+    tfctWavOutDir = fullfile(basePcaDir, 'wavOut', resultFileName);
+    auralizeTfctSimple(resDir, mixDir, tfctWavOutDir, trimFrames, setLength_s, noiseShape)
+end
