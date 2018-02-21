@@ -11,12 +11,14 @@ function [C tstat pval vis mux muy stdx stdy] = corrFromSuffStats(n, x1, x2, y1,
 
 mux = x1 / n;
 muy = y1 / n;
-stdx = sqrt(x2/n - mux.^2);
-stdy = sqrt(y2/n - muy.^2);
+varx = x2/n - mux.^2;
+vary = y2/n - muy.^2;
+stdx = sqrt(max(eps, varx));
+stdy = sqrt(max(eps, vary));
 Sx = spdiags(1./stdx', 0, length(mux), length(mux));
 Sy = spdiags(1./stdy', 0, length(muy), length(muy));
 C = single(full(Sx * double(xy/n - mux' * muy) * Sy));
 
-tstat = C .* sqrt((n - 2) ./ (1 - C.^2));
+tstat = C .* sqrt(max(0, (n - 2) ./ (1 - C.^2)));
 pval  = tcdf(tstat, n - 2);
 vis = exp(-(1-pval) / 0.025) - exp(-pval / 0.025);
