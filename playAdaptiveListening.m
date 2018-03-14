@@ -1,6 +1,6 @@
 function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, ...
     initialBps, dur_s, snr_db, noiseShape, normalize, allowRepeats, ...
-    giveFeedback, vertical, globalBps)
+    giveFeedback, vertical, globalBps, allowIdk)
 
 % Play adaptive listening test, save mixes and results
 %
@@ -30,12 +30,14 @@ function playAdaptiveListening(cleanWavDir, outDir, subjectName, nRound, ...
 %   giveFeedback   If 1, tell listener whether they got each guess correct
 %   vertical       If 1, show choices vertically, otherwise tab-separated
 %   globalBps      If 1, use the same BPS for all stimuli, otherwise use separate bps for each stimulus
+%   allowIdk       If 1, allow "[don't know]" response
 
 
 if ~exist('allowRepeats', 'var') || isempty(allowRepeats), allowRepeats = false; end
 if ~exist('giveFeedback', 'var') || isempty(giveFeedback), giveFeedback = false; end
 if ~exist('vertical', 'var') || isempty(vertical), vertical = false; end
 if ~exist('globalBps', 'var') || isempty(globalBps), globalBps = false; end
+if ~exist('allowIdk', 'var') || isempty(allowIdk), allowIdk = false; end
 
 roundsPerBlock = 4;
 
@@ -55,10 +57,15 @@ choices = unique(rightAnswers)';
 if length(choices) ~= 6
     % warning('Using %d choices instead of 6', length(choices))
 end
-choiceNums = 1:length(choices);
 totCorrect = 0; totIncorrect = 0;
 targetCorrectness = 0.5 * (1 + 1 / length(choices));
 num = ones(size(files));
+
+if allowIdk
+    % Do this after setting targetCorrectness so it doesn't count
+    choices{end+1} = '[don''t know]';
+end
+choiceNums = 1:length(choices);
 
 % Should be compatible with saved files because files cell array is sorted
 if isempty(initialBps)
