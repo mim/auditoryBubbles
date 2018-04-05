@@ -27,6 +27,10 @@ for i = 1:length(inCsvFiles)
 end
 
 digested = csvReadCells(digestedFile);
+
+% Make "[don't know]" response work as a field name...
+digested(:,4) = listMap(@(x) regexprep(x, '[^a-z0-9_]', ''), digested(:,4));
+
 if isempty(equivClassCell)
     rightAnswers = listMap(@(x) regexprep(basename(x), '_.*', ''), digested(:,3));
     responses = digested(:,4);

@@ -100,9 +100,14 @@ if isempty(initialBps)
     trialsDone = sum(num-1);
     roundsDone = floor(trialsDone / length(files));
     nRound = nRound - roundsDone;
-    fprintf('Already completed %d trials = %d rounds, doing %d more rounds\n', ...
-        trialsDone, roundsDone, nRound)
-    
+    if nRound <= 0
+        fprintf('Already completed %d trials = %d rounds, done\n', ...
+            trialsDone, roundsDone)
+        return
+    else
+        fprintf('Already completed %d trials = %d rounds, doing %d more rounds\n', ...
+            trialsDone, roundsDone, nRound)
+    end    
 elseif length(initialBps) == 1
     perStimBps = initialBps * ones(size(files));
 
