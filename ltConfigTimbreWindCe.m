@@ -1,17 +1,17 @@
 % Common configuration for all experiments
-cfg.wavInDir = '~/Dropbox/hindiBubbles/inputData/simpleBFVW/';
-cfg.mixOutDir = '~/Dropbox/hindiBubbles/results/simpleBFVW/';
-cfg.noiseRef = '~/Dropbox/hindiBubbles/inputData/all_ref.wav';
+cfg.wavInDir = '~/Dropbox/timbreBubbles/inputData/windC4E4/';
+cfg.mixOutDir = '~/Dropbox/timbreBubbles/results/winC4E4/';
+cfg.noiseRef = '~/Dropbox/timbreBubbles/inputData/windC4E4_ref.wav';
 % cfg.wavInDir = '../inputData/simpleBFVW/';
 % cfg.mixOutDir = '../results/simpleBFVW/';
 % cfg.noiseRef = '../inputData/all_ref.wav';
 cfg.dur_s = 2.0;
 cfg.normalize = 0;
-cfg.snr_db = -25;
-cfg.initialBps = 20;
+cfg.snr_db = -37;
+cfg.initialBps = 25;
 
 cfg.vertical = true;
-cfg.globalBps = true;
+cfg.globalBps = false;
 cfg.allowIdk = false;
 cfg.allowRepeats = true;
 
