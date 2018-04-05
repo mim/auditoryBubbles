@@ -2,9 +2,7 @@
 cfg.wavInDir = '~/Dropbox/hindiBubbles/inputData/simpleBFVW/';
 cfg.mixOutDir = '~/Dropbox/hindiBubbles/results/simpleBFVW/';
 cfg.noiseRef = '~/Dropbox/hindiBubbles/inputData/all_ref.wav';
-% cfg.wavInDir = '../inputData/simpleBFVW/';
-% cfg.mixOutDir = '../results/simpleBFVW/';
-% cfg.noiseRef = '../inputData/all_ref.wav';
+
 cfg.dur_s = 2.0;
 cfg.normalize = 0;
 cfg.snr_db = -25;

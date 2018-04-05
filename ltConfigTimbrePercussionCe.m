@@ -1,7 +1,8 @@
 % Common configuration for all experiments
-cfg.wavInDir = '~/Dropbox/timbreBubbles/inputData/windC4E4/';
-cfg.mixOutDir = '~/Dropbox/timbreBubbles/results/windC4E4/';
-cfg.noiseRef = '~/Dropbox/timbreBubbles/inputData/windC4E4_ref.wav';
+cfg.wavInDir = '~/Dropbox/timbreBubbles/inputData/percussionC4E4/';
+cfg.mixOutDir = '~/Dropbox/timbreBubbles/results/percussionC4E4/';
+cfg.noiseRef = '~/Dropbox/timbreBubbles/inputData/percussionC4E4_ref.wav';
+
 cfg.dur_s = 2.0;
 cfg.normalize = 0;
 cfg.snr_db = -37;
