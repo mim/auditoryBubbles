@@ -161,9 +161,10 @@ for b = 1:nBlock
             wavWriteBetter(clean, fs, outCleanFile);
         end
         
+        curIter = (b-1)*nF*roundsPerBlock+fi;
         [totCorrect totIncorrect response wasRight] = playFileGetAndSaveChoice(outMixFile, rightAnswers{f}, ...
             outCsvFile, subjectName, choices, choiceNums, allowRepeats, ...
-            giveFeedback, totCorrect, totIncorrect, (b-1)*nF*roundsPerBlock+fi, nRound*nF, vertical);
+            giveFeedback, totCorrect, totIncorrect, curIter, nRound*nF, vertical);
         
         % Update perStimPast and perStimBps
         perStimPast(f,i) = wasRight;
@@ -180,6 +181,10 @@ for b = 1:nBlock
             'choices', 'f', 'i', 'rightAnswers', 'giveFeedback', 'allowRepeats', ...
             'perStimPast', 'perStimBps', 'initialBps', 'dur_s', 'snr_db', ...
             'noiseShape', 'normalize', 'globalBps');
+        
+        if mod(curIter, 200) == 0
+            fprintf('\n\nNow might be a good time to take a break\n\n')
+        end
     end
 end
 fprintf('Avg %g%% correct\n', 100*totCorrect / (totCorrect + totIncorrect));
