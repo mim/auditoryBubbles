@@ -113,3 +113,8 @@ setLength_s = 0;
 maxFreq_hz = 10000;
 mainBubbleAnalysis(mixDir, resultFile, baseFeatDir, pattern, noiseRefFile, pcaDims, usePcaDims, trimFrames, win_s, overwrite, setLength_s, maxFreq_hz)
 ```
+
+
+## Acknowledgements
+
+This material is based upon work supported by the National Science Foundation (NSF) under Grant IIS-1750383. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the NSF.
